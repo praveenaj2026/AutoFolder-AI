@@ -693,8 +693,15 @@ class FileOrganizer:
         
         logger.info(f"{'[DRY RUN] ' if dry_run else ''}Organizing folder: {folder_path} {'(recursive)' if recursive else ''}")
         
-        # Get preview of operations
-        operations = self.preview_organization(folder_path, profile, custom_rules)
+        # Get preview of operations (returns tuple: operations, stats)
+        result = self.preview_organization(folder_path, profile, custom_rules)
+        
+        # Handle tuple return from preview_organization
+        if isinstance(result, tuple) and len(result) == 2:
+            operations, stats = result
+        else:
+            # Fallback for old return format
+            operations = result
         
         if dry_run:
             logger.info(f"Dry run complete: {len(operations)} operations would be performed")
