@@ -64,6 +64,84 @@ class OrganizeThread(QThread):
 class MainWindow(QMainWindow):
     """Main application window with modern blueish theme."""
     
+    # File type to icon mapping
+    FILE_TYPE_ICONS = {
+        # Documents
+        'pdf': '📕',
+        'doc': '📘',
+        'docx': '📘',
+        'txt': '📄',
+        'rtf': '📄',
+        'odt': '📄',
+        # Spreadsheets
+        'xls': '📊',
+        'xlsx': '📊',
+        'csv': '📊',
+        'ods': '📊',
+        # Presentations
+        'ppt': '📽️',
+        'pptx': '📽️',
+        'odp': '📽️',
+        # Images
+        'jpg': '🖼️',
+        'jpeg': '🖼️',
+        'png': '🖼️',
+        'gif': '🖼️',
+        'bmp': '🖼️',
+        'svg': '🖼️',
+        'webp': '🖼️',
+        'ico': '🖼️',
+        # Videos
+        'mp4': '🎬',
+        'avi': '🎬',
+        'mkv': '🎬',
+        'mov': '🎬',
+        'wmv': '🎬',
+        'flv': '🎬',
+        'webm': '🎬',
+        # Audio
+        'mp3': '🎵',
+        'wav': '🎵',
+        'flac': '🎵',
+        'aac': '🎵',
+        'm4a': '🎵',
+        'ogg': '🎵',
+        'wma': '🎵',
+        # Archives
+        'zip': '📦',
+        'rar': '📦',
+        '7z': '📦',
+        'tar': '📦',
+        'gz': '📦',
+        'bz2': '📦',
+        # Code
+        'py': '🐍',
+        'js': '📜',
+        'html': '🌐',
+        'css': '🎨',
+        'java': '☕',
+        'cpp': '⚙️',
+        'c': '⚙️',
+        'php': '🐘',
+        'rb': '💎',
+        'go': '🔵',
+        'rs': '🦀',
+        'ts': '📜',
+        'json': '📋',
+        'xml': '📋',
+        'yaml': '📋',
+        'yml': '📋',
+        # Executables
+        'exe': '⚡',
+        'msi': '⚡',
+        'dmg': '⚡',
+        'app': '⚡',
+        'deb': '⚡',
+        'rpm': '⚡',
+        # Default
+        'default': '📄'
+    }
+    
     def __init__(self, config: ConfigManager):
         super().__init__()
         
@@ -304,8 +382,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.info_label)
         
         self.preview_table = QTableWidget()
-        self.preview_table.setColumnCount(5)
-        self.preview_table.setHorizontalHeaderLabels(["📄 Original Name", "✏️ New Name", "🏷️ Category", "📦 Size", "📁 Destination"])
+        self.preview_table.setColumnCount(6)
+        self.preview_table.setHorizontalHeaderLabels(["📦 Type", "📄 Original Name", "✏️ New Name", "🏷️ Category", "📦 Size", "📁 Destination"])
         
         # Blueish theme table styling
         self.preview_table.setStyleSheet("""
@@ -860,6 +938,14 @@ class MainWindow(QMainWindow):
         self.preview_table.setRowCount(len(display_ops))
         
         for i, op in enumerate(display_ops):
+            # File type icon
+            ext = op['source'].suffix.lower().lstrip('.')
+            icon = self.FILE_TYPE_ICONS.get(ext, self.FILE_TYPE_ICONS['default'])
+            icon_item = QTableWidgetItem(icon)
+            icon_item.setFont(QFont("Segoe UI Emoji", 16))
+            icon_item.setTextAlignment(Qt.AlignCenter)
+            self.preview_table.setItem(i, 0, icon_item)
+            
             # Original name - sanitize to remove problematic characters
             filename = op['source'].name
             # Remove non-printable characters, box-drawing, and control characters
@@ -875,7 +961,7 @@ class MainWindow(QMainWindow):
             
             name_item = QTableWidgetItem(filename)
             name_item.setForeground(QColor("#1E3A8A"))
-            self.preview_table.setItem(i, 0, name_item)
+            self.preview_table.setItem(i, 1, name_item)
             
             # Suggested new name (if different from original)
             suggested_name = op.get('suggested_name', op['source'].name)
@@ -891,23 +977,26 @@ class MainWindow(QMainWindow):
                 suggested_item = QTableWidgetItem("(no change)")
                 suggested_item.setForeground(QColor("#9CA3AF"))
             
-            self.preview_table.setItem(i, 1, suggested_item)
+            self.preview_table.setItem(i, 2, suggested_item)
             
             # Category
             category_item = QTableWidgetItem(op['category'].title())
             category_item.setForeground(QColor("#2563EB"))
-            self.preview_table.setItem(i, 2, category_item)
+            self.preview_table.setItem(i, 3, category_item)
             
             # Size
             size_item = QTableWidgetItem(self._format_size(op['size']))
             size_item.setForeground(QColor("#7C3AED"))
-            self.preview_table.setItem(i, 3, size_item)
+            self.preview_table.setItem(i, 4, size_item)
             
             # Target folder (showing nested structure)
             target_path = str(op['target'].relative_to(self.current_folder))
             target_item = QTableWidgetItem(target_path)
             target_item.setForeground(QColor("#059669"))
-            self.preview_table.setItem(i, 4, target_item)
+            self.preview_table.setItem(i, 5, target_item)
+        
+        # Resize icon column to fit content
+        self.preview_table.setColumnWidth(0, 60)
         
         # Show message if there are more items
         if len(operations) > display_limit:
