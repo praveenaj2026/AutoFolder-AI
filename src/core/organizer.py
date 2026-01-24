@@ -612,7 +612,60 @@ class FileOrganizer:
                 })
         
         logger.info(f"Preview generated: {len(operations)} operations planned")
-        return operations
+        
+        # Build statistics for dashboard
+        stats = self._build_preview_stats(operations, folder_path)
+        
+        return operations, stats
+    
+    def _build_preview_stats(self, operations: List[Dict], folder_path: Path) -> Dict:
+        """Build comprehensive statistics from preview operations."""
+        stats = {
+            'total_files': len(operations),
+            'total_size': sum(op['size'] for op in operations),
+            'by_category': {},
+            'by_extension': {},
+            'by_size_range': {
+                'tiny': 0, 'small': 0, 'medium': 0, 'large': 0, 'huge': 0
+            },
+            'ai_groups': {},
+            'rename_count': 0,
+            'folder_path': str(folder_path)
+        }
+        
+        for op in operations:
+            # Category stats
+            category = op.get('category', 'Other')
+            stats['by_category'][category] = stats['by_category'].get(category, 0) + 1
+            
+            # Extension stats
+            ext = op['source'].suffix.lower().lstrip('.')
+            if ext:
+                stats['by_extension'][ext] = stats['by_extension'].get(ext, 0) + 1
+            
+            # Size range stats
+            size_mb = op['size'] / (1024 * 1024)
+            if size_mb < 1:
+                stats['by_size_range']['tiny'] += 1
+            elif size_mb < 10:
+                stats['by_size_range']['small'] += 1
+            elif size_mb < 100:
+                stats['by_size_range']['medium'] += 1
+            elif size_mb < 1024:
+                stats['by_size_range']['large'] += 1
+            else:
+                stats['by_size_range']['huge'] += 1
+            
+            # AI group stats
+            ai_group = op.get('ai_group')
+            if ai_group:
+                stats['ai_groups'][ai_group] = stats['ai_groups'].get(ai_group, 0) + 1
+            
+            # Rename stats
+            if op.get('suggested_name') != op.get('original_name'):
+                stats['rename_count'] += 1
+        
+        return stats
     
     def organize_folder(
         self,

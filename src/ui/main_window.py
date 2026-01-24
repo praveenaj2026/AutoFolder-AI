@@ -23,11 +23,13 @@ try:
     from ..ai import AIClassifier
     from ..utils.config_manager import ConfigManager
     from .duplicate_dialog import DuplicateDialog
+    from .stats_dialog import StatsDialog
 except ImportError:
     from core import FileOrganizer
     from ai import AIClassifier
     from utils.config_manager import ConfigManager
     from ui.duplicate_dialog import DuplicateDialog
+    from ui.stats_dialog import StatsDialog
 
 
 logger = logging.getLogger(__name__)
@@ -76,6 +78,7 @@ class MainWindow(QMainWindow):
         
         self.current_folder: Optional[Path] = None
         self.current_preview = []
+        self.current_stats = None
         self.organize_thread: Optional[OrganizeThread] = None
         # AI semantic grouping is ALWAYS enabled - no toggle needed
         
@@ -230,6 +233,34 @@ class MainWindow(QMainWindow):
             }
         """)
         layout.addWidget(self.scan_duplicates_btn)
+        
+        # View Stats button
+        self.view_stats_btn = QPushButton("📊 View Stats")
+        self.view_stats_btn.clicked.connect(self._show_stats)
+        self.view_stats_btn.setFixedHeight(48)
+        self.view_stats_btn.setEnabled(False)  # Enabled after preview
+        self.view_stats_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #8B5CF6;
+                color: white;
+                font-size: 15px;
+                font-weight: bold;
+                padding: 12px 30px;
+                border: none;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #7C3AED;
+            }
+            QPushButton:pressed {
+                background-color: #6D28D9;
+            }
+            QPushButton:disabled {
+                background-color: #D1D5DB;
+                color: #9CA3AF;
+            }
+        """)
+        layout.addWidget(self.view_stats_btn)
         
         group.setLayout(layout)
         return group
@@ -562,7 +593,7 @@ class MainWindow(QMainWindow):
     def _run_preview_analysis(self, progress_dialog):
         """Run preview analysis and update UI."""
         try:
-            self.current_preview = self.organizer.preview_organization(
+            self.current_preview, self.current_stats = self.organizer.preview_organization(
                 self.current_folder,
                 profile='downloads'
             )
@@ -572,8 +603,9 @@ class MainWindow(QMainWindow):
             
             self._update_preview_table(self.current_preview)
             
-            # Enable organize button after preview is ready
+            # Enable organize and stats buttons after preview is ready
             self.organize_btn.setEnabled(len(self.current_preview) > 0)
+            self.view_stats_btn.setEnabled(self.current_stats is not None)
             
             # Update status message - AI is always active
             self.statusBar().showMessage(
@@ -795,6 +827,27 @@ class MainWindow(QMainWindow):
                 self,
                 "Processing Error",
                 f"Failed to process duplicates:\n\n{str(e)}"
+            )
+    
+    def _show_stats(self):
+        """Show organization statistics dashboard."""
+        if not self.current_stats:
+            QMessageBox.information(
+                self,
+                "No Statistics",
+                "No statistics available. Please analyze a folder first."
+            )
+            return
+        
+        try:
+            dialog = StatsDialog(self.current_stats, self)
+            dialog.exec_()
+        except Exception as e:
+            logger.error(f"Error showing stats: {e}", exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Stats Error",
+                f"Failed to show statistics:\n\n{str(e)}"
             )
     
     def _update_preview_table(self, operations):
