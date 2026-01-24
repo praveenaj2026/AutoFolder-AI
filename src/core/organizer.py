@@ -57,15 +57,40 @@ class FileOrganizer:
         if not folder_path.is_dir():
             raise ValueError(f"Path is not a folder: {folder_path}")
         
-        files = list(folder_path.glob('*'))
-        files = [f for f in files if f.is_file()]
+        # Get all items (files and folders)
+        all_items = list(folder_path.glob('*'))
+        files = [f for f in all_items if f.is_file()]
+        folders = [f for f in all_items if f.is_dir()]
         
         # Ignore hidden files if configured
         if self.config.get('organization', {}).get('ignore_hidden_files', True):
             files = [f for f in files if not f.name.startswith('.')]
+            folders = [f for f in folders if not f.name.startswith('.')]
+        
+        # Peek inside folders and treat them as files for organization
+        folder_items = []
+        for folder in folders:
+            try:
+                # Peek at first few files to determine folder type
+                folder_files = list(folder.glob('*'))[:10]  # Sample first 10 files
+                folder_files = [f for f in folder_files if f.is_file()]
+                
+                if folder_files:
+                    # Calculate folder size
+                    folder_size = sum(f.stat().st_size for f in folder_files)
+                    # Use first file's extension as representative
+                    folder_items.append({
+                        'path': folder,
+                        'is_folder': True,
+                        'size': folder_size,
+                        'sample_files': folder_files
+                    })
+            except Exception as e:
+                logger.debug(f"Could not peek into folder {folder}: {e}")
         
         analysis = {
             'total_files': len(files),
+            'total_folders': len(folder_items),
             'total_size': sum(f.stat().st_size for f in files),
             'by_extension': {},
             'by_date': {},
@@ -76,7 +101,8 @@ class FileOrganizer:
                 'large': 0,     # 100MB-1GB
                 'huge': 0       # > 1GB
             },
-            'files': files
+            'files': files,
+            'folders': folder_items
         }
         
         # Categorize files
@@ -131,6 +157,7 @@ class FileOrganizer:
         
         analysis = self.analyze_folder(folder_path)
         files = analysis['files']
+        folders = analysis.get('folders', [])
         
         # Get rules from profile or custom
         if profile:
@@ -142,8 +169,8 @@ class FileOrganizer:
         
         operations = []
         
+        # Process files
         for file_path in files:
-            # Determine target location based on rules
             target_folder = self._determine_target_folder(
                 file_path, 
                 folder_path, 
@@ -165,10 +192,44 @@ class FileOrganizer:
                     'source': file_path,
                     'target': target_path,
                     'action': 'move',
-                    'category': target_folder.name,
+                    'category': self._get_category_from_path(target_folder, folder_path),
                     'size': file_path.stat().st_size,
                     'status': 'pending'
                 })
+        
+        # Process folders (based on peeked content)
+        for folder_info in folders:
+            folder_path_item = folder_info['path']
+            sample_files = folder_info.get('sample_files', [])
+            
+            if sample_files:
+                # Use first file to determine folder category
+                representative_file = sample_files[0]
+                target_folder = self._determine_target_folder(
+                    representative_file,
+                    folder_path,
+                    rules
+                )
+                
+                if target_folder:
+                    target_path = target_folder / folder_path_item.name
+                    
+                    if target_path.exists():
+                        conflict_resolution = self.config.get('organization', {}).get('handle_conflicts', 'rename')
+                        if conflict_resolution == 'rename':
+                            target_path = self._get_unique_path_folder(target_path)
+                        elif conflict_resolution == 'skip':
+                            continue
+                    
+                    operations.append({
+                        'source': folder_path_item,
+                        'target': target_path,
+                        'action': 'move',
+                        'category': self._get_category_from_path(target_folder, folder_path),
+                        'size': folder_info['size'],
+                        'status': 'pending',
+                        'is_folder': True
+                    })
         
         logger.info(f"Preview generated: {len(operations)} operations planned")
         return operations
@@ -292,14 +353,35 @@ class FileOrganizer:
         base_folder: Path, 
         rules: List[Dict]
     ) -> Optional[Path]:
-        """Determine target folder based on rules."""
+        """Determine target folder with multi-level sorting (Category → Type → Date)."""
         
+        # First level: Category (Documents, Images, etc.)
+        category_folder = None
         for rule in rules:
             if self.rule_engine.matches_rule(file_path, rule):
                 target_name = rule.get('target_folder', 'Other')
-                return base_folder / target_name
+                category_folder = base_folder / target_name
+                break
         
-        return None
+        if not category_folder:
+            return None
+        
+        # Second level: File Type (PDF, DOCX, etc.)
+        ext = file_path.suffix.lower().lstrip('.')
+        if ext:
+            type_folder = category_folder / ext.upper()
+        else:
+            type_folder = category_folder / "No Extension"
+        
+        # Third level: Date (Jan-26, Dec-25, etc.)
+        try:
+            mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
+            date_folder_name = mtime.strftime('%b-%y')  # e.g., "Jan-26"
+            final_folder = type_folder / date_folder_name
+        except:
+            final_folder = type_folder / "Unknown Date"
+        
+        return final_folder
     
     def _get_unique_path(self, path: Path) -> Path:
         """Generate unique path if file exists."""
@@ -318,3 +400,29 @@ class FileOrganizer:
             if not new_path.exists():
                 return new_path
             counter += 1
+    
+    def _get_unique_path_folder(self, path: Path) -> Path:
+        """Generate unique path if folder exists."""
+        
+        if not path.exists():
+            return path
+        
+        counter = 1
+        name = path.name
+        parent = path.parent
+        
+        while True:
+            new_name = f"{name} ({counter})"
+            new_path = parent / new_name
+            if not new_path.exists():
+                return new_path
+            counter += 1
+    
+    def _get_category_from_path(self, target_folder: Path, base_folder: Path) -> str:
+        """Extract category name from nested path."""
+        try:
+            relative = target_folder.relative_to(base_folder)
+            parts = relative.parts
+            return parts[0] if parts else "Other"
+        except:
+            return "Other"
