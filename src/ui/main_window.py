@@ -431,9 +431,9 @@ class MainWindow(QMainWindow):
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
         
-        # Configure selection behavior - select entire rows, no vertical header
-        self.preview_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.preview_table.setSelectionMode(QTableWidget.SingleSelection)
+        # Configure selection behavior - DISABLE selection for cleaner look
+        self.preview_table.setSelectionMode(QTableWidget.NoSelection)
+        self.preview_table.setFocusPolicy(Qt.NoFocus)
         self.preview_table.verticalHeader().setVisible(False)
         
         layout.addWidget(self.preview_table)
@@ -785,11 +785,21 @@ class MainWindow(QMainWindow):
             
         except Exception as e:
             logger.error(f"Duplicate scan error: {e}", exc_info=True)
-            QMessageBox.critical(
-                self,
-                "Scan Error",
-                f"Failed to scan for duplicates:\n\n{str(e)}"
-            )
+            error_box = QMessageBox(self)
+            error_box.setIcon(QMessageBox.Critical)
+            error_box.setWindowTitle("Scan Error")
+            error_box.setText("<h3 style='color:#DC2626;'>Failed to Scan Duplicates</h3>")
+            error_box.setInformativeText(f"<p style='color:#000000; font-size:13px;'><b>Error:</b> {str(e)}</p>")
+            error_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: white;
+                }
+                QLabel {
+                    color: #000000;
+                    min-width: 400px;
+                }
+            """)
+            error_box.exec_()
     
     def _handle_duplicate_result(self, result: dict):
         """Handle duplicate processing result from dialog."""
@@ -936,8 +946,8 @@ class MainWindow(QMainWindow):
             logger.error(f"Operations must be a list, got {type(operations)}")
             raise ValueError(f"Invalid operations type: {type(operations)}. Expected list of dictionaries.")
         
-        # Limit display to first 1000 items for performance
-        display_limit = 1000
+        # Limit display to first 200 items for better scroll performance
+        display_limit = 200
         display_ops = operations[:display_limit]
         
         self.preview_table.setRowCount(len(display_ops))
@@ -1017,6 +1027,9 @@ class MainWindow(QMainWindow):
         # Show message if there are more items
         if len(operations) > display_limit:
             logger.info(f"Showing first {display_limit} of {len(operations)} items in preview")
+            self.statusBar().showMessage(
+                f"⚠️ Showing first {display_limit} of {len(operations)} items for performance • All {len(operations)} will be organized"
+            )
     
     def _organize_folder(self):
         """Execute smart organization."""
