@@ -22,10 +22,10 @@ organization:
   ignore_hidden_files: true
   
 ai:
-  enabled: true  # Pro version AI features enabled!
-  model_path: "C:/Users/Praveen/Downloads/Python Scripts/AI Model"  # Use your existing model folder
+  enabled: true  # AI always enabled in v2.0
+  model_path: "C:/Users/Praveen/Downloads/Python Scripts/AI Model"  # Cache folder with existing model
   use_local_only: true
-  embedding_model: "all-MiniLM-L6-v2"  # Lightweight, fast
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"  # Full model path for offline use
   confidence_threshold: 0.7
   max_suggestions: 5
 
