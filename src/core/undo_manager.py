@@ -35,6 +35,11 @@ class UndoManager:
         # Load existing history
         self._load_history()
     
+    @property
+    def operations(self):
+        """Get operations list (for compatibility)."""
+        return self.history
+    
     def save_operation(self, operation: Dict):
         """
         Save an operation to history.
@@ -99,6 +104,10 @@ class UndoManager:
     def get_history(self) -> List[Dict]:
         """Get all operations in history."""
         return self.history.copy()
+    
+    def can_undo(self) -> bool:
+        """Check if undo is available."""
+        return len(self.history) > 0
     
     def clear_history(self):
         """Clear all history."""

@@ -1,7 +1,7 @@
 """
 Main Window - AutoFolder AI v2.0
 
-Simplified, modern UI with auto-analysis and smart organization.
+Modern dark theme UI with improved functionality.
 """
 
 import logging
@@ -58,7 +58,7 @@ class OrganizeThread(QThread):
 
 
 class MainWindow(QMainWindow):
-    """Main application window with simplified, modern UI."""
+    """Main application window with modern dark theme."""
     
     def __init__(self, config: ConfigManager):
         super().__init__()
@@ -76,18 +76,18 @@ class MainWindow(QMainWindow):
         self.organize_thread: Optional[OrganizeThread] = None
         
         self._init_ui()
-        self._apply_modern_style()
+        self._apply_dark_theme()
         
-        logger.info("Main window initialized with simplified UI")
+        logger.info("Main window initialized with dark theme UI")
     
     def _init_ui(self):
-        """Initialize the modern, simplified user interface."""
+        """Initialize the modern dark-themed user interface."""
         
         # Window settings
         app_config = self.config.get('app', {})
         self.setWindowTitle(f"{app_config.get('name', 'AutoFolder AI')} - v{app_config.get('version', '1.0.0')}")
-        self.setGeometry(100, 100, 1000, 700)
-        self.setMinimumSize(800, 600)
+        self.setGeometry(100, 100, 1100, 750)
+        self.setMinimumSize(900, 650)
         
         # Central widget
         central_widget = QWidget()
@@ -95,107 +95,115 @@ class MainWindow(QMainWindow):
         
         # Main layout
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(25, 25, 25, 25)
+        main_layout.setSpacing(20)
         
         # Header
         header = self._create_header()
         main_layout.addWidget(header)
         
-        # Folder selection (simplified - auto-analyzes)
+        # Folder selection
         folder_group = self._create_folder_selection()
         main_layout.addWidget(folder_group)
         
-        # Preview area (auto-populated)
+        # Preview area
         preview_group = self._create_preview_area()
         main_layout.addWidget(preview_group, stretch=1)
         
-        # Action buttons (simplified)
+        # Action buttons
         button_layout = self._create_action_buttons()
         main_layout.addLayout(button_layout)
         
         # Status bar
-        self.statusBar().showMessage("Ready • AI-Powered Smart Organization")
+        self.statusBar().showMessage("🚀 Ready • AI-Powered Smart Organization")
         
     def _create_header(self) -> QWidget:
         """Create modern header."""
         header_widget = QWidget()
-        header_widget.setFixedHeight(100)
+        header_widget.setFixedHeight(110)
         
         layout = QVBoxLayout(header_widget)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(0, 0, 0, 10)
+        layout.setSpacing(5)
         
         # Title
         title = QLabel("AutoFolder AI")
         title_font = QFont()
-        title_font.setPointSize(28)
+        title_font.setPointSize(32)
         title_font.setBold(True)
         title.setFont(title_font)
+        title.setStyleSheet("color: #ffffff;")
         layout.addWidget(title)
         
         # Subtitle
-        subtitle = QLabel("🤖 AI-Powered Smart File Organization")
+        subtitle = QLabel("🤖 AI-Powered Smart File & Folder Organization")
         subtitle_font = QFont()
-        subtitle_font.setPointSize(12)
+        subtitle_font.setPointSize(13)
         subtitle.setFont(subtitle_font)
-        subtitle.setStyleSheet("color: #555;")
+        subtitle.setStyleSheet("color: #b0b0b0;")
         layout.addWidget(subtitle)
         
         return header_widget
     
     def _create_folder_selection(self) -> QGroupBox:
-        """Create simplified folder selection (auto-analyzes on browse)."""
+        """Create folder selection group."""
         
-        group = QGroupBox("📁 Select Folder")
+        group = QGroupBox("📁 Select Folder to Organize")
         group.setStyleSheet("""
             QGroupBox {
-                font-size: 14px;
+                font-size: 15px;
                 font-weight: bold;
-                padding: 15px;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                margin-top: 10px;
+                color: #ffffff;
+                padding: 18px;
+                border: 2px solid #3d3d3d;
+                border-radius: 10px;
+                margin-top: 12px;
+                background-color: #2a2a2a;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 15px;
-                padding: 0 5px;
+                left: 18px;
+                padding: 0 8px;
+                background-color: #2a2a2a;
             }
         """)
         
         layout = QHBoxLayout()
-        layout.setSpacing(10)
+        layout.setSpacing(12)
         
         # Folder path display
         self.folder_label = QLabel("No folder selected - Click Browse to get started")
         self.folder_label.setStyleSheet("""
             QLabel {
-                padding: 12px;
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 6px;
+                padding: 14px;
+                background-color: #1e1e1e;
+                border: 1px solid #3d3d3d;
+                border-radius: 8px;
                 font-size: 13px;
-                color: #495057;
+                color: #c0c0c0;
             }
         """)
         layout.addWidget(self.folder_label, stretch=1)
         
-        # Browse button (triggers auto-analysis)
+        # Browse button
         self.browse_btn = QPushButton("📂 Browse")
         self.browse_btn.clicked.connect(self._browse_and_analyze)
-        self.browse_btn.setFixedHeight(45)
+        self.browse_btn.setFixedHeight(48)
         self.browse_btn.setStyleSheet("""
             QPushButton {
-                background-color: #6c757d;
+                background-color: #404040;
                 color: white;
-                font-size: 14px;
+                font-size: 15px;
                 font-weight: bold;
-                padding: 10px 25px;
+                padding: 12px 30px;
                 border: none;
-                border-radius: 6px;
+                border-radius: 8px;
             }
             QPushButton:hover {
-                background-color: #5a6268;
+                background-color: #505050;
+            }
+            QPushButton:pressed {
+                background-color: #303030;
             }
         """)
         layout.addWidget(self.browse_btn)
@@ -204,35 +212,39 @@ class MainWindow(QMainWindow):
         return group
     
     def _create_preview_area(self) -> QGroupBox:
-        """Create modern preview area."""
+        """Create preview area with table."""
         
-        group = QGroupBox("📋 Preview - What Will Be Organized")
+        group = QGroupBox("📋 Preview - Smart Organization Plan")
         group.setStyleSheet("""
             QGroupBox {
-                font-size: 14px;
+                font-size: 15px;
                 font-weight: bold;
-                padding: 15px;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                margin-top: 10px;
+                color: #ffffff;
+                padding: 18px;
+                border: 2px solid #3d3d3d;
+                border-radius: 10px;
+                margin-top: 12px;
+                background-color: #2a2a2a;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 15px;
-                padding: 0 5px;
+                left: 18px;
+                padding: 0 8px;
+                background-color: #2a2a2a;
             }
         """)
         
         layout = QVBoxLayout()
+        layout.setSpacing(12)
         
         # Info label
         self.info_label = QLabel("Browse a folder to see intelligent organization preview")
         self.info_label.setStyleSheet("""
             QLabel {
-                color: #6c757d;
-                padding: 12px;
-                background-color: #f8f9fa;
-                border-radius: 6px;
+                color: #b0b0b0;
+                padding: 14px;
+                background-color: #1e1e1e;
+                border-radius: 8px;
                 font-size: 13px;
             }
         """)
@@ -241,26 +253,44 @@ class MainWindow(QMainWindow):
         # Preview table
         self.preview_table = QTableWidget()
         self.preview_table.setColumnCount(4)
-        self.preview_table.setHorizontalHeaderLabels(["📄 File Name", "🏷️ Category", "📦 Size", "📁 Destination"])
+        self.preview_table.setHorizontalHeaderLabels(["📄 File/Folder Name", "🏷️ Category", "📦 Size", "📁 Destination"])
         
-        # Modern table styling
+        # Dark theme table styling
         self.preview_table.setStyleSheet("""
             QTableWidget {
-                border: 1px solid #dee2e6;
-                border-radius: 6px;
-                background-color: white;
-                gridline-color: #e9ecef;
+                border: 1px solid #3d3d3d;
+                border-radius: 8px;
+                background-color: #1e1e1e;
+                gridline-color: #3d3d3d;
+                color: #ffffff;
             }
             QTableWidget::item {
-                padding: 8px;
+                padding: 10px;
+                border-bottom: 1px solid #2d2d2d;
+            }
+            QTableWidget::item:selected {
+                background-color: #2d5a8f;
             }
             QHeaderView::section {
-                background-color: #f8f9fa;
-                padding: 10px;
+                background-color: #2a2a2a;
+                padding: 12px;
                 border: none;
-                border-bottom: 2px solid #dee2e6;
+                border-bottom: 2px solid #3d3d3d;
                 font-weight: bold;
-                color: #495057;
+                color: #ffffff;
+                font-size: 13px;
+            }
+            QScrollBar:vertical {
+                background-color: #2a2a2a;
+                width: 14px;
+                border-radius: 7px;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #505050;
+                border-radius: 7px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background-color: #606060;
             }
         """)
         
@@ -271,6 +301,9 @@ class MainWindow(QMainWindow):
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
         
+        # Hide row numbers (vertical header) - fixes black box issue
+        self.preview_table.verticalHeader().setVisible(False)
+        
         layout.addWidget(self.preview_table)
         
         # Progress bar
@@ -278,14 +311,18 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(False)
         self.progress_bar.setStyleSheet("""
             QProgressBar {
-                border: 1px solid #dee2e6;
-                border-radius: 6px;
+                border: 1px solid #3d3d3d;
+                border-radius: 8px;
                 text-align: center;
-                height: 25px;
+                height: 28px;
+                background-color: #1e1e1e;
+                color: #ffffff;
+                font-weight: bold;
             }
             QProgressBar::chunk {
-                background-color: #28a745;
-                border-radius: 5px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                           stop:0 #4CAF50, stop:1 #45a049);
+                border-radius: 7px;
             }
         """)
         layout.addWidget(self.progress_bar)
@@ -294,32 +331,35 @@ class MainWindow(QMainWindow):
         return group
     
     def _create_action_buttons(self) -> QHBoxLayout:
-        """Create simplified action buttons."""
+        """Create action buttons."""
         
         layout = QHBoxLayout()
-        layout.setSpacing(15)
+        layout.setSpacing(18)
         
         # Undo button
         self.undo_btn = QPushButton("⟲ Undo Last")
         self.undo_btn.clicked.connect(self._undo_last)
         self.undo_btn.setEnabled(False)
-        self.undo_btn.setFixedHeight(50)
+        self.undo_btn.setFixedHeight(55)
         self.undo_btn.setStyleSheet("""
             QPushButton {
-                background-color: #6c757d;
+                background-color: #404040;
                 color: white;
-                font-size: 14px;
+                font-size: 15px;
                 font-weight: bold;
-                padding: 12px 30px;
+                padding: 14px 35px;
                 border: none;
-                border-radius: 8px;
+                border-radius: 10px;
             }
             QPushButton:hover {
-                background-color: #5a6268;
+                background-color: #505050;
+            }
+            QPushButton:pressed {
+                background-color: #303030;
             }
             QPushButton:disabled {
-                background-color: #e9ecef;
-                color: #adb5bd;
+                background-color: #2d2d2d;
+                color: #666666;
             }
         """)
         layout.addWidget(self.undo_btn)
@@ -330,47 +370,66 @@ class MainWindow(QMainWindow):
         self.organize_btn = QPushButton("✨ Smart Organize")
         self.organize_btn.clicked.connect(self._organize_folder)
         self.organize_btn.setEnabled(False)
-        self.organize_btn.setFixedHeight(50)
+        self.organize_btn.setFixedHeight(55)
         self.organize_btn.setStyleSheet("""
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                                           stop:0 #0d6efd, stop:1 #0b5ed7);
+                                           stop:0 #2196F3, stop:1 #1976D2);
                 color: white;
-                font-size: 16px;
+                font-size: 17px;
                 font-weight: bold;
-                padding: 12px 50px;
+                padding: 14px 55px;
                 border: none;
-                border-radius: 8px;
+                border-radius: 10px;
             }
             QPushButton:hover {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                                           stop:0 #0b5ed7, stop:1 #0a58ca);
+                                           stop:0 #1E88E5, stop:1 #1565C0);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                           stop:0 #1565C0, stop:1 #0D47A1);
             }
             QPushButton:disabled {
-                background-color: #e9ecef;
-                color: #adb5bd;
+                background-color: #2d2d2d;
+                color: #666666;
             }
         """)
         layout.addWidget(self.organize_btn)
         
         return layout
     
-    def _apply_modern_style(self):
-        """Apply modern application-wide styling."""
+    def _apply_dark_theme(self):
+        """Apply dark theme to entire application."""
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #ffffff;
+                background-color: #1a1a1a;
             }
             QStatusBar {
-                background-color: #f8f9fa;
-                color: #495057;
-                border-top: 1px solid #dee2e6;
+                background-color: #2a2a2a;
+                color: #b0b0b0;
+                border-top: 1px solid #3d3d3d;
                 font-size: 12px;
+                padding: 5px;
+            }
+            QMessageBox {
+                background-color: #2a2a2a;
+                color: #ffffff;
+            }
+            QMessageBox QPushButton {
+                background-color: #404040;
+                color: white;
+                padding: 8px 20px;
+                border-radius: 6px;
+                min-width: 80px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #505050;
             }
         """)
     
     def _browse_and_analyze(self):
-        """Browse for folder and immediately analyze (simplified single-step)."""
+        """Browse for folder and immediately analyze."""
         folder = QFileDialog.getExistingDirectory(
             self,
             "Select Folder to Organize",
@@ -380,9 +439,20 @@ class MainWindow(QMainWindow):
         if folder:
             self.current_folder = Path(folder)
             self.folder_label.setText(str(self.current_folder))
+            self.folder_label.setStyleSheet("""
+                QLabel {
+                    padding: 14px;
+                    background-color: #1e1e1e;
+                    border: 1px solid #4CAF50;
+                    border-radius: 8px;
+                    font-size: 13px;
+                    color: #4CAF50;
+                    font-weight: bold;
+                }
+            """)
             logger.info(f"Folder selected: {self.current_folder}")
             
-            # Immediately analyze (auto-preview)
+            # Immediately analyze
             self._analyze_folder()
     
     def _analyze_folder(self):
@@ -391,7 +461,7 @@ class MainWindow(QMainWindow):
             return
         
         try:
-            self.statusBar().showMessage("🤖 AI analyzing folder...")
+            self.statusBar().showMessage("🤖 AI analyzing folder and subfolders...")
             self.browse_btn.setEnabled(False)
             
             # Get analysis
@@ -405,17 +475,17 @@ class MainWindow(QMainWindow):
             )
             self.info_label.setStyleSheet("""
                 QLabel {
-                    color: #155724;
-                    padding: 12px;
-                    background-color: #d4edda;
-                    border: 1px solid #c3e6cb;
-                    border-radius: 6px;
+                    color: #4CAF50;
+                    padding: 14px;
+                    background-color: #1a3a1a;
+                    border: 1px solid #4CAF50;
+                    border-radius: 8px;
                     font-size: 13px;
                     font-weight: bold;
                 }
             """)
             
-            # Get preview with smart profile
+            # Get preview
             self.current_preview = self.organizer.preview_organization(
                 self.current_folder,
                 profile='downloads'
@@ -428,7 +498,7 @@ class MainWindow(QMainWindow):
             self.organize_btn.setEnabled(len(self.current_preview) > 0)
             
             self.statusBar().showMessage(
-                f"✅ Ready to organize {len(self.current_preview)} files • AI-Powered Smart Categories"
+                f"✅ Ready to organize {len(self.current_preview)} items • AI-Powered Smart Categories"
             )
             
         except Exception as e:
@@ -443,22 +513,24 @@ class MainWindow(QMainWindow):
         self.preview_table.setRowCount(len(operations))
         
         for i, op in enumerate(operations):
-            # File name
+            # File/Folder name (FIXED - now shows names!)
             name_item = QTableWidgetItem(op['source'].name)
+            name_item.setForeground(QColor("#ffffff"))
             self.preview_table.setItem(i, 0, name_item)
             
-            # Category (capitalized)
+            # Category
             category_item = QTableWidgetItem(op['category'].title())
-            category_item.setForeground(QColor("#0d6efd"))
+            category_item.setForeground(QColor("#64B5F6"))  # Light blue
             self.preview_table.setItem(i, 1, category_item)
             
             # Size
             size_item = QTableWidgetItem(self._format_size(op['size']))
+            size_item.setForeground(QColor("#FFB74D"))  # Orange
             self.preview_table.setItem(i, 2, size_item)
             
             # Target folder
             target_item = QTableWidgetItem(op['target'].parent.name)
-            target_item.setForeground(QColor("#28a745"))
+            target_item.setForeground(QColor("#81C784"))  # Green
             self.preview_table.setItem(i, 3, target_item)
     
     def _organize_folder(self):
@@ -470,9 +542,9 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(
             self,
             "✨ Confirm Smart Organization",
-            f"<b>Smart Organize {len(self.current_preview)} files?</b><br><br>"
-            f"Files will be organized into intelligent categories using AI.<br>"
-            f"<i>You can undo this anytime.</i>",
+            f"<b style='color:#ffffff;'>Smart Organize {len(self.current_preview)} items?</b><br><br>"
+            f"<span style='color:#b0b0b0;'>Files and folders will be organized into intelligent categories using AI.</span><br>"
+            f"<span style='color:#81C784;'><i>You can undo this anytime.</i></span>",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
@@ -485,7 +557,7 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, len(self.current_preview))
         self.progress_bar.setValue(0)
-        self.statusBar().showMessage("🚀 Organizing files with AI...")
+        self.statusBar().showMessage("🚀 Organizing files and folders with AI...")
         
         # Start organization in background thread
         self.organize_thread = OrganizeThread(
@@ -498,53 +570,62 @@ class MainWindow(QMainWindow):
         self.organize_thread.start()
     
     def _on_organize_finished(self, result):
-        """Handle organization completion."""
+        """Handle organization completion with popup."""
         self.progress_bar.setVisible(False)
         self._set_controls_enabled(True)
         
+        # POPUP CONFIRMATION (as requested!)
         if result['success']:
             QMessageBox.information(
                 self,
                 "✅ Success!",
-                f"<b>Successfully organized {result['completed']} files!</b><br><br>"
-                f"Your files are now smartly categorized.<br>"
-                f"<i>Click 'Undo Last' if you want to revert.</i>"
+                f"<h3 style='color:#4CAF50;'>Successfully organized {result['completed']} items!</h3>"
+                f"<p style='color:#ffffff;'>Your files and folders are now smartly categorized.</p>"
+                f"<p style='color:#81C784;'><i>Click 'Undo Last' if you want to revert.</i></p>"
             )
             
             self.undo_btn.setEnabled(result['can_undo'])
             self.statusBar().showMessage(
-                f"✅ Organization complete: {result['completed']} files organized perfectly!"
+                f"✅ Organization complete: {result['completed']} items organized perfectly!"
             )
             
             # Clear preview
             self.current_preview = []
             self.preview_table.setRowCount(0)
             self.organize_btn.setEnabled(False)
-            self.info_label.setText("Organization complete! Browse another folder to continue.")
+            self.info_label.setText("🎉 Organization complete! Browse another folder to continue.")
             self.info_label.setStyleSheet("""
                 QLabel {
-                    color: #6c757d;
-                    padding: 12px;
-                    background-color: #f8f9fa;
-                    border-radius: 6px;
+                    color: #b0b0b0;
+                    padding: 14px;
+                    background-color: #1e1e1e;
+                    border-radius: 8px;
                     font-size: 13px;
                 }
             """)
             
         else:
+            # FAILED POPUP (as requested!)
             QMessageBox.warning(
                 self,
                 "⚠️ Partial Success",
-                f"Organized {result['completed']} files.<br>"
-                f"{result['failed']} files could not be organized."
+                f"<h3 style='color:#FFA726;'>Partially completed</h3>"
+                f"<p style='color:#ffffff;'>Organized {result['completed']} items.</p>"
+                f"<p style='color:#EF5350;'>{result['failed']} items could not be organized.</p>"
             )
     
     def _on_organize_error(self, error):
-        """Handle organization error."""
+        """Handle organization error with popup."""
         self.progress_bar.setVisible(False)
         self._set_controls_enabled(True)
         
-        QMessageBox.critical(self, "❌ Error", f"Organization failed:\n\n{error}")
+        # ERROR POPUP (as requested!)
+        QMessageBox.critical(
+            self, 
+            "❌ Error", 
+            f"<h3 style='color:#EF5350;'>Organization Failed</h3>"
+            f"<p style='color:#ffffff;'>{error}</p>"
+        )
         self.statusBar().showMessage("❌ Organization failed")
     
     def _undo_last(self):
@@ -552,9 +633,9 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(
             self,
             "⟲ Confirm Undo",
-            "<b>Undo the last organization?</b><br><br>"
-            "Files will be moved back to their original locations.<br>"
-            "Empty folders created during organization will be removed.",
+            "<b style='color:#ffffff;'>Undo the last organization?</b><br><br>"
+            "<span style='color:#b0b0b0;'>Files and folders will be moved back to their original locations.</span><br>"
+            "<span style='color:#FFA726;'>Empty folders created during organization will be removed.</span>",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
@@ -568,37 +649,49 @@ class MainWindow(QMainWindow):
             # Get undo info before undoing
             undo_manager = self.organizer.undo_manager
             if undo_manager.can_undo():
-                last_operation = undo_manager.operations[-1]
-                file_count = len(last_operation.get('files', []))
+                last_operation = undo_manager.get_last_operation()
+                file_count = len(last_operation.get('operations', []))
                 
                 # Perform undo
                 success = self.organizer.undo_last_operation()
                 
                 if success:
                     # Clean up empty folders
-                    self._cleanup_empty_folders(self.current_folder)
+                    if self.current_folder:
+                        self._cleanup_empty_folders(self.current_folder)
                     
+                    # SUCCESS POPUP
                     QMessageBox.information(
                         self, 
                         "✅ Undo Complete", 
-                        f"<b>Successfully undone!</b><br><br>"
-                        f"• Moved {file_count} files back to original locations<br>"
-                        f"• Removed empty folders"
+                        f"<h3 style='color:#4CAF50;'>Successfully undone!</h3>"
+                        f"<p style='color:#ffffff;'>• Moved {file_count} items back to original locations</p>"
+                        f"<p style='color:#ffffff;'>• Removed empty folders</p>"
                     )
                     self.undo_btn.setEnabled(False)
-                    self.statusBar().showMessage(f"✅ Undo complete: {file_count} files restored")
+                    self.statusBar().showMessage(f"✅ Undo complete: {file_count} items restored")
                 else:
                     QMessageBox.warning(
                         self, 
                         "⚠️ Warning", 
-                        "Undo partially completed. Some files may not have been restored."
+                        "<p style='color:#FFA726;'>Undo partially completed.</p>"
+                        "<p style='color:#ffffff;'>Some items may not have been restored.</p>"
                     )
             else:
-                QMessageBox.information(self, "ℹ️ Info", "Nothing to undo.")
+                QMessageBox.information(
+                    self, 
+                    "ℹ️ Info", 
+                    "<p style='color:#64B5F6;'>Nothing to undo.</p>"
+                )
                 
         except Exception as e:
             logger.error(f"Undo error: {e}", exc_info=True)
-            QMessageBox.critical(self, "❌ Error", f"Failed to undo:\n\n{e}")
+            QMessageBox.critical(
+                self, 
+                "❌ Error", 
+                f"<h3 style='color:#EF5350;'>Failed to undo</h3>"
+                f"<p style='color:#ffffff;'>{e}</p>"
+            )
     
     def _cleanup_empty_folders(self, base_folder: Path):
         """Remove empty folders created during organization."""
@@ -609,9 +702,12 @@ class MainWindow(QMainWindow):
                     self._cleanup_empty_folders(item)
                     
                     # Remove if empty
-                    if not any(item.iterdir()):
-                        logger.info(f"Removing empty folder: {item}")
-                        item.rmdir()
+                    try:
+                        if not any(item.iterdir()):
+                            logger.info(f"Removing empty folder: {item}")
+                            item.rmdir()
+                    except:
+                        pass  # Skip if can't remove
         except Exception as e:
             logger.warning(f"Error cleaning up folder {base_folder}: {e}")
     
@@ -619,7 +715,10 @@ class MainWindow(QMainWindow):
         """Enable/disable controls during operation."""
         self.browse_btn.setEnabled(enabled)
         self.organize_btn.setEnabled(enabled and len(self.current_preview) > 0)
-        self.undo_btn.setEnabled(enabled and self.organizer.undo_manager.can_undo())
+        if enabled:
+            self.undo_btn.setEnabled(self.organizer.undo_manager.can_undo())
+        else:
+            self.undo_btn.setEnabled(False)
     
     def _format_size(self, size_bytes: int) -> str:
         """Format file size for display."""
