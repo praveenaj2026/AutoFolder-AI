@@ -573,9 +573,7 @@ class FileOrganizer:
             for group_name, group_files in self.semantic_groups.items():
                 if file_path_str in group_files:
                     ai_group_name = group_name
-                    logger.debug(f"File {file_path.name} → AI Group: {ai_group_name}")
-                    break
-            
+                logger.debug(f"File {file_path.name} -> AI Group: {ai_group_name}")
             if ai_group_name:
                 category_folder = category_folder / ai_group_name
             else:
