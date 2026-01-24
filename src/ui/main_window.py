@@ -340,29 +340,6 @@ class MainWindow(QMainWindow):
         """)
         layout.addWidget(self.view_stats_btn)
         
-        # View Logs button
-        self.view_logs_btn = QPushButton("📁 View Logs")
-        self.view_logs_btn.clicked.connect(self._open_log_folder)
-        self.view_logs_btn.setFixedHeight(48)
-        self.view_logs_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #10B981;
-                color: white;
-                font-size: 15px;
-                font-weight: bold;
-                padding: 12px 30px;
-                border: none;
-                border-radius: 8px;
-            }
-            QPushButton:hover {
-                background-color: #059669;
-            }
-            QPushButton:pressed {
-                background-color: #047857;
-            }
-        """)
-        layout.addWidget(self.view_logs_btn)
-        
         group.setLayout(layout)
         return group
     
@@ -956,31 +933,6 @@ class MainWindow(QMainWindow):
                 self,
                 "Stats Error",
                 f"Failed to show statistics:\n\n{str(e)}"
-            )
-    
-    def _open_log_folder(self):
-        """Open the log folder in file explorer."""
-        try:
-            from pathlib import Path
-            import subprocess
-            
-            # Get log folder path from Documents
-            log_folder = Path.home() / 'Documents' / 'AutoFolder_Logs'
-            
-            # Create folder if it doesn't exist
-            log_folder.mkdir(parents=True, exist_ok=True)
-            
-            # Open in Windows Explorer
-            subprocess.run(['explorer', str(log_folder)], check=False)
-            
-            logger.info(f"Opened log folder: {log_folder}")
-            
-        except Exception as e:
-            logger.error(f"Error opening log folder: {e}", exc_info=True)
-            QMessageBox.critical(
-                self,
-                "Error",
-                f"Failed to open log folder:\n\n{str(e)}"
             )
     
     def _update_preview_table(self, operations):

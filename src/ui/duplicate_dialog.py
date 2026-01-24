@@ -127,14 +127,14 @@ class DuplicateDialog(QDialog):
             QGroupBox {
                 font-size: 14px;
                 font-weight: bold;
-                border: 2px solid #F59E0B;
+                border: 2px solid #8B5CF6;
                 border-radius: 5px;
                 margin-top: 10px;
                 padding-top: 10px;
-                background-color: #FEF3C7;
+                background-color: #EDE9FE;
             }
             QGroupBox::title {
-                color: #92400E;
+                color: #5B21B6;
             }
         """)
         
@@ -159,7 +159,7 @@ class DuplicateDialog(QDialog):
         if self.stats['largest_duplicate_group']:
             lg = self.stats['largest_duplicate_group']
             stats_text += f"""
-            <p style='margin-top: 10px; color: #92400E;'>
+            <p style='margin-top: 10px; color: #5B21B6;'>
                 <b>🔥 Largest Duplicate Group:</b> {lg['count']} copies of "{lg['sample_file']}" 
                 ({lg['size_mb']:.2f} MB each)
             </p>
@@ -178,6 +178,14 @@ class DuplicateDialog(QDialog):
             QGroupBox {
                 font-size: 13px;
                 font-weight: bold;
+                border: 2px solid #3B82F6;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+                background-color: #DBEAFE;
+            }
+            QGroupBox::title {
+                color: #1E40AF;
                 border: 2px solid #3B82F6;
                 border-radius: 5px;
                 margin-top: 10px;

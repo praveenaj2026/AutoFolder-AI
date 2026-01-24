@@ -50,16 +50,16 @@ class SmartRenamer:
         file_metadata: Optional[Dict] = None
     ) -> str:
         """
-        Generate smart filename suggestion.
+        Generate smart filename suggestion (simplified - just cleans junk patterns).
         
         Args:
             file_path: Original file path
-            ai_group: AI semantic group name
-            category: File category (Documents, Images, etc.)
-            file_metadata: Optional metadata dict with 'date', 'size', etc.
+            ai_group: AI semantic group name (not used in simple mode)
+            category: File category (not used in simple mode)
+            file_metadata: Optional metadata dict (not used in simple mode)
             
         Returns:
-            Suggested filename with extension
+            Cleaned filename with extension
         """
         if not self.enabled:
             return file_path.name
@@ -69,63 +69,24 @@ class SmartRenamer:
             original_name = file_path.stem
             extension = file_path.suffix
             
-            # Clean the original name
+            # Clean the original name (remove junk patterns like (1) (2) etc)
             cleaned_name = self._clean_filename(original_name)
             
-            # Extract date from metadata or file
-            date_str = self._extract_date(file_path, file_metadata)
-            
-            # Build new name based on format
-            name_format = self.rename_config.get('name_format', '{ai_group}_{date}_{original}')
-            
-            parts = []
-            
-            # Add AI group if enabled and available
-            if self.rename_config.get('include_ai_group', True) and ai_group:
-                # Clean AI group name (remove special chars)
-                clean_group = re.sub(r'[^\w\s-]', '', ai_group)
-                clean_group = re.sub(r'\s+', '_', clean_group.strip())
-                parts.append(clean_group)
-            
-            # Add date if enabled and available
-            if self.rename_config.get('include_date', True) and date_str:
-                parts.append(date_str)
-            
-            # Add cleaned original name if it has meaningful content
-            if cleaned_name and len(cleaned_name) > 2:
-                # Limit length
-                max_length = self.rename_config.get('max_original_length', 30)
-                if len(cleaned_name) > max_length:
-                    cleaned_name = cleaned_name[:max_length]
-                parts.append(cleaned_name)
-            elif not parts:
-                # If no other parts, keep original
-                parts.append(original_name[:40])
-            
-            # Join parts
-            if name_format == '{ai_group}_{date}_{original}':
-                new_name = '_'.join(parts)
-            elif name_format == '{ai_group}_{original}_{date}':
-                if len(parts) >= 3:
-                    new_name = f"{parts[0]}_{parts[2]}_{parts[1]}"
-                else:
-                    new_name = '_'.join(parts)
-            elif name_format == '{date}_{ai_group}_{original}':
-                if len(parts) >= 2:
-                    new_name = f"{parts[1]}_{parts[0]}_{parts[2] if len(parts) > 2 else ''}"
-                else:
-                    new_name = '_'.join(parts)
-            else:
-                new_name = '_'.join(parts)
-            
-            # Remove double underscores and trim
-            new_name = re.sub(r'_+', '_', new_name)
-            new_name = new_name.strip('_')
+            # If cleaning removed everything, keep original
+            if not cleaned_name or len(cleaned_name) < 2:
+                logger.debug(f"Cleaning removed too much, keeping original: {file_path.name}")
+                return file_path.name
             
             # Ensure valid filename
-            new_name = self._sanitize_filename(new_name)
+            cleaned_name = self._sanitize_filename(cleaned_name)
             
-            return f"{new_name}{extension}"
+            result = f"{cleaned_name}{extension}"
+            
+            # Log the rename
+            if result != file_path.name:
+                logger.info(f"Smart rename: '{file_path.name}' → '{result}'")
+            
+            return result
             
         except Exception as e:
             logger.error(f"Error generating filename suggestion: {e}")
