@@ -14,6 +14,7 @@ import logging
 from .rules import RuleEngine
 from .file_analyzer import FileAnalyzer
 from .undo_manager import UndoManager
+from .duplicate_detector import DuplicateDetector
 
 
 logger = logging.getLogger(__name__)
@@ -38,9 +39,14 @@ class FileOrganizer:
         
         self.dry_run = config.get('safety', {}).get('dry_run_default', True)
         self.never_delete = config.get('safety', {}).get('never_delete', True)        
-        # AI classifier for semantic grouping (optional)
+        # AI classifier for semantic grouping (REQUIRED - always enabled)
         self.ai_classifier = None
-        self.semantic_groups = {}  # Cache for semantic groups        
+        self.semantic_groups = {}  # Cache for semantic groups
+        
+        # Duplicate detector for finding duplicate files
+        self.duplicate_detector = DuplicateDetector()
+        self.duplicates = {}  # Cache for found duplicates
+        self.duplicate_action = None  # Action to take on duplicates        
     def analyze_folder(self, folder_path: Path) -> Dict:
         """
         Analyze a folder and return statistics.
@@ -186,21 +192,148 @@ class FileOrganizer:
         logger.info(f"Analysis complete: {analysis['total_files']} files found")
         return analysis
     
+    def scan_for_duplicates(
+        self,
+        folder_path: Path,
+        algorithm: str = 'sha256'
+    ) -> Tuple[Dict[str, List[Path]], Dict]:
+        """
+        Scan folder for duplicate files.
+        
+        Args:
+            folder_path: Path to folder to scan
+            algorithm: Hash algorithm (sha256, md5)
+            
+        Returns:
+            Tuple of (duplicates_dict, stats_dict)
+        """
+        logger.info(f"Scanning for duplicates in: {folder_path}")
+        
+        if not folder_path.exists():
+            raise ValueError(f"Folder does not exist: {folder_path}")
+        
+        # Get all files recursively
+        all_files = [
+            f for f in folder_path.rglob('*') 
+            if f.is_file() and not self._should_skip_file(f)
+        ]
+        
+        logger.info(f"Found {len(all_files)} files to scan")
+        
+        # Find duplicates
+        duplicates = self.duplicate_detector.find_duplicates(all_files, algorithm)
+        
+        # Analyze duplicates
+        stats = self.duplicate_detector.analyze_duplicates(duplicates)
+        
+        # Cache results
+        self.duplicates = duplicates
+        
+        logger.info(
+            f"Duplicate scan complete: {stats['duplicate_groups']} groups, "
+            f"{stats['wasted_space_mb']:.2f} MB wasted space"
+        )
+        
+        return duplicates, stats
+    
+    def handle_duplicates(
+        self, 
+        duplicates: Dict[str, List[Path]], 
+        action: str,
+        target_folder: Path = None
+    ) -> Dict:
+        """
+        Handle duplicate files based on action.
+        
+        Args:
+            duplicates: Dict from scan_for_duplicates
+            action: Action to take (keep_newest, keep_oldest, keep_all, skip)
+            target_folder: Target folder for 'keep_all' action
+            
+        Returns:
+            Dictionary with results
+        """
+        if action == 'skip':
+            logger.info("Skipping duplicate handling")
+            return {'files_deleted': 0, 'files_moved': 0, 'space_freed': 0}
+        
+        files_deleted = 0
+        files_moved = 0
+        space_freed = 0
+        
+        if action == 'keep_all':
+            # Move all duplicates to target folder
+            if not target_folder:
+                target_folder = Path(self.config.get('duplicates', {}).get(
+                    'move_duplicates_to', 'Duplicates'
+                ))
+            
+            target_folder.mkdir(parents=True, exist_ok=True)
+            
+            for hash_val, file_list in duplicates.items():
+                # Move all but the first one
+                for file_path in file_list[1:]:
+                    try:
+                        dest = target_folder / file_path.name
+                        # Handle name conflicts
+                        counter = 1
+                        while dest.exists():
+                            stem = file_path.stem
+                            suffix = file_path.suffix
+                            dest = target_folder / f"{stem}_{counter}{suffix}"
+                            counter += 1
+                        
+                        shutil.move(str(file_path), str(dest))
+                        files_moved += 1
+                        logger.debug(f"Moved duplicate: {file_path} -> {dest}")
+                    except Exception as e:
+                        logger.error(f"Error moving duplicate {file_path}: {e}")
+        
+        elif action in ['keep_newest', 'keep_oldest']:
+            # Delete duplicates based on strategy
+            for hash_val, file_list in duplicates.items():
+                keep, remove = self.duplicate_detector.select_files_to_keep(
+                    file_list, 
+                    strategy=action.replace('keep_', '')
+                )
+                
+                for file_path in remove:
+                    try:
+                        file_size = file_path.stat().st_size
+                        file_path.unlink()
+                        files_deleted += 1
+                        space_freed += file_size
+                        logger.debug(f"Deleted duplicate: {file_path}")
+                    except Exception as e:
+                        logger.error(f"Error deleting duplicate {file_path}: {e}")
+        
+        space_freed_mb = space_freed / (1024 * 1024)
+        logger.info(
+            f"Duplicate handling complete: {files_deleted} deleted, "
+            f"{files_moved} moved, {space_freed_mb:.2f} MB freed"
+        )
+        
+        return {
+            'files_deleted': files_deleted,
+            'files_moved': files_moved,
+            'space_freed': space_freed,
+            'space_freed_mb': space_freed_mb
+        }
+    
     def preview_organization(
         self, 
         folder_path: Path, 
         profile: str = None,
-        custom_rules: List[Dict] = None,
-        use_ai_grouping: bool = False
+        custom_rules: List[Dict] = None
     ) -> List[Dict]:
         """
         Preview what organization will do without making changes.
+        AI semantic grouping is ALWAYS enabled.
         
         Args:
             folder_path: Folder to organize
             profile: Profile name to use (e.g., 'downloads', 'media')
             custom_rules: Custom rule list
-            use_ai_grouping: Enable AI semantic grouping
             
         Returns:
             List of planned operations
@@ -219,8 +352,8 @@ class FileOrganizer:
         else:
             rules = self.rule_engine.get_default_rules()
         
-        # AI Semantic Grouping (Phase 3)
-        if use_ai_grouping and self.ai_classifier:
+        # AI Semantic Grouping - ALWAYS ENABLED
+        if self.ai_classifier:
             logger.info("Creating AI semantic groups...")
             try:
                 # Collect all files for AI analysis (root + subfolders)
@@ -276,10 +409,13 @@ class FileOrganizer:
                 else:
                     logger.info("AI grouping: No groups created (files too different)")
             except Exception as e:
-                logger.error(f"AI grouping failed: {e}", exc_info=True)
-                self.semantic_groups = {}
+                logger.error(f"AI semantic grouping FAILED: {e}", exc_info=True)
+                logger.error("AI grouping is REQUIRED. Cannot proceed without AI analysis.")
+                raise RuntimeError(f"AI semantic grouping failed: {e}") from e
         else:
-            self.semantic_groups = {}
+            error_msg = "AI classifier not initialized. AI grouping is REQUIRED for operation."
+            logger.error(error_msg)
+            raise RuntimeError(error_msg)
         
         operations = []
         
@@ -289,8 +425,7 @@ class FileOrganizer:
             target_folder = self._determine_target_folder(
                 file_path, 
                 folder_path, 
-                rules,
-                use_ai_grouping
+                rules
             )
             
             if target_folder:
@@ -398,7 +533,7 @@ class FileOrganizer:
                 continue
             
             # Process this subfolder file
-            target_folder = self._determine_target_folder(subfolder_file, folder_path, rules, use_ai_grouping)
+            target_folder = self._determine_target_folder(subfolder_file, folder_path, rules)
             if target_folder:
                 target_path = target_folder / subfolder_file.name
                 
@@ -549,10 +684,10 @@ class FileOrganizer:
         self, 
         file_path: Path, 
         base_folder: Path, 
-        rules: List[Dict],
-        use_ai_grouping: bool = False
+        rules: List[Dict]
     ) -> Optional[Path]:
-        """Determine target folder with multi-level sorting (Category → AI Group → Type → Date)."""
+        """Determine target folder with multi-level sorting (Category → AI Group → Type → Date).
+        AI semantic grouping is ALWAYS applied when available."""
         
         # First level: Category (Documents, Images, etc.)
         category_folder = None
@@ -565,16 +700,19 @@ class FileOrganizer:
         if not category_folder:
             return None
         
-        # Optional AI-based semantic grouping level
-        if use_ai_grouping and self.semantic_groups:
+        # AI-based semantic grouping level (ALWAYS ENABLED)
+        if self.semantic_groups:
             # Find which group this file belongs to (compare as strings)
             file_path_str = str(file_path)
             ai_group_name = None
             for group_name, group_files in self.semantic_groups.items():
                 if file_path_str in group_files:
                     ai_group_name = group_name
-                logger.debug(f"File {file_path.name} -> AI Group: {ai_group_name}")
+                    break  # Stop searching once found
+            
+            # Log result after loop completes
             if ai_group_name:
+                logger.debug(f"File {file_path.name} -> AI Group: {ai_group_name}")
                 category_folder = category_folder / ai_group_name
             else:
                 logger.debug(f"File {file_path.name} not in any AI group")

@@ -22,10 +22,12 @@ try:
     from ..core import FileOrganizer
     from ..ai import AIClassifier
     from ..utils.config_manager import ConfigManager
+    from .duplicate_dialog import DuplicateDialog
 except ImportError:
     from core import FileOrganizer
     from ai import AIClassifier
     from utils.config_manager import ConfigManager
+    from ui.duplicate_dialog import DuplicateDialog
 
 
 logger = logging.getLogger(__name__)
@@ -75,7 +77,7 @@ class MainWindow(QMainWindow):
         self.current_folder: Optional[Path] = None
         self.current_preview = []
         self.organize_thread: Optional[OrganizeThread] = None
-        self.use_ai_grouping = False  # AI semantic grouping toggle
+        # AI semantic grouping is ALWAYS enabled - no toggle needed
         
         self._init_ui()
         self._apply_blue_theme()
@@ -201,6 +203,34 @@ class MainWindow(QMainWindow):
         """)
         layout.addWidget(self.browse_btn)
         
+        # Duplicate scan button
+        self.scan_duplicates_btn = QPushButton("🔍 Scan Duplicates")
+        self.scan_duplicates_btn.clicked.connect(self._scan_duplicates)
+        self.scan_duplicates_btn.setFixedHeight(48)
+        self.scan_duplicates_btn.setEnabled(False)  # Enabled after folder selection
+        self.scan_duplicates_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #F59E0B;
+                color: white;
+                font-size: 15px;
+                font-weight: bold;
+                padding: 12px 30px;
+                border: none;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #D97706;
+            }
+            QPushButton:pressed {
+                background-color: #B45309;
+            }
+            QPushButton:disabled {
+                background-color: #D1D5DB;
+                color: #9CA3AF;
+            }
+        """)
+        layout.addWidget(self.scan_duplicates_btn)
+        
         group.setLayout(layout)
         return group
     
@@ -323,87 +353,40 @@ class MainWindow(QMainWindow):
         return group
     
     def _create_ai_options(self) -> QWidget:
-        """Create AI-powered options panel."""
+        """Create AI status panel - AI is always enabled."""
         widget = QWidget()
         layout = QHBoxLayout(widget)
         layout.setContentsMargins(10, 5, 10, 5)
         
-        # AI Grouping checkbox
-        self.ai_grouping_checkbox = QCheckBox("🤖 AI Semantic Grouping (Groups similar files intelligently)")
-        self.ai_grouping_checkbox.setStyleSheet("""
-            QCheckBox {
-                color: #1E40AF;
+        # AI Status label (always enabled)
+        ai_status_label = QLabel("🤖 AI Semantic Grouping: ALWAYS ENABLED")
+        ai_status_label.setStyleSheet("""
+            QLabel {
+                color: #059669;
                 font-size: 13px;
                 font-weight: bold;
                 padding: 8px;
-            }
-            QCheckBox::indicator {
-                width: 20px;
-                height: 20px;
-                border: 2px solid #3B82F6;
-                border-radius: 4px;
-                background-color: white;
-            }
-            QCheckBox::indicator:checked {
-                background-color: #3B82F6;
-                border-color: #2563EB;
-            }
-            QCheckBox::indicator:checked:hover {
-                background-color: #2563EB;
-            }
-            QCheckBox:hover {
-                color: #2563EB;
+                background-color: #D1FAE5;
+                border-radius: 6px;
+                border: 2px solid #10B981;
             }
         """)
-        self.ai_grouping_checkbox.stateChanged.connect(self._on_ai_grouping_toggled)
-        layout.addWidget(self.ai_grouping_checkbox)
+        layout.addWidget(ai_status_label)
         
         # Info label
-        self.ai_info_label = QLabel("Uses AI to understand file content and create smart groups")
-        self.ai_info_label.setStyleSheet("""
+        ai_info_label = QLabel("✨ Intelligently groups similar files using AI embeddings")
+        ai_info_label.setStyleSheet("""
             QLabel {
                 color: #6B7280;
                 font-size: 11px;
                 font-style: italic;
-                padding-left: 5px;
+                padding-left: 10px;
             }
         """)
-        layout.addWidget(self.ai_info_label)
-        
+        layout.addWidget(ai_info_label)
         layout.addStretch()
         
         return widget
-    
-    def _on_ai_grouping_toggled(self, state):
-        """Handle AI grouping toggle."""
-        self.use_ai_grouping = (state == 2)  # 2 = Qt.Checked
-        logger.info(f"AI semantic grouping {'enabled' if self.use_ai_grouping else 'disabled'}")
-        
-        # Update info label
-        if self.use_ai_grouping:
-            self.ai_info_label.setText("✨ AI analyzing files for intelligent grouping...")
-            self.ai_info_label.setStyleSheet("""
-                QLabel {
-                    color: #059669;
-                    font-size: 11px;
-                    font-style: italic;
-                    padding-left: 5px;
-                }
-            """)
-        else:
-            self.ai_info_label.setText("Uses AI to understand file content and create smart groups")
-            self.ai_info_label.setStyleSheet("""
-                QLabel {
-                    color: #6B7280;
-                    font-size: 11px;
-                    font-style: italic;
-                    padding-left: 5px;
-                }
-            """)
-        
-        # Re-analyze if folder is selected
-        if self.current_folder:
-            self._analyze_folder()
     
     def _create_action_buttons(self) -> QHBoxLayout:
         """Create action buttons."""
@@ -556,10 +539,9 @@ class MainWindow(QMainWindow):
             """)
             
             # Show progress dialog for large folders or AI processing
-            if analysis['total_files'] > 100 or self.use_ai_grouping:
+            if analysis['total_files'] > 100:
                 progress = QProgressDialog(
-                    "Analyzing files and creating organization preview...\n\n" +
-                    ("🤖 AI Semantic Grouping: Generating embeddings and clustering files" if self.use_ai_grouping else "Preparing file organization"),
+                    "Analyzing files and creating organization preview...\n\n🤖 AI Semantic Grouping: Generating embeddings and clustering files",
                     None,
                     0,
                     0,
@@ -574,18 +556,6 @@ class MainWindow(QMainWindow):
             else:
                 self._run_preview_analysis(None)
             
-            self.organize_btn.setEnabled(len(self.current_preview) > 0)
-            
-            # Update status message based on AI mode
-            if self.use_ai_grouping:
-                self.statusBar().showMessage(
-                    f"✅ Ready to organize {len(self.current_preview)} items • AI Semantic Grouping Active"
-                )
-            else:
-                self.statusBar().showMessage(
-                    f"✅ Ready to organize {len(self.current_preview)} items • Multi-Level Sorting"
-                )
-            
         except Exception as e:
             logger.error(f"Analysis error: {e}", exc_info=True)
     
@@ -594,14 +564,21 @@ class MainWindow(QMainWindow):
         try:
             self.current_preview = self.organizer.preview_organization(
                 self.current_folder,
-                profile='downloads',
-                use_ai_grouping=self.use_ai_grouping
+                profile='downloads'
             )
             
             if progress_dialog:
                 progress_dialog.close()
             
             self._update_preview_table(self.current_preview)
+            
+            # Enable organize button after preview is ready
+            self.organize_btn.setEnabled(len(self.current_preview) > 0)
+            
+            # Update status message - AI is always active
+            self.statusBar().showMessage(
+                f"✅ Ready to organize {len(self.current_preview)} items • 🤖 AI Semantic Grouping Active"
+            )
             
         except Exception as e:
             if progress_dialog:
@@ -643,6 +620,142 @@ class MainWindow(QMainWindow):
             error_msg.exec_()
         finally:
             self.browse_btn.setEnabled(True)
+            # Enable duplicate scan button after folder selection
+            self.scan_duplicates_btn.setEnabled(True)
+    
+    def _scan_duplicates(self):
+        """Scan for duplicate files in selected folder."""
+        if not self.current_folder:
+            QMessageBox.warning(
+                self,
+                "No Folder Selected",
+                "Please select a folder first using the Browse button."
+            )
+            return
+        
+        try:
+            # Show progress dialog
+            progress = QProgressDialog(
+                "Scanning for duplicate files...\n\nThis may take a few minutes for large folders.",
+                "Cancel",
+                0,
+                0,
+                self
+            )
+            progress.setWindowTitle("🔍 Scanning Duplicates")
+            progress.setWindowModality(Qt.WindowModal)
+            progress.setMinimumDuration(0)
+            progress.setValue(0)
+            progress.show()
+            
+            # Get hash algorithm from config
+            algorithm = self.config.config.get('duplicates', {}).get('hash_algorithm', 'sha256')
+            
+            # Scan for duplicates
+            duplicates, stats = self.organizer.scan_for_duplicates(
+                self.current_folder,
+                algorithm=algorithm
+            )
+            
+            progress.close()
+            
+            if not duplicates:
+                QMessageBox.information(
+                    self,
+                    "No Duplicates Found",
+                    f"No duplicate files found in {self.current_folder.name}.\n\n"
+                    f"All files are unique!"
+                )
+                return
+            
+            # Show duplicate management dialog
+            dialog = DuplicateDialog(duplicates, stats, self)
+            dialog.duplicates_processed.connect(self._handle_duplicate_result)
+            dialog.exec_()
+            
+        except Exception as e:
+            logger.error(f"Duplicate scan error: {e}", exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Scan Error",
+                f"Failed to scan for duplicates:\n\n{str(e)}"
+            )
+    
+    def _handle_duplicate_result(self, result: dict):
+        """Handle duplicate processing result from dialog."""
+        action = result['action']
+        duplicates = result['duplicates']
+        stats = result['stats']
+        
+        if action == 'skip':
+            logger.info("User chose to skip duplicate handling")
+            return
+        
+        try:
+            # Show progress
+            progress = QProgressDialog(
+                f"Processing {stats['total_duplicate_files']} duplicate files...",
+                None,
+                0,
+                0,
+                self
+            )
+            progress.setWindowTitle("Processing Duplicates")
+            progress.setWindowModality(Qt.WindowModal)
+            progress.setMinimumDuration(0)
+            progress.show()
+            
+            # Get target folder for 'keep_all' action
+            target_folder = None
+            if action == 'keep_all':
+                target_name = self.config.config.get('duplicates', {}).get(
+                    'move_duplicates_to', 
+                    'Duplicates'
+                )
+                target_folder = self.current_folder / target_name
+            
+            # Handle duplicates
+            result = self.organizer.handle_duplicates(
+                duplicates,
+                action,
+                target_folder
+            )
+            
+            progress.close()
+            
+            # Show result
+            if action == 'keep_all':
+                message = (
+                    f"✅ Duplicate Processing Complete!\n\n"
+                    f"📁 {result['files_moved']} duplicate files moved to:\n"
+                    f"{target_folder}\n\n"
+                    f"Original files kept in place."
+                )
+            else:
+                message = (
+                    f"✅ Duplicate Processing Complete!\n\n"
+                    f"🗑️ {result['files_deleted']} duplicate files deleted\n"
+                    f"💾 {result['space_freed_mb']:.2f} MB freed\n\n"
+                    f"Original files kept based on '{action}' strategy."
+                )
+            
+            QMessageBox.information(
+                self,
+                "Success",
+                message
+            )
+            
+            # Refresh analysis
+            if self.current_folder:
+                self._analyze_folder()
+            
+        except Exception as e:
+            logger.error(f"Duplicate handling error: {e}", exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Processing Error",
+                f"Failed to process duplicates:\n\n{str(e)}"
+            )
     
     def _update_preview_table(self, operations):
         """Update the preview table with operations."""

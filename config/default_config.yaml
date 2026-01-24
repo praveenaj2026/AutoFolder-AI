@@ -20,6 +20,13 @@ organization:
   handle_conflicts: "rename"  # rename, skip, or overwrite
   preserve_timestamps: true
   ignore_hidden_files: true
+
+duplicates:
+  enabled: true
+  auto_detect: false  # Automatically scan for duplicates before organizing
+  default_action: "keep_newest"  # keep_newest, keep_oldest, keep_all, skip
+  move_duplicates_to: "Duplicates"  # Folder name for 'keep_all' action
+  hash_algorithm: "sha256"  # sha256 or md5
   
 ai:
   enabled: true  # AI always enabled in v2.0
