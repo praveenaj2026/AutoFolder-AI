@@ -340,6 +340,29 @@ class MainWindow(QMainWindow):
         """)
         layout.addWidget(self.view_stats_btn)
         
+        # View Logs button
+        self.view_logs_btn = QPushButton("📁 View Logs")
+        self.view_logs_btn.clicked.connect(self._open_log_folder)
+        self.view_logs_btn.setFixedHeight(48)
+        self.view_logs_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #10B981;
+                color: white;
+                font-size: 15px;
+                font-weight: bold;
+                padding: 12px 30px;
+                border: none;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #059669;
+            }
+            QPushButton:pressed {
+                background-color: #047857;
+            }
+        """)
+        layout.addWidget(self.view_logs_btn)
+        
         group.setLayout(layout)
         return group
     
@@ -397,10 +420,6 @@ class MainWindow(QMainWindow):
             QTableWidget::item {
                 padding: 10px;
                 border-bottom: 1px solid #E0F2FE;
-            }
-            QTableWidget::item:selected {
-                background-color: #BFDBFE;
-                color: #1E3A8A;
             }
             QHeaderView::section {
                 background-color: #DBEAFE;
@@ -788,15 +807,16 @@ class MainWindow(QMainWindow):
             error_box = QMessageBox(self)
             error_box.setIcon(QMessageBox.Critical)
             error_box.setWindowTitle("Scan Error")
-            error_box.setText("<h3 style='color:#DC2626;'>Failed to Scan Duplicates</h3>")
-            error_box.setInformativeText(f"<p style='color:#000000; font-size:13px;'><b>Error:</b> {str(e)}</p>")
+            error_box.setText("<b>Failed to Scan Duplicates</b>")
+            error_box.setInformativeText(f"Error: {str(e)}")
             error_box.setStyleSheet("""
                 QMessageBox {
                     background-color: white;
+                    max-width: 350px;
                 }
                 QLabel {
                     color: #000000;
-                    min-width: 400px;
+                    font-size: 12px;
                 }
             """)
             error_box.exec_()
@@ -887,17 +907,17 @@ class MainWindow(QMainWindow):
                     background-color: white;
                 }
                 QLabel {
-                    font-size: 13px;
-                    min-width: 500px;
-                    min-height: 200px;
+                    font-size: 12px;
+                    min-width: 350px;
+                    max-width: 400px;
                 }
                 QPushButton {
                     background-color: #10B981;
                     color: white;
-                    padding: 8px 20px;
+                    padding: 6px 16px;
                     border-radius: 6px;
-                    font-size: 13px;
-                    min-width: 80px;
+                    font-size: 12px;
+                    min-width: 70px;
                 }
                 QPushButton:hover {
                     background-color: #059669;
@@ -936,6 +956,31 @@ class MainWindow(QMainWindow):
                 self,
                 "Stats Error",
                 f"Failed to show statistics:\n\n{str(e)}"
+            )
+    
+    def _open_log_folder(self):
+        """Open the log folder in file explorer."""
+        try:
+            from pathlib import Path
+            import subprocess
+            
+            # Get log folder path from Documents
+            log_folder = Path.home() / 'Documents' / 'AutoFolder_Logs'
+            
+            # Create folder if it doesn't exist
+            log_folder.mkdir(parents=True, exist_ok=True)
+            
+            # Open in Windows Explorer
+            subprocess.run(['explorer', str(log_folder)], check=False)
+            
+            logger.info(f"Opened log folder: {log_folder}")
+            
+        except Exception as e:
+            logger.error(f"Error opening log folder: {e}", exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to open log folder:\n\n{str(e)}"
             )
     
     def _update_preview_table(self, operations):

@@ -146,7 +146,13 @@ class SmartRenamer:
         # Apply junk patterns from config
         patterns = self.rename_config.get('remove_patterns', self.JUNK_PATTERNS)
         for pattern in patterns:
-            cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
+            # Special handling for (1) (2) patterns - remove ALL occurrences
+            if pattern == r'\(\d+\)$':
+                # Keep removing until no more matches
+                while re.search(r'\s*\(\d+\)\s*', cleaned):
+                    cleaned = re.sub(r'\s*\(\d+\)\s*', ' ', cleaned)
+            else:
+                cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
         
         # Remove extra spaces and underscores
         cleaned = re.sub(r'[\s_]+', '_', cleaned)

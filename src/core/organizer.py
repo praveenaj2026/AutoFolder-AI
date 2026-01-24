@@ -905,3 +905,16 @@ class FileOrganizer:
                 return group_name
         
         return None
+    
+    def _should_skip_file(self, file_path: Path) -> bool:
+        """Check if a file should be skipped during processing."""
+        # Skip hidden files if configured
+        if self.config.get('organization', {}).get('ignore_hidden_files', True):
+            if file_path.name.startswith('.'):
+                return True
+        
+        # Skip system files
+        if file_path.name in ['desktop.ini', 'Thumbs.db', '.DS_Store']:
+            return True
+        
+        return False
