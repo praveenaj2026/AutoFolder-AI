@@ -75,6 +75,7 @@ class MainWindow(QMainWindow):
         self.current_folder: Optional[Path] = None
         self.current_preview = []
         self.organize_thread: Optional[OrganizeThread] = None
+        self.use_ai_grouping = False  # AI semantic grouping toggle
         
         self._init_ui()
         self._apply_blue_theme()
@@ -104,6 +105,9 @@ class MainWindow(QMainWindow):
         
         preview_group = self._create_preview_area()
         main_layout.addWidget(preview_group, stretch=1)
+        
+        ai_options = self._create_ai_options()
+        main_layout.addWidget(ai_options)
         
         button_layout = self._create_action_buttons()
         main_layout.addLayout(button_layout)
@@ -318,6 +322,89 @@ class MainWindow(QMainWindow):
         group.setLayout(layout)
         return group
     
+    def _create_ai_options(self) -> QWidget:
+        """Create AI-powered options panel."""
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(10, 5, 10, 5)
+        
+        # AI Grouping checkbox
+        self.ai_grouping_checkbox = QCheckBox("🤖 AI Semantic Grouping (Groups similar files intelligently)")
+        self.ai_grouping_checkbox.setStyleSheet("""
+            QCheckBox {
+                color: #1E40AF;
+                font-size: 13px;
+                font-weight: bold;
+                padding: 8px;
+            }
+            QCheckBox::indicator {
+                width: 20px;
+                height: 20px;
+                border: 2px solid #3B82F6;
+                border-radius: 4px;
+                background-color: white;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #3B82F6;
+                border-color: #2563EB;
+            }
+            QCheckBox::indicator:checked:hover {
+                background-color: #2563EB;
+            }
+            QCheckBox:hover {
+                color: #2563EB;
+            }
+        """)
+        self.ai_grouping_checkbox.stateChanged.connect(self._on_ai_grouping_toggled)
+        layout.addWidget(self.ai_grouping_checkbox)
+        
+        # Info label
+        self.ai_info_label = QLabel("Uses AI to understand file content and create smart groups")
+        self.ai_info_label.setStyleSheet("""
+            QLabel {
+                color: #6B7280;
+                font-size: 11px;
+                font-style: italic;
+                padding-left: 5px;
+            }
+        """)
+        layout.addWidget(self.ai_info_label)
+        
+        layout.addStretch()
+        
+        return widget
+    
+    def _on_ai_grouping_toggled(self, state):
+        """Handle AI grouping toggle."""
+        self.use_ai_grouping = (state == 2)  # 2 = Qt.Checked
+        logger.info(f"AI semantic grouping {'enabled' if self.use_ai_grouping else 'disabled'}")
+        
+        # Update info label
+        if self.use_ai_grouping:
+            self.ai_info_label.setText("✨ AI analyzing files for intelligent grouping...")
+            self.ai_info_label.setStyleSheet("""
+                QLabel {
+                    color: #059669;
+                    font-size: 11px;
+                    font-style: italic;
+                    padding-left: 5px;
+                }
+            """)
+        else:
+            self.ai_info_label.setText("Uses AI to understand file content and create smart groups")
+            self.ai_info_label.setStyleSheet("""
+                QLabel {
+                    color: #6B7280;
+                    font-size: 11px;
+                    font-style: italic;
+                    padding-left: 5px;
+                }
+            """)
+        
+        # Re-analyze if folder is selected
+        if self.current_folder:
+            self._analyze_folder()
+    
     def _create_action_buttons(self) -> QHBoxLayout:
         """Create action buttons."""
         
@@ -470,16 +557,23 @@ class MainWindow(QMainWindow):
             
             self.current_preview = self.organizer.preview_organization(
                 self.current_folder,
-                profile='downloads'
+                profile='downloads',
+                use_ai_grouping=self.use_ai_grouping
             )
             
             self._update_preview_table(self.current_preview)
             
             self.organize_btn.setEnabled(len(self.current_preview) > 0)
             
-            self.statusBar().showMessage(
-                f"✅ Ready to organize {len(self.current_preview)} items • Multi-Level Sorting"
-            )
+            # Update status message based on AI mode
+            if self.use_ai_grouping:
+                self.statusBar().showMessage(
+                    f"✅ Ready to organize {len(self.current_preview)} items • AI Semantic Grouping Active"
+                )
+            else:
+                self.statusBar().showMessage(
+                    f"✅ Ready to organize {len(self.current_preview)} items • Multi-Level Sorting"
+                )
             
         except Exception as e:
             logger.error(f"Analysis error: {e}", exc_info=True)

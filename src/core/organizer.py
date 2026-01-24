@@ -190,7 +190,8 @@ class FileOrganizer:
         self, 
         folder_path: Path, 
         profile: str = None,
-        custom_rules: List[Dict] = None
+        custom_rules: List[Dict] = None,
+        use_ai_grouping: bool = False
     ) -> List[Dict]:
         """
         Preview what organization will do without making changes.
@@ -199,6 +200,7 @@ class FileOrganizer:
             folder_path: Folder to organize
             profile: Profile name to use (e.g., 'downloads', 'media')
             custom_rules: Custom rule list
+            use_ai_grouping: Enable AI semantic grouping
             
         Returns:
             List of planned operations
@@ -217,6 +219,63 @@ class FileOrganizer:
         else:
             rules = self.rule_engine.get_default_rules()
         
+        # AI Semantic Grouping (Phase 3)
+        if use_ai_grouping and self.ai_classifier:
+            logger.info("Creating AI semantic groups...")
+            try:
+                # Collect all files for AI analysis (root + subfolders)
+                all_files_for_ai = list(files)  # Start with root files
+                
+                # Add subfolder files
+                organized_folder_names = {
+                    'Documents', 'Images', 'Videos', 'Audio', 'Archives', 
+                    'Code', 'Installers', 'Gaming', 'Other', 'Compressed'
+                }
+                system_folder_patterns = [
+                    'WindowsPowerShell', 'KingsoftData', 'WPS Cloud Files',
+                    'Custom Office Templates', 'Rockstar Games', 'My Games',
+                    'FIFA', 'FC ', 'WWE', 'GTA', 'Gameloft',
+                    'pyinstaller', 'venv', 'node_modules', '.git', '__pycache__'
+                ]
+                
+                for subfolder_file in folder_path.rglob('*'):
+                    if not subfolder_file.is_file():
+                        continue
+                    if subfolder_file.parent == folder_path:
+                        continue
+                    
+                    # Skip system folders
+                    skip_file = False
+                    try:
+                        rel_path = subfolder_file.relative_to(folder_path)
+                        for part in rel_path.parts:
+                            if any(pattern in part for pattern in system_folder_patterns):
+                                skip_file = True
+                                break
+                    except:
+                        skip_file = True
+                    
+                    if not skip_file:
+                        all_files_for_ai.append(subfolder_file)
+                
+                # Create semantic groups using AI
+                self.semantic_groups = self.ai_classifier.create_semantic_groups(
+                    all_files_for_ai, 
+                    min_group_size=2
+                )
+                
+                if self.semantic_groups:
+                    logger.info(f"AI created {len(self.semantic_groups)} semantic groups")
+                    for group_name, group_files in self.semantic_groups.items():
+                        logger.debug(f"  Group '{group_name}': {len(group_files)} files")
+                else:
+                    logger.info("AI grouping: No groups created (files too different)")
+            except Exception as e:
+                logger.error(f"AI grouping failed: {e}", exc_info=True)
+                self.semantic_groups = {}
+        else:
+            self.semantic_groups = {}
+        
         operations = []
         
         # Process files
@@ -225,7 +284,8 @@ class FileOrganizer:
             target_folder = self._determine_target_folder(
                 file_path, 
                 folder_path, 
-                rules
+                rules,
+                use_ai_grouping
             )
             
             if target_folder:
@@ -333,7 +393,7 @@ class FileOrganizer:
                 continue
             
             # Process this subfolder file
-            target_folder = self._determine_target_folder(subfolder_file, folder_path, rules)
+            target_folder = self._determine_target_folder(subfolder_file, folder_path, rules, use_ai_grouping)
             if target_folder:
                 target_path = target_folder / subfolder_file.name
                 
