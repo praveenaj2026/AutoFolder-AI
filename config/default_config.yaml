@@ -1,0 +1,50 @@
+# AutoFolder AI - Default Configuration
+
+app:
+  name: "AutoFolder AI"
+  version: "1.0.0"
+  mode: "base"  # base or pro
+  language: "en"
+
+safety:
+  preview_required: true
+  undo_enabled: true
+  max_undo_history: 10
+  dry_run_default: true
+  never_delete: true
+  backup_before_organize: false
+
+organization:
+  default_folder: "Downloads"
+  create_folders_if_missing: true
+  handle_conflicts: "rename"  # rename, skip, or overwrite
+  preserve_timestamps: true
+  ignore_hidden_files: true
+  
+ai:
+  enabled: true  # Pro version AI features enabled!
+  model_path: "C:/Users/Praveen/Downloads/Python Scripts/AI Model"  # Use your existing model folder
+  use_local_only: true
+  embedding_model: "all-MiniLM-L6-v2"  # Lightweight, fast
+  confidence_threshold: 0.7
+  max_suggestions: 5
+
+ui:
+  theme: "light"  # light or dark
+  show_preview: true
+  confirm_before_organize: true
+  show_file_count: true
+  window_width: 1200
+  window_height: 800
+
+logging:
+  enabled: true
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  log_file: "logs/autofolder.log"
+  max_log_size_mb: 10
+  backup_count: 3
+
+performance:
+  max_files_per_batch: 1000
+  use_threading: true
+  preview_timeout_seconds: 30

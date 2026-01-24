@@ -1,0 +1,32 @@
+# Core dependencies
+PySide6>=6.6.0           # Qt6 for modern UI
+watchdog>=3.0.0          # File system monitoring
+pathlib>=1.0.1           # Path manipulation (built-in but listed for clarity)
+
+# AI/ML (Local models only)
+sentence-transformers>=2.2.2  # Local embeddings
+torch>=2.0.0             # PyTorch for models
+numpy>=1.24.0            # Numerical operations
+pillow>=10.0.0           # Image processing
+
+# File analysis
+python-magic-bin>=0.4.14 # File type detection (Windows binary included)
+PyPDF2>=3.0.0            # PDF content extraction
+filetype>=1.2.0          # Additional file type detection
+
+# Utilities
+python-dateutil>=2.8.2   # Date parsing
+humanize>=4.9.0          # Human-readable file sizes
+tqdm>=4.66.0             # Progress bars
+
+# Configuration
+pyyaml>=6.0              # YAML config files
+pydantic>=2.5.0          # Data validation
+
+# Testing (development only)
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-qt>=4.2.0
+
+# Packaging
+pyinstaller>=6.0.0       # Create standalone EXE
