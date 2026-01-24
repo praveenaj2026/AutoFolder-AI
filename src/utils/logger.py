@@ -65,6 +65,27 @@ def setup_logger(
         log_path = Path(log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
         
+        # Clear old log file on app start (keep only current session)
+        if log_path.exists():
+            try:
+                # Keep old log as backup with timestamp
+                import time
+                backup_name = f\"autofolder_old_{int(time.time())}.log\"
+                backup_path = log_path.parent / backup_name
+                
+                # Only keep last 3 old logs
+                old_logs = sorted(log_path.parent.glob('autofolder_old_*.log'))
+                if len(old_logs) >= 3:
+                    for old_log in old_logs[:-2]:  # Delete all but last 2
+                        old_log.unlink()
+                
+                # Backup current log if it exists and has content
+                if log_path.stat().st_size > 0:
+                    log_path.rename(backup_path)
+            except Exception:
+                # If backup fails, just delete old log
+                log_path.unlink()
+        
         file_handler = RotatingFileHandler(
             str(log_file),
             maxBytes=max_bytes,

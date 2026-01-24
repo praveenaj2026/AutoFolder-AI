@@ -931,6 +931,11 @@ class MainWindow(QMainWindow):
     def _update_preview_table(self, operations):
         """Update the preview table with operations."""
         
+        # Validate operations is a list
+        if not isinstance(operations, list):
+            logger.error(f"Operations must be a list, got {type(operations)}")
+            raise ValueError(f"Invalid operations type: {type(operations)}. Expected list of dictionaries.")
+        
         # Limit display to first 1000 items for performance
         display_limit = 1000
         display_ops = operations[:display_limit]
@@ -938,6 +943,11 @@ class MainWindow(QMainWindow):
         self.preview_table.setRowCount(len(display_ops))
         
         for i, op in enumerate(display_ops):
+            # Validate operation is a dictionary
+            if not isinstance(op, dict):
+                logger.error(f"Operation at index {i} must be a dict, got {type(op)}")
+                continue
+            
             # File type icon
             ext = op['source'].suffix.lower().lstrip('.')
             icon = self.FILE_TYPE_ICONS.get(ext, self.FILE_TYPE_ICONS['default'])
@@ -997,6 +1007,12 @@ class MainWindow(QMainWindow):
         
         # Resize icon column to fit content
         self.preview_table.setColumnWidth(0, 60)
+        
+        # Disable selection highlight on icon column to prevent black box
+        for i in range(len(display_ops)):
+            icon_item = self.preview_table.item(i, 0)
+            if icon_item:
+                icon_item.setFlags(icon_item.flags() & ~Qt.ItemIsSelectable)
         
         # Show message if there are more items
         if len(operations) > display_limit:
@@ -1103,12 +1119,21 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(False)
         self._set_controls_enabled(True)
         
-        QMessageBox.critical(
-            self, 
-            "❌ Error", 
-            f"<h3 style='color:#DC2626;'>Organization Failed</h3>"
-            f"<p style='color:#1E3A8A;'>{error}</p>"
-        )
+        error_box = QMessageBox(self)
+        error_box.setIcon(QMessageBox.Critical)
+        error_box.setWindowTitle("❌ Error")
+        error_box.setText("<h3 style='color:#DC2626;'>Organization Failed</h3>")
+        error_box.setInformativeText(f"<p style='color:#000000; font-size:13px;'><b>Error:</b> {error}</p>")
+        error_box.setStyleSheet("""
+            QMessageBox {
+                background-color: white;
+            }
+            QLabel {
+                color: #000000;
+                min-width: 400px;
+            }
+        """)
+        error_box.exec_()
         self.statusBar().showMessage("❌ Organization failed")
     
     def _undo_last(self):

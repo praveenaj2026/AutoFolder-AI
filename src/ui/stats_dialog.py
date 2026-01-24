@@ -225,6 +225,11 @@ class StatsDialog(QDialog):
     def _create_ai_group_breakdown(self) -> QGroupBox:
         """Create AI group breakdown."""
         group = QGroupBox("🤖 Files by AI Semantic Group")
+        group.setToolTip(
+            "AI Groups are intelligent clusters of similar files based on their content and meaning.\n"
+            "For example: 'job applications', 'bills & invoices', 'vacation photos', etc.\n"
+            "This helps you see patterns in your files that go beyond just file types."
+        )
         group.setStyleSheet("""
             QGroupBox {
                 font-size: 16px;
@@ -365,7 +370,7 @@ class StatsDialog(QDialog):
         # Label
         label_widget = QLabel(label)
         label_widget.setMinimumWidth(200)
-        label_widget.setStyleSheet("font-size: 13px; color: #374151;")
+        label_widget.setStyleSheet("font-size: 14px; color: #1F2937; font-weight: 500;")
         layout.addWidget(label_widget)
         
         # Progress bar container
@@ -402,7 +407,7 @@ class StatsDialog(QDialog):
         # Count and percentage
         count_label = QLabel(f"{value} ({percentage:.1f}%)")
         count_label.setMinimumWidth(100)
-        count_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {color};")
+        count_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: #000000;")
         layout.addWidget(count_label)
         
         return widget
