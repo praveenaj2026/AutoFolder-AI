@@ -70,7 +70,7 @@ def setup_logger(
             try:
                 # Keep old log as backup with timestamp
                 import time
-                backup_name = f\"autofolder_old_{int(time.time())}.log\"
+                backup_name = f"autofolder_old_{int(time.time())}.log"
                 backup_path = log_path.parent / backup_name
                 
                 # Only keep last 3 old logs
