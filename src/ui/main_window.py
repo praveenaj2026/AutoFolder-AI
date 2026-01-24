@@ -752,6 +752,27 @@ class MainWindow(QMainWindow):
             progress.setWindowModality(Qt.WindowModal)
             progress.setMinimumDuration(0)
             progress.setValue(0)
+            progress.setStyleSheet("""
+                QProgressDialog {
+                    background-color: white;
+                    min-width: 400px;
+                }
+                QLabel {
+                    color: #1E3A8A;
+                    font-size: 13px;
+                    padding: 10px;
+                }
+                QPushButton {
+                    background-color: #EF4444;
+                    color: white;
+                    padding: 6px 16px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                }
+                QPushButton:hover {
+                    background-color: #DC2626;
+                }
+            """)
             progress.show()
             
             # Get hash algorithm from config
@@ -980,15 +1001,16 @@ class MainWindow(QMainWindow):
             name_item.setForeground(QColor("#1E3A8A"))
             self.preview_table.setItem(i, 1, name_item)
             
-            # Suggested new name (if different from original)
+            # Suggested new name (if different from original source)
             suggested_name = op.get('suggested_name', op['source'].name)
-            original_name = op.get('original_name', op['source'].name)
+            source_name = op['source'].name
             
-            if suggested_name != original_name:
+            if suggested_name != source_name:
                 # Show suggested name in green (rename happening)
                 suggested_item = QTableWidgetItem(suggested_name)
                 suggested_item.setForeground(QColor("#059669"))
-                suggested_item.setToolTip(f"Will be renamed from: {original_name}")
+                suggested_item.setFont(QFont("Segoe UI", 9, QFont.Bold))
+                suggested_item.setToolTip(f"Will be renamed from: {source_name}")
             else:
                 # Show "No change" in gray
                 suggested_item = QTableWidgetItem("(no change)")

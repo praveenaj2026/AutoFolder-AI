@@ -142,16 +142,16 @@ class DuplicateDialog(QDialog):
         
         # Stats grid
         stats_text = f"""
-        <table style='width: 100%; font-size: 13px;'>
+        <table style='width: 100%; font-size: 13px; color: #5B21B6;'>
             <tr>
                 <td><b>📦 Duplicate Groups:</b></td>
-                <td>{self.stats['duplicate_groups']}</td>
+                <td><b>{self.stats['duplicate_groups']}</b></td>
                 <td><b>📄 Total Duplicate Files:</b></td>
-                <td>{self.stats['total_duplicate_files']}</td>
+                <td><b>{self.stats['total_duplicate_files']}</b></td>
             </tr>
             <tr>
                 <td><b>💾 Wasted Space:</b></td>
-                <td colspan='3'>{self.stats['wasted_space_mb']:.2f} MB</td>
+                <td colspan='3'><b>{self.stats['wasted_space_mb']:.2f} MB</b></td>
             </tr>
         </table>
         """
