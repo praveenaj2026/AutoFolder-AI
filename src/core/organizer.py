@@ -37,8 +37,10 @@ class FileOrganizer:
         )
         
         self.dry_run = config.get('safety', {}).get('dry_run_default', True)
-        self.never_delete = config.get('safety', {}).get('never_delete', True)
-        
+        self.never_delete = config.get('safety', {}).get('never_delete', True)        
+        # AI classifier for semantic grouping (optional)
+        self.ai_classifier = None
+        self.semantic_groups = {}  # Cache for semantic groups        
     def analyze_folder(self, folder_path: Path) -> Dict:
         """
         Analyze a folder and return statistics.
@@ -57,23 +59,67 @@ class FileOrganizer:
         if not folder_path.is_dir():
             raise ValueError(f"Path is not a folder: {folder_path}")
         
-        # Get all items (files and folders)
+        # Get all items recursively
         all_items = list(folder_path.glob('*'))
         files = [f for f in all_items if f.is_file()]
         folders = [f for f in all_items if f.is_dir()]
+        
+        # Also collect files from subfolders for total count
+        all_files_recursive = [f for f in folder_path.rglob('*') if f.is_file()]
+        
+        logger.debug(f"Found {len(files)} root files, {len(folders)} folders, {len(all_files_recursive)} total files (recursive)")
         
         # Ignore hidden files if configured
         if self.config.get('organization', {}).get('ignore_hidden_files', True):
             files = [f for f in files if not f.name.startswith('.')]
             folders = [f for f in folders if not f.name.startswith('.')]
         
+        # Skip common organized folder names to avoid recursive moves
+        organized_folder_names = {
+            'Documents', 'Images', 'Videos', 'Audio', 'Archives', 
+            'Code', 'Installers', 'Gaming', 'Other', 'Compressed'
+        }
+        
+        # Skip common system/app/game folders that should not be organized
+        system_folder_patterns = [
+            'WindowsPowerShell', 'KingsoftData', 'WPS Cloud Files',
+            'Custom Office Templates', 'Rockstar Games', 'My Games',
+            'FIFA', 'FC ', 'WWE', 'GTA', 'Gameloft',  # Games
+            'pyinstaller', 'venv', 'node_modules', '.git', '__pycache__'  # Dev folders
+        ]
+        
         # Peek inside folders and treat them as files for organization
         folder_items = []
         for folder in folders:
+            # Skip if it's likely an already-organized folder
+            if folder.name in organized_folder_names:
+                logger.debug(f"Skipping already-organized folder: {folder.name}")
+                continue
+            
+            # Skip system/app/game folders
+            if any(pattern in folder.name for pattern in system_folder_patterns):
+                logger.debug(f"Skipping system/app folder: {folder.name}")
+                continue
+                
             try:
-                # Peek at first few files to determine folder type
-                folder_files = list(folder.glob('*'))[:10]  # Sample first 10 files
-                folder_files = [f for f in folder_files if f.is_file()]
+                # Peek at first few files to determine folder type (look deeper if needed)
+                folder_files = []
+                # First, try root level files
+                root_files = [f for f in folder.glob('*') if f.is_file()]
+                folder_files.extend(root_files[:10])
+                
+                # If not enough files at root, peek into subdirectories
+                if len(folder_files) < 3:
+                    for subdir in [d for d in folder.glob('*') if d.is_dir()][:5]:
+                        try:
+                            subdir_files = [f for f in subdir.glob('*') if f.is_file()]
+                            folder_files.extend(subdir_files[:5])
+                            if len(folder_files) >= 10:
+                                break
+                        except:
+                            continue
+                
+                logger.debug(f"Peeked into '{folder.name}': found {len(folder_files)} sample files")
                 
                 if folder_files:
                     # Calculate folder size
@@ -85,13 +131,17 @@ class FileOrganizer:
                         'size': folder_size,
                         'sample_files': folder_files
                     })
+                    logger.debug(f"Added folder '{folder.name}' to organization queue")
+                else:
+                    logger.debug(f"Folder '{folder.name}' has no files, skipping")
             except Exception as e:
-                logger.debug(f"Could not peek into folder {folder}: {e}")
+                logger.warning(f"Could not peek into folder {folder}: {e}")
         
         analysis = {
-            'total_files': len(files),
+            'total_files': len(all_files_recursive),  # Count all files recursively
+            'root_files': len(files),
             'total_folders': len(folder_items),
-            'total_size': sum(f.stat().st_size for f in files),
+            'total_size': sum(f.stat().st_size for f in all_files_recursive),  # Size of all files
             'by_extension': {},
             'by_date': {},
             'by_size_range': {
@@ -171,6 +221,7 @@ class FileOrganizer:
         
         # Process files
         for file_path in files:
+            logger.debug(f"Processing file: {file_path.name} (ext: {file_path.suffix})")
             target_folder = self._determine_target_folder(
                 file_path, 
                 folder_path, 
@@ -178,6 +229,7 @@ class FileOrganizer:
             )
             
             if target_folder:
+                logger.debug(f"  -> Target: {target_folder}")
                 target_path = target_folder / file_path.name
                 
                 # Handle conflicts
@@ -186,6 +238,7 @@ class FileOrganizer:
                     if conflict_resolution == 'rename':
                         target_path = self._get_unique_path(target_path)
                     elif conflict_resolution == 'skip':
+                        logger.debug(f"  -> Skipping (conflict, skip mode)")
                         continue
                 
                 operations.append({
@@ -196,6 +249,9 @@ class FileOrganizer:
                     'size': file_path.stat().st_size,
                     'status': 'pending'
                 })
+                logger.debug(f"  -> Added to operations")
+            else:
+                logger.debug(f"  -> No matching rule, skipping")
         
         # Process folders (based on peeked content)
         for folder_info in folders:
@@ -214,6 +270,16 @@ class FileOrganizer:
                 if target_folder:
                     target_path = target_folder / folder_path_item.name
                     
+                    # Check if we're trying to move folder into itself (recursive move)
+                    try:
+                        # This will raise ValueError if target_path is relative to source
+                        target_path.relative_to(folder_path_item)
+                        logger.warning(f"Skipping recursive move: {folder_path_item.name} -> {target_path}")
+                        continue
+                    except ValueError:
+                        # Good - target is not inside source
+                        pass
+                    
                     if target_path.exists():
                         conflict_resolution = self.config.get('organization', {}).get('handle_conflicts', 'rename')
                         if conflict_resolution == 'rename':
@@ -231,6 +297,64 @@ class FileOrganizer:
                         'is_folder': True
                     })
         
+        # Also preview files from subfolders (for display purposes)
+        organized_folder_names = {
+            'Documents', 'Images', 'Videos', 'Audio', 'Archives', 
+            'Code', 'Installers', 'Gaming', 'Other', 'Compressed'
+        }
+        system_folder_patterns = [
+            'WindowsPowerShell', 'KingsoftData', 'WPS Cloud Files',
+            'Custom Office Templates', 'Rockstar Games', 'My Games',
+            'FIFA', 'FC ', 'WWE', 'GTA', 'Gameloft',
+            'pyinstaller', 'venv', 'node_modules', '.git', '__pycache__'
+        ]
+        
+        # Find subfolder files to include in preview
+        for subfolder_file in folder_path.rglob('*'):
+            if not subfolder_file.is_file():
+                continue
+            
+            # Skip if it's a root file (already processed)
+            if subfolder_file.parent == folder_path:
+                continue
+            
+            # Skip if in system/app folder (but NOT organized folders - we want to reorganize those)
+            skip_this_file = False
+            try:
+                rel_path = subfolder_file.relative_to(folder_path)
+                for part in rel_path.parts:
+                    if any(pattern in part for pattern in system_folder_patterns):
+                        skip_this_file = True
+                        break
+            except:
+                skip_this_file = True
+            
+            if skip_this_file:
+                continue
+            
+            # Process this subfolder file
+            target_folder = self._determine_target_folder(subfolder_file, folder_path, rules)
+            if target_folder:
+                target_path = target_folder / subfolder_file.name
+                
+                # Handle conflicts
+                if target_path.exists():
+                    conflict_resolution = self.config.get('organization', {}).get('handle_conflicts', 'rename')
+                    if conflict_resolution == 'rename':
+                        target_path = self._get_unique_path(target_path)
+                    elif conflict_resolution == 'skip':
+                        continue
+                
+                operations.append({
+                    'source': subfolder_file,
+                    'target': target_path,
+                    'action': 'move',
+                    'category': self._get_category_from_path(target_folder, folder_path),
+                    'size': subfolder_file.stat().st_size,
+                    'status': 'pending',
+                    'from_subfolder': True
+                })
+        
         logger.info(f"Preview generated: {len(operations)} operations planned")
         return operations
     
@@ -239,7 +363,8 @@ class FileOrganizer:
         folder_path: Path,
         profile: str = None,
         custom_rules: List[Dict] = None,
-        dry_run: bool = None
+        dry_run: bool = None,
+        recursive: bool = True
     ) -> Dict:
         """
         Organize files in a folder based on rules.
@@ -249,6 +374,7 @@ class FileOrganizer:
             profile: Profile name to use
             custom_rules: Custom rule list
             dry_run: If True, don't actually move files
+            recursive: If True, also organize subfolders
             
         Returns:
             Dictionary with results
@@ -256,7 +382,7 @@ class FileOrganizer:
         if dry_run is None:
             dry_run = self.dry_run
         
-        logger.info(f"{'[DRY RUN] ' if dry_run else ''}Organizing folder: {folder_path}")
+        logger.info(f"{'[DRY RUN] ' if dry_run else ''}Organizing folder: {folder_path} {'(recursive)' if recursive else ''}")
         
         # Get preview of operations
         operations = self.preview_organization(folder_path, profile, custom_rules)
@@ -308,10 +434,12 @@ class FileOrganizer:
             'total': len(operations),
             'completed': len(completed),
             'failed': len(failed),
-            'can_undo': len(completed) > 0
+            'can_undo': len(completed) > 0,
+            'completed_items': [Path(op['source']).name if isinstance(op['source'], str) else op['source'].name for op in completed],
+            'failed_items': [(Path(op['source']).name if isinstance(op['source'], str) else op['source'].name, op.get('error', 'Unknown error')) for op in failed]
         }
         
-        logger.info(f"Organization complete: {len(completed)} succeeded, {len(failed)} failed")
+        logger.info(f"Organization complete: {len(completed)} files organized, {len(failed)} failed")
         return result
     
     def undo_last_operation(self) -> bool:
@@ -347,13 +475,19 @@ class FileOrganizer:
             logger.warning(f"Partially undid operation: {success_count}/{len(operations)}")
             return False
     
+    def set_ai_classifier(self, classifier):
+        """Set AI classifier for semantic grouping."""
+        self.ai_classifier = classifier
+        logger.info("AI classifier configured for semantic grouping")
+    
     def _determine_target_folder(
         self, 
         file_path: Path, 
         base_folder: Path, 
-        rules: List[Dict]
+        rules: List[Dict],
+        use_ai_grouping: bool = False
     ) -> Optional[Path]:
-        """Determine target folder with multi-level sorting (Category → Type → Date)."""
+        """Determine target folder with multi-level sorting (Category → AI Group → Type → Date)."""
         
         # First level: Category (Documents, Images, etc.)
         category_folder = None
@@ -365,6 +499,18 @@ class FileOrganizer:
         
         if not category_folder:
             return None
+        
+        # Optional AI-based semantic grouping level
+        if use_ai_grouping and self.semantic_groups:
+            # Find which group this file belongs to
+            ai_group_name = None
+            for group_name, group_files in self.semantic_groups.items():
+                if file_path in group_files:
+                    ai_group_name = group_name
+                    break
+            
+            if ai_group_name:
+                category_folder = category_folder / ai_group_name
         
         # Second level: File Type (PDF, DOCX, etc.)
         ext = file_path.suffix.lower().lstrip('.')

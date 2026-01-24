@@ -5,6 +5,7 @@ Modern blueish theme UI with multi-level organization.
 """
 
 import logging
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -12,7 +13,7 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QLabel, QFileDialog,
     QTableWidget, QTableWidgetItem, QProgressBar,
-    QMessageBox, QGroupBox, QHeaderView
+    QMessageBox, QGroupBox, QHeaderView, QCheckBox
 )
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QFont, QColor
@@ -67,6 +68,9 @@ class MainWindow(QMainWindow):
         
         self.organizer = FileOrganizer(config.config)
         self.ai_classifier = AIClassifier(config.config)
+        
+        # Connect AI classifier to organizer for semantic grouping
+        self.organizer.set_ai_classifier(self.ai_classifier)
         
         self.current_folder: Optional[Path] = None
         self.current_preview = []
@@ -284,6 +288,9 @@ class MainWindow(QMainWindow):
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
         
+        # Configure selection behavior - select entire rows, no vertical header
+        self.preview_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.preview_table.setSelectionMode(QTableWidget.SingleSelection)
         self.preview_table.verticalHeader().setVisible(False)
         
         layout.addWidget(self.preview_table)
@@ -476,18 +483,62 @@ class MainWindow(QMainWindow):
             
         except Exception as e:
             logger.error(f"Analysis error: {e}", exc_info=True)
-            QMessageBox.critical(self, "❌ Error", f"Failed to analyze folder:\n\n{e}")
+            error_msg = QMessageBox(self)
+            error_msg.setIcon(QMessageBox.Critical)
+            error_msg.setWindowTitle("❌ Analysis Error")
+            error_msg.setText(f"<h2 style='color:#DC2626;'>Failed to analyze folder</h2>")
+            error_msg.setInformativeText(
+                f"<p style='font-size:14px; color:#1E3A8A;'><b>Error:</b> {str(e)}</p>"
+            )
+            error_msg.setStandardButtons(QMessageBox.Ok)
+            error_msg.setStyleSheet("""
+                QMessageBox {
+                    background-color: white;
+                }
+                QLabel {
+                    font-size: 14px;
+                    min-width: 400px;
+                }
+                QPushButton {
+                    background-color: #3B82F6;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    min-width: 80px;
+                }
+                QPushButton:hover {
+                    background-color: #2563EB;
+                }
+            """)
+            error_msg.exec_()
         finally:
             self.browse_btn.setEnabled(True)
     
     def _update_preview_table(self, operations):
         """Update the preview table with operations."""
         
-        self.preview_table.setRowCount(len(operations))
+        # Limit display to first 1000 items for performance
+        display_limit = 1000
+        display_ops = operations[:display_limit]
         
-        for i, op in enumerate(operations):
-            # Item name
-            name_item = QTableWidgetItem(op['source'].name)
+        self.preview_table.setRowCount(len(display_ops))
+        
+        for i, op in enumerate(display_ops):
+            # Item name - sanitize to remove problematic characters
+            filename = op['source'].name
+            # Remove non-printable characters, box-drawing, and control characters
+            cleaned = []
+            for char in filename:
+                code = ord(char)
+                # Skip control chars (0-31, 127-159), box-drawing (9472-9599), and other special ranges
+                if (code < 32 or (127 <= code < 160) or (9472 <= code < 9600)):
+                    continue
+                if char.isprintable():
+                    cleaned.append(char)
+            filename = ''.join(cleaned)
+            
+            name_item = QTableWidgetItem(filename)
             name_item.setForeground(QColor("#1E3A8A"))
             self.preview_table.setItem(i, 0, name_item)
             
@@ -506,6 +557,10 @@ class MainWindow(QMainWindow):
             target_item = QTableWidgetItem(target_path)
             target_item.setForeground(QColor("#059669"))
             self.preview_table.setItem(i, 3, target_item)
+        
+        # Show message if there are more items
+        if len(operations) > display_limit:
+            logger.info(f"Showing first {display_limit} of {len(operations)} items in preview")
     
     def _organize_folder(self):
         """Execute smart organization."""
@@ -550,7 +605,7 @@ class MainWindow(QMainWindow):
                 self,
                 "✅ Success!",
                 f"<h3 style='color:#059669;'>Successfully organized {result['completed']} items!</h3>"
-                f"<p style='color:#1E3A8A;'>Multi-level organization complete.</p>"
+                f"<p style='color:#1E3A8A;'>Multi-level organization complete (including subfolders).</p>"
                 f"<p style='color:#3B82F6;'><i>Click 'Undo Last' if you want to revert.</i></p>"
             )
             
@@ -574,12 +629,33 @@ class MainWindow(QMainWindow):
             """)
             
         else:
+            # Build detailed error message
+            error_details = ""
+            if result.get('failed_items'):
+                error_details = "<br><br><b style='color:#DC2626;'>Failed items:</b><ul style='color:#7C2D12;'>"
+                for item_name, error_msg in result['failed_items'][:10]:  # Show first 10 errors
+                    # Truncate long error messages
+                    short_error = error_msg[:80] + "..." if len(error_msg) > 80 else error_msg
+                    error_details += f"<li><b>{item_name}</b>: {short_error}</li>"
+                
+                if len(result['failed_items']) > 10:
+                    error_details += f"<li><i>...and {len(result['failed_items']) - 10} more</i></li>"
+                error_details += "</ul>"
+            
+            success_details = ""
+            if result.get('completed_items'):
+                success_details = f"<br><b style='color:#059669;'>Successfully organized:</b> {', '.join(result['completed_items'][:5])}"
+                if len(result['completed_items']) > 5:
+                    success_details += f" <i>(+{len(result['completed_items']) - 5} more)</i>"
+            
             QMessageBox.warning(
                 self,
                 "⚠️ Partial Success",
                 f"<h3 style='color:#D97706;'>Partially completed</h3>"
                 f"<p style='color:#1E3A8A;'>Organized {result['completed']} items.</p>"
                 f"<p style='color:#DC2626;'>{result['failed']} items could not be organized.</p>"
+                f"{success_details}"
+                f"{error_details}"
             )
     
     def _on_organize_error(self, error):
@@ -657,28 +733,82 @@ class MainWindow(QMainWindow):
             )
     
     def _cleanup_empty_folders_recursive(self, base_folder: Path) -> int:
-        """Remove empty folders recursively. Returns count of deleted folders."""
+        """Remove empty folders recursively. Handles OneDrive locked folders. Returns count of deleted folders."""
+        import subprocess
+        import time
+        
         deleted_count = 0
-        try:
-            # Get all subdirectories
-            subdirs = [d for d in base_folder.iterdir() if d.is_dir()]
+        max_attempts = 20  # More attempts for OneDrive sync
+        base_str = str(base_folder)
+        
+        for attempt in range(max_attempts):
+            attempt_deleted = 0
+            folders_to_remove = []
             
-            for subdir in subdirs:
-                # Recursively clean subdirectories first
-                deleted_count += self._cleanup_empty_folders_recursive(subdir)
-                
-                # Try to remove if empty
-                try:
-                    if not any(subdir.iterdir()):
-                        logger.info(f"Removing empty folder: {subdir}")
-                        subdir.rmdir()
-                        deleted_count += 1
-                except Exception as e:
-                    logger.debug(f"Could not remove {subdir}: {e}")
+            try:
+                # Collect all empty folders first
+                for dirpath, dirnames, filenames in os.walk(base_str, topdown=False):
+                    if dirpath == base_str:
+                        continue
                     
-        except Exception as e:
-            logger.warning(f"Error cleaning up folder {base_folder}: {e}")
+                    try:
+                        # Check if directory is empty
+                        contents = os.listdir(dirpath)
+                        if len(contents) == 0:
+                            folders_to_remove.append(dirpath)
+                    except (PermissionError, FileNotFoundError):
+                        pass
+                    except Exception as e:
+                        logger.debug(f"Error checking {dirpath}: {e}")
+                
+                # Try to remove each empty folder
+                for folder_path in folders_to_remove:
+                    try:
+                        # First try normal removal
+                        os.rmdir(folder_path)
+                        logger.info(f"Removed empty folder: {folder_path}")
+                        attempt_deleted += 1
+                    except PermissionError:
+                        # OneDrive locked - try Windows rmdir with force
+                        try:
+                            # Use Windows rmdir command which can handle OneDrive better
+                            result = subprocess.run(
+                                ['cmd', '/c', 'rmdir', '/q', folder_path],
+                                capture_output=True,
+                                timeout=5
+                            )
+                            if result.returncode == 0:
+                                logger.info(f"Force-removed folder: {folder_path}")
+                                attempt_deleted += 1
+                            else:
+                                logger.debug(f"OneDrive locked (skipping): {folder_path}")
+                        except Exception as e:
+                            logger.debug(f"Force remove failed for {folder_path}: {e}")
+                    except FileNotFoundError:
+                        # Already deleted
+                        attempt_deleted += 1
+                    except Exception as e:
+                        logger.debug(f"Could not remove {folder_path}: {e}")
             
+            except Exception as e:
+                logger.warning(f"Error during cleanup pass {attempt + 1}: {e}")
+            
+            deleted_count += attempt_deleted
+            
+            if attempt_deleted > 0:
+                logger.info(f"Cleanup pass {attempt + 1}: Deleted {attempt_deleted} empty folders")
+                # Small delay to let OneDrive sync
+                if attempt < max_attempts - 1:
+                    time.sleep(0.1)
+            else:
+                logger.debug(f"Cleanup pass {attempt + 1}: No empty folders found")
+                break
+        
+        if deleted_count > 0:
+            logger.info(f"Total empty folders removed: {deleted_count}")
+        else:
+            logger.info("Note: Some empty folders may be locked by OneDrive and cannot be removed")
+        
         return deleted_count
     
     def _set_controls_enabled(self, enabled: bool):

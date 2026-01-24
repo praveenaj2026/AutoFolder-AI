@@ -25,7 +25,7 @@ class RuleEngine:
                 {
                     'name': 'Documents',
                     'type': 'extension',
-                    'patterns': ['.pdf', '.doc', '.docx', '.txt', '.rtf', '.odt', '.xls', '.xlsx', '.ppt', '.pptx'],
+                    'patterns': ['.pdf', '.doc', '.docx', '.txt', '.rtf', '.odt', '.xls', '.xlsx', '.ppt', '.pptx', '.csv', '.url', '.lnk'],
                     'target_folder': 'Documents'
                 },
                 {
@@ -61,7 +61,7 @@ class RuleEngine:
                 {
                     'name': 'Code',
                     'type': 'extension',
-                    'patterns': ['.py', '.js', '.java', '.cpp', '.c', '.cs', '.html', '.css', '.php', '.json', '.xml'],
+                    'patterns': ['.py', '.js', '.java', '.cpp', '.c', '.cs', '.html', '.css', '.php', '.json', '.xml', '.ini', '.cfg', '.conf', '.yaml', '.yml'],
                     'target_folder': 'Code'
                 }
             ],

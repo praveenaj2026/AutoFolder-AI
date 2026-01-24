@@ -13,7 +13,7 @@ from logging.handlers import RotatingFileHandler
 def setup_logger(
     name: str = None,
     log_file: str = 'logs/autofolder.log',
-    level: str = 'INFO',
+    level: str = 'DEBUG',  # Changed to DEBUG for detailed output
     max_bytes: int = 10 * 1024 * 1024,  # 10 MB
     backup_count: int = 3
 ) -> logging.Logger:

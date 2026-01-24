@@ -294,6 +294,129 @@ class AIClassifier:
         
         return ' '.join(parts)
     
+    def create_semantic_groups(self, files: List[Path], min_group_size: int = 2) -> Dict[str, List[Path]]:
+        """
+        Group files by semantic similarity for intelligent organization.
+        
+        Args:
+            files: List of file paths to group
+            min_group_size: Minimum files to form a group
+            
+        Returns:
+            Dictionary mapping group names to file lists
+        """
+        if not self.enabled or len(files) < min_group_size:
+            return {}
+        
+        try:
+            logger.info(f"Creating semantic groups for {len(files)} files")
+            
+            # Limit for performance (process in batches if needed)
+            files_to_process = files[:500]  
+            
+            # Build embeddings for all files
+            file_data = []
+            for file_path in files_to_process:
+                try:
+                    info = self.file_analyzer.analyze_file(file_path)
+                    description = self._build_file_description(file_path, info)
+                    if description:
+                        embedding = self.model.encode(description, convert_to_tensor=True)
+                        file_data.append({
+                            'path': file_path,
+                            'embedding': embedding,
+                            'description': description
+                        })
+                except Exception as e:
+                    logger.debug(f"Error processing {file_path.name}: {e}")
+                    continue
+            
+            if len(file_data) < min_group_size:
+                return {}
+            
+            # Convert to numpy for clustering
+            embeddings = np.array([f['embedding'].cpu().numpy() for f in file_data])
+            
+            # Use simple similarity-based clustering
+            groups = {}
+            used_indices = set()
+            group_id = 0
+            similarity_threshold = 0.65  # Files with 65%+ similarity are grouped
+            
+            for i in range(len(file_data)):
+                if i in used_indices:
+                    continue
+                
+                # Start new group with this file
+                group_members = [i]
+                used_indices.add(i)
+                
+                # Find similar files
+                for j in range(i + 1, len(file_data)):
+                    if j in used_indices:
+                        continue
+                    
+                    similarity = np.dot(embeddings[i], embeddings[j]) / (
+                        np.linalg.norm(embeddings[i]) * np.linalg.norm(embeddings[j])
+                    )
+                    
+                    if similarity >= similarity_threshold:
+                        group_members.append(j)
+                        used_indices.add(j)
+                
+                # Create group if meets minimum size
+                if len(group_members) >= min_group_size:
+                    # Generate smart group name based on common themes
+                    group_files = [file_data[idx]['path'] for idx in group_members]
+                    group_name = self._generate_group_name(group_files, file_data, group_members)
+                    groups[group_name] = group_files
+                    logger.debug(f"Created group '{group_name}' with {len(group_files)} files")
+                    group_id += 1
+            
+            logger.info(f"Created {len(groups)} semantic groups from {len(files_to_process)} files")
+            return groups
+            
+        except Exception as e:
+            logger.error(f"Error creating semantic groups: {e}", exc_info=True)
+            return {}
+    
+    def _generate_group_name(self, files: List[Path], file_data: List[Dict], indices: List[int]) -> str:
+        """Generate a descriptive name for a group of similar files."""
+        try:
+            # Extract common words from filenames
+            all_words = []
+            for idx in indices:
+                name = file_data[idx]['path'].stem.lower()
+                # Clean and split
+                name = re.sub(r'[^a-z0-9\s]', ' ', name)
+                words = [w for w in name.split() if len(w) > 3 and not w.isdigit()]
+                all_words.extend(words)
+            
+            # Find most common meaningful word
+            from collections import Counter
+            if all_words:
+                word_counts = Counter(all_words)
+                # Remove common generic words
+                stop_words = {'file', 'document', 'image', 'photo', 'copy', 'new', 'untitled'}
+                meaningful_words = [w for w, c in word_counts.most_common(10) 
+                                   if w not in stop_words and c >= 2]
+                
+                if meaningful_words:
+                    # Use top word
+                    return meaningful_words[0].title()
+            
+            # Fallback: Use category-based name
+            categories = Counter([f.suffix.lower().strip('.') for f in files])
+            if categories:
+                top_ext = categories.most_common(1)[0][0].upper()
+                return f"{top_ext} Collection"
+            
+            return "Similar Items"
+            
+        except Exception as e:
+            logger.debug(f"Error generating group name: {e}")
+            return f"Group {len(indices)}"
+    
     def get_status(self) -> Dict:
         """Get AI system status."""
         return {
