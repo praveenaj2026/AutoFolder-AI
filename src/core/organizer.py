@@ -259,10 +259,15 @@ class FileOrganizer:
                         all_files_for_ai.append(subfolder_file)
                 
                 # Create semantic groups using AI
-                self.semantic_groups = self.ai_classifier.create_semantic_groups(
+                groups_raw = self.ai_classifier.create_semantic_groups(
                     all_files_for_ai, 
                     min_group_size=2
                 )
+                
+                # Convert Path objects to strings for reliable comparison
+                self.semantic_groups = {}
+                for group_name, files_list in groups_raw.items():
+                    self.semantic_groups[group_name] = [str(f) for f in files_list]
                 
                 if self.semantic_groups:
                     logger.info(f"AI created {len(self.semantic_groups)} semantic groups")
@@ -562,15 +567,19 @@ class FileOrganizer:
         
         # Optional AI-based semantic grouping level
         if use_ai_grouping and self.semantic_groups:
-            # Find which group this file belongs to
+            # Find which group this file belongs to (compare as strings)
+            file_path_str = str(file_path)
             ai_group_name = None
             for group_name, group_files in self.semantic_groups.items():
-                if file_path in group_files:
+                if file_path_str in group_files:
                     ai_group_name = group_name
+                    logger.debug(f"File {file_path.name} → AI Group: {ai_group_name}")
                     break
             
             if ai_group_name:
                 category_folder = category_folder / ai_group_name
+            else:
+                logger.debug(f"File {file_path.name} not in any AI group")
         
         # Second level: File Type (PDF, DOCX, etc.)
         ext = file_path.suffix.lower().lstrip('.')

@@ -13,9 +13,9 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QLabel, QFileDialog,
     QTableWidget, QTableWidgetItem, QProgressBar,
-    QMessageBox, QGroupBox, QHeaderView, QCheckBox
+    QMessageBox, QGroupBox, QHeaderView, QCheckBox, QProgressDialog
 )
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QColor
 
 try:
@@ -555,13 +555,24 @@ class MainWindow(QMainWindow):
                 }
             """)
             
-            self.current_preview = self.organizer.preview_organization(
-                self.current_folder,
-                profile='downloads',
-                use_ai_grouping=self.use_ai_grouping
-            )
-            
-            self._update_preview_table(self.current_preview)
+            # Show progress dialog for large folders or AI processing
+            if analysis['total_files'] > 100 or self.use_ai_grouping:
+                progress = QProgressDialog(
+                    "Analyzing files and creating organization preview...\n\n" +
+                    ("🤖 AI Semantic Grouping: Generating embeddings and clustering files" if self.use_ai_grouping else "Preparing file organization"),
+                    None,
+                    0,
+                    0,
+                    self
+                )
+                progress.setWindowTitle("Processing...")
+                progress.setWindowModality(Qt.WindowModal)
+                progress.setMinimumDuration(0)
+                progress.setValue(0)
+                progress.show()
+                QTimer.singleShot(100, lambda: self._run_preview_analysis(progress))
+            else:
+                self._run_preview_analysis(None)
             
             self.organize_btn.setEnabled(len(self.current_preview) > 0)
             
@@ -577,6 +588,30 @@ class MainWindow(QMainWindow):
             
         except Exception as e:
             logger.error(f"Analysis error: {e}", exc_info=True)
+    
+    def _run_preview_analysis(self, progress_dialog):
+        """Run preview analysis and update UI."""
+        try:
+            self.current_preview = self.organizer.preview_organization(
+                self.current_folder,
+                profile='downloads',
+                use_ai_grouping=self.use_ai_grouping
+            )
+            
+            if progress_dialog:
+                progress_dialog.close()
+            
+            self._update_preview_table(self.current_preview)
+            
+        except Exception as e:
+            if progress_dialog:
+                progress_dialog.close()
+            logger.error(f"Preview generation error: {e}", exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Preview Error",
+                f"Failed to generate preview: {str(e)}"
+            )
             error_msg = QMessageBox(self)
             error_msg.setIcon(QMessageBox.Critical)
             error_msg.setWindowTitle("❌ Analysis Error")
