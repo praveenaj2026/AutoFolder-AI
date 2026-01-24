@@ -15,6 +15,7 @@ from .rules import RuleEngine
 from .file_analyzer import FileAnalyzer
 from .undo_manager import UndoManager
 from .duplicate_detector import DuplicateDetector
+from .smart_renamer import SmartRenamer
 
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,11 @@ class FileOrganizer:
         # Duplicate detector for finding duplicate files
         self.duplicate_detector = DuplicateDetector()
         self.duplicates = {}  # Cache for found duplicates
-        self.duplicate_action = None  # Action to take on duplicates        
+        self.duplicate_action = None  # Action to take on duplicates
+        
+        # Smart renamer for AI-based filename suggestions
+        self.smart_renamer = SmartRenamer(config)
+        self.rename_suggestions = {}  # Cache for rename suggestions        
     def analyze_folder(self, folder_path: Path) -> Dict:
         """
         Analyze a folder and return statistics.
@@ -251,15 +256,25 @@ class FileOrganizer:
             target_folder: Target folder for 'keep_all' action
             
         Returns:
-            Dictionary with results
+            Dictionary with results including detailed file lists
         """
         if action == 'skip':
             logger.info("Skipping duplicate handling")
-            return {'files_deleted': 0, 'files_moved': 0, 'space_freed': 0}
+            return {
+                'files_deleted': 0, 
+                'files_moved': 0, 
+                'space_freed': 0,
+                'deleted_files': [],
+                'moved_files': [],
+                'kept_files': []
+            }
         
         files_deleted = 0
         files_moved = 0
         space_freed = 0
+        deleted_files = []
+        moved_files = []
+        kept_files = []
         
         if action == 'keep_all':
             # Move all duplicates to target folder
@@ -271,6 +286,11 @@ class FileOrganizer:
             target_folder.mkdir(parents=True, exist_ok=True)
             
             for hash_val, file_list in duplicates.items():
+                # Keep the first one, move the rest
+                if file_list:
+                    kept_files.append(str(file_list[0]))
+                    logger.info(f"Kept original: {file_list[0].name}")
+                
                 # Move all but the first one
                 for file_path in file_list[1:]:
                     try:
@@ -285,7 +305,8 @@ class FileOrganizer:
                         
                         shutil.move(str(file_path), str(dest))
                         files_moved += 1
-                        logger.debug(f"Moved duplicate: {file_path} -> {dest}")
+                        moved_files.append((str(file_path), str(dest)))
+                        logger.info(f"Moved duplicate: {file_path.name} → {dest}")
                     except Exception as e:
                         logger.error(f"Error moving duplicate {file_path}: {e}")
         
@@ -297,13 +318,18 @@ class FileOrganizer:
                     strategy=action.replace('keep_', '')
                 )
                 
+                if keep:
+                    kept_files.append(str(keep))
+                    logger.info(f"Kept: {keep.name}")
+                
                 for file_path in remove:
                     try:
                         file_size = file_path.stat().st_size
                         file_path.unlink()
                         files_deleted += 1
                         space_freed += file_size
-                        logger.debug(f"Deleted duplicate: {file_path}")
+                        deleted_files.append(str(file_path))
+                        logger.info(f"Deleted duplicate: {file_path.name}")
                     except Exception as e:
                         logger.error(f"Error deleting duplicate {file_path}: {e}")
         
@@ -317,7 +343,10 @@ class FileOrganizer:
             'files_deleted': files_deleted,
             'files_moved': files_moved,
             'space_freed': space_freed,
-            'space_freed_mb': space_freed_mb
+            'space_freed_mb': space_freed_mb,
+            'deleted_files': deleted_files,
+            'moved_files': moved_files,
+            'kept_files': kept_files
         }
     
     def preview_organization(
@@ -430,7 +459,31 @@ class FileOrganizer:
             
             if target_folder:
                 logger.debug(f"  -> Target: {target_folder}")
-                target_path = target_folder / file_path.name
+                
+                # Get category and AI group for this file
+                category = self._get_category_from_path(target_folder, folder_path)
+                ai_group = self._get_ai_group_for_file(file_path)
+                
+                # Generate smart rename suggestion
+                suggested_name = file_path.name  # Default to original
+                if self.smart_renamer.enabled:
+                    try:
+                        file_metadata = {
+                            'date': datetime.fromtimestamp(file_path.stat().st_mtime),
+                            'size': file_path.stat().st_size
+                        }
+                        suggested_name = self.smart_renamer.suggest_filename(
+                            file_path,
+                            ai_group=ai_group,
+                            category=category,
+                            file_metadata=file_metadata
+                        )
+                        logger.debug(f"  -> Rename suggestion: {file_path.name} → {suggested_name}")
+                    except Exception as e:
+                        logger.error(f"Error generating rename suggestion: {e}")
+                        suggested_name = file_path.name
+                
+                target_path = target_folder / suggested_name
                 
                 # Handle conflicts
                 if target_path.exists():
@@ -445,7 +498,10 @@ class FileOrganizer:
                     'source': file_path,
                     'target': target_path,
                     'action': 'move',
-                    'category': self._get_category_from_path(target_folder, folder_path),
+                    'category': category,
+                    'ai_group': ai_group,
+                    'original_name': file_path.name,
+                    'suggested_name': suggested_name,
                     'size': file_path.stat().st_size,
                     'status': 'pending'
                 })
@@ -777,3 +833,15 @@ class FileOrganizer:
             return parts[0] if parts else "Other"
         except:
             return "Other"
+    
+    def _get_ai_group_for_file(self, file_path: Path) -> Optional[str]:
+        """Get AI semantic group name for a file."""
+        if not self.semantic_groups:
+            return None
+        
+        file_path_str = str(file_path)
+        for group_name, group_files in self.semantic_groups.items():
+            if file_path_str in group_files:
+                return group_name
+        
+        return None

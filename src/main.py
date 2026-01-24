@@ -40,11 +40,20 @@ def main():
     app.setApplicationName("AutoFolder AI")
     app.setOrganizationName("AutoFolder")
     
-    # Set high DPI scaling
-    if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-    if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
-        QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+    # Set high DPI scaling (suppress Qt6 deprecation warnings)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        try:
+            if hasattr(Qt, 'AA_EnableHighDpiScaling'):
+                QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+        except:
+            pass
+        try:
+            if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
+                QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+        except:
+            pass
     
     # Create and show main window
     try:

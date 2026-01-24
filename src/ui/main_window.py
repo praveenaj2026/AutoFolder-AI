@@ -273,8 +273,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.info_label)
         
         self.preview_table = QTableWidget()
-        self.preview_table.setColumnCount(4)
-        self.preview_table.setHorizontalHeaderLabels(["📄 Item Name", "🏷️ Category", "📦 Size", "📁 Destination"])
+        self.preview_table.setColumnCount(5)
+        self.preview_table.setHorizontalHeaderLabels(["📄 Original Name", "✏️ New Name", "🏷️ Category", "📦 Size", "📁 Destination"])
         
         # Blueish theme table styling
         self.preview_table.setStyleSheet("""
@@ -723,27 +723,67 @@ class MainWindow(QMainWindow):
             
             progress.close()
             
-            # Show result
+            # Build detailed message
             if action == 'keep_all':
-                message = (
-                    f"✅ Duplicate Processing Complete!\n\n"
-                    f"📁 {result['files_moved']} duplicate files moved to:\n"
-                    f"{target_folder}\n\n"
-                    f"Original files kept in place."
-                )
+                message = f"✅ Duplicate Processing Complete!\n\n"
+                message += f"📁 {result['files_moved']} duplicate files moved to:\n{target_folder}\n\n"
+                
+                if result['kept_files']:
+                    message += f"📌 Kept {len(result['kept_files'])} original files in place\n\n"
+                
+                # Show first few moved files
+                if result['moved_files']:
+                    message += "📦 Files Moved:\n"
+                    for i, (src, dest) in enumerate(result['moved_files'][:5]):
+                        src_name = Path(src).name
+                        message += f"  • {src_name} → Duplicates folder\n"
+                    if len(result['moved_files']) > 5:
+                        message += f"  ... and {len(result['moved_files']) - 5} more\n"
             else:
-                message = (
-                    f"✅ Duplicate Processing Complete!\n\n"
-                    f"🗑️ {result['files_deleted']} duplicate files deleted\n"
-                    f"💾 {result['space_freed_mb']:.2f} MB freed\n\n"
-                    f"Original files kept based on '{action}' strategy."
-                )
+                message = f"✅ Duplicate Processing Complete!\n\n"
+                message += f"🗑️ {result['files_deleted']} duplicate files deleted\n"
+                message += f"💾 {result['space_freed_mb']:.2f} MB freed\n\n"
+                
+                if result['kept_files']:
+                    message += f"📌 Kept {len(result['kept_files'])} files based on '{action}' strategy\n\n"
+                
+                # Show first few deleted files
+                if result['deleted_files']:
+                    message += "🗑️ Files Deleted:\n"
+                    for i, deleted in enumerate(result['deleted_files'][:8]):
+                        file_name = Path(deleted).name
+                        message += f"  • {file_name}\n"
+                    if len(result['deleted_files']) > 8:
+                        message += f"  ... and {len(result['deleted_files']) - 8} more\n"
             
-            QMessageBox.information(
-                self,
-                "Success",
-                message
-            )
+            # Show message with scrollable text
+            msg_box = QMessageBox(self)
+            msg_box.setIcon(QMessageBox.Information)
+            msg_box.setWindowTitle("Duplicate Processing Complete")
+            msg_box.setText(message)
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: white;
+                }
+                QLabel {
+                    font-size: 13px;
+                    min-width: 500px;
+                    min-height: 200px;
+                }
+                QPushButton {
+                    background-color: #10B981;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    min-width: 80px;
+                }
+                QPushButton:hover {
+                    background-color: #059669;
+                }
+            """)
+            msg_box.exec_()
             
             # Refresh analysis
             if self.current_folder:
@@ -767,7 +807,7 @@ class MainWindow(QMainWindow):
         self.preview_table.setRowCount(len(display_ops))
         
         for i, op in enumerate(display_ops):
-            # Item name - sanitize to remove problematic characters
+            # Original name - sanitize to remove problematic characters
             filename = op['source'].name
             # Remove non-printable characters, box-drawing, and control characters
             cleaned = []
@@ -784,21 +824,37 @@ class MainWindow(QMainWindow):
             name_item.setForeground(QColor("#1E3A8A"))
             self.preview_table.setItem(i, 0, name_item)
             
+            # Suggested new name (if different from original)
+            suggested_name = op.get('suggested_name', op['source'].name)
+            original_name = op.get('original_name', op['source'].name)
+            
+            if suggested_name != original_name:
+                # Show suggested name in green (rename happening)
+                suggested_item = QTableWidgetItem(suggested_name)
+                suggested_item.setForeground(QColor("#059669"))
+                suggested_item.setToolTip(f"Will be renamed from: {original_name}")
+            else:
+                # Show "No change" in gray
+                suggested_item = QTableWidgetItem("(no change)")
+                suggested_item.setForeground(QColor("#9CA3AF"))
+            
+            self.preview_table.setItem(i, 1, suggested_item)
+            
             # Category
             category_item = QTableWidgetItem(op['category'].title())
             category_item.setForeground(QColor("#2563EB"))
-            self.preview_table.setItem(i, 1, category_item)
+            self.preview_table.setItem(i, 2, category_item)
             
             # Size
             size_item = QTableWidgetItem(self._format_size(op['size']))
             size_item.setForeground(QColor("#7C3AED"))
-            self.preview_table.setItem(i, 2, size_item)
+            self.preview_table.setItem(i, 3, size_item)
             
             # Target folder (showing nested structure)
             target_path = str(op['target'].relative_to(self.current_folder))
             target_item = QTableWidgetItem(target_path)
             target_item.setForeground(QColor("#059669"))
-            self.preview_table.setItem(i, 3, target_item)
+            self.preview_table.setItem(i, 4, target_item)
         
         # Show message if there are more items
         if len(operations) > display_limit:
