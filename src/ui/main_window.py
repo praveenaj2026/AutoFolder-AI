@@ -1080,6 +1080,11 @@ class MainWindow(QMainWindow):
             return
         
         try:
+            # Clear duplicate cache to ensure fresh scan
+            logger.info("Clearing duplicate cache for fresh scan")
+            if hasattr(self.organizer, 'duplicate_detector'):
+                self.organizer.duplicate_detector._hash_cache.clear()
+            
             # Update status bar to show scanning in progress
             self.statusBar().showMessage("🔍 Scanning for duplicates... Please wait.")
             QApplication.processEvents()  # Force UI update

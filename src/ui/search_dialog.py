@@ -359,6 +359,8 @@ class SearchDialog(QDialog):
     def _perform_search(self):
         """Perform search with current filters."""
         query = self.search_input.text()
+        logger.info(f"Performing search with query: '{query}'")
+        
         category = self.category_combo.currentText()
         ai_group = self.ai_group_combo.currentText()
         file_type = self.type_combo.currentText()
@@ -392,7 +394,18 @@ class SearchDialog(QDialog):
             size_max_mb=size_max
         )
         
+        logger.info(f"Search returned {len(self.results)} results")
         self._display_results()
+        
+        # Update status label
+        self.status_label.setText(f"Found {len(self.results)} files")
+        self.status_label.setStyleSheet("""
+            QLabel {
+                color: #059669;
+                font-weight: bold;
+                font-size: 13px;
+            }
+        """)
     
     def _display_results(self):
         """Display search results in table."""
