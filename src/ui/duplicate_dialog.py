@@ -66,16 +66,29 @@ class DuplicateDialog(QDialog):
             QTreeWidget {
                 border: 2px solid #3B82F6;
                 border-radius: 5px;
-                background-color: #F0F9FF;
+                background-color: #EFF6FF;
                 font-size: 12px;
                 color: #1E3A8A;
             }
             QTreeWidget::item {
                 padding: 5px;
+                background-color: #EFF6FF;
+                color: #1E3A8A;
             }
-            QTreeWidget::item:selected {
+            QTreeWidget::item:alternate {
                 background-color: #DBEAFE;
                 color: #1E3A8A;
+            }
+            QTreeWidget::item:selected {
+                background-color: #3B82F6;
+                color: #F0F9FF;
+            }
+            QHeaderView::section {
+                background-color: #3B82F6;
+                color: #F0F9FF;
+                padding: 5px;
+                border: none;
+                font-weight: bold;
             }
         """)
         self._populate_tree()
@@ -93,7 +106,7 @@ class DuplicateDialog(QDialog):
         self.process_btn.setStyleSheet("""
             QPushButton {
                 background-color: #10B981;
-                color: white;
+                color: #1E3A8A;
                 padding: 10px 20px;
                 border-radius: 5px;
                 font-size: 13px;
@@ -109,14 +122,15 @@ class DuplicateDialog(QDialog):
         cancel_btn = QPushButton("❌ Cancel")
         cancel_btn.setStyleSheet("""
             QPushButton {
-                background-color: #6B7280;
-                color: white;
+                background-color: #EF4444;
+                color: #1E3A8A;
                 padding: 10px 20px;
                 border-radius: 5px;
                 font-size: 13px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #4B5563;
+                background-color: #DC2626;
             }
         """)
         cancel_btn.clicked.connect(self.reject)
@@ -212,7 +226,17 @@ class DuplicateDialog(QDialog):
         for action, label, tooltip in options:
             radio = QRadioButton(label)
             radio.setToolTip(tooltip)
-            radio.setStyleSheet("font-size: 12px; padding: 5px;")
+            radio.setStyleSheet("""
+                QRadioButton {
+                    font-size: 12px;
+                    padding: 5px;
+                    color: #1E3A8A;
+                }
+                QRadioButton::indicator {
+                    width: 18px;
+                    height: 18px;
+                }
+            """)
             if action == self.selected_action:
                 radio.setChecked(True)
             
@@ -238,10 +262,10 @@ class DuplicateDialog(QDialog):
             group_item = QTreeWidgetItem(self.tree)
             group_item.setText(0, f"Group {group_idx} ({len(files)} copies)")
             group_item.setText(1, f"Wasting: {(len(files)-1) * size_mb:.2f} MB")
-            group_item.setBackground(0, Qt.cyan)  # Colored background for visibility
-            group_item.setBackground(1, Qt.cyan)  # Colored background for visibility
-            group_item.setForeground(0, Qt.black)  # Black text on colored background
-            group_item.setForeground(1, Qt.black)  # Black text on colored background
+            group_item.setBackground(0, QColor("#60A5FA"))  # Bright blue background
+            group_item.setBackground(1, QColor("#60A5FA"))  # Bright blue background
+            group_item.setForeground(0, QColor("#1E3A8A"))  # Dark blue text
+            group_item.setForeground(1, QColor("#1E3A8A"))  # Dark blue text
             
             font = QFont()
             font.setBold(True)
