@@ -78,11 +78,6 @@ class StatsDialog(QDialog):
             category_group = self._create_category_breakdown()
             content_layout.addWidget(category_group)
         
-        # AI Groups breakdown
-        if 'ai_groups' in self.stats:
-            ai_group = self._create_ai_group_breakdown()
-            content_layout.addWidget(ai_group)
-        
         # Size analysis
         if 'by_size_range' in self.stats:
             size_group = self._create_size_breakdown()
@@ -133,13 +128,12 @@ class StatsDialog(QDialog):
         layout = QGridLayout(group)
         layout.setSpacing(15)
         
-        # Define cards
+        # Define cards - light colors only
         cards = [
             ("📁 Total Files", self.stats.get('total_files', 0), "#3B82F6"),
             ("📦 Total Size", self._format_size(self.stats.get('total_size', 0)), "#10B981"),
-            ("🗂️ Categories", len(self.stats.get('by_category', {})), "#F59E0B"),
-            ("🤖 AI Groups", len(self.stats.get('ai_groups', {})), "#8B5CF6"),
-            ("📄 File Types", len(self.stats.get('by_extension', {})), "#EC4899"),
+            ("🗂️ Categories", len(self.stats.get('by_category', {})), "#FCA5A5"),  # Light red
+            ("📄 File Types", len(self.stats.get('by_extension', {})), "#FCD34D"),  # Light orange
             ("✅ Organized", self.stats.get('completed', 0), "#059669"),
         ]
         

@@ -312,6 +312,8 @@ class FileOrganizer:
         
         elif action in ['keep_newest', 'keep_oldest']:
             # Delete duplicates based on strategy
+            failed_deletes = []
+            
             for hash_val, file_list in duplicates.items():
                 keep, remove = self.duplicate_detector.select_files_to_keep(
                     file_list, 
@@ -331,15 +333,17 @@ class FileOrganizer:
                         deleted_files.append(str(file_path))
                         logger.info(f"Deleted duplicate: {file_path.name}")
                     except PermissionError as e:
-                        logger.error(
-                            f"⚠️ Permission denied - cannot delete '{file_path.name}'. "
-                            f"This may be a OneDrive synced file or file in use. "
-                            f"Try: 1) Close programs using this file, "
-                            f"2) Pause OneDrive sync temporarily, "
+                        error_msg = (
+                            f"⚠️ Cannot delete '{file_path.name}' - Permission denied. "
+                            f"This is likely a OneDrive synced file. "
+                            f"Try: 1) Pause OneDrive sync, 2) Close programs using this file, "
                             f"3) Delete manually in File Explorer"
                         )
+                        logger.error(error_msg)
+                        failed_deletes.append((str(file_path), "OneDrive locked or in use"))
                     except Exception as e:
                         logger.error(f"Error deleting duplicate {file_path}: {e}")
+                        failed_deletes.append((str(file_path), str(e)))
         
         space_freed_mb = space_freed / (1024 * 1024)
         logger.info(
@@ -354,7 +358,8 @@ class FileOrganizer:
             'space_freed_mb': space_freed_mb,
             'deleted_files': deleted_files,
             'moved_files': moved_files,
-            'kept_files': kept_files
+            'kept_files': kept_files,
+            'failed_deletes': failed_deletes if 'failed_deletes' in locals() else []
         }
     
     def preview_organization(

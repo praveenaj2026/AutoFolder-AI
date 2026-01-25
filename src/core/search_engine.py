@@ -46,19 +46,27 @@ class SearchEngine:
                     stat = file_path.stat()
                     
                     # Extract metadata from path structure (flexible)
-                    # Can be: Category/AI_Group/Type/Date/filename OR any other structure
+                    # Works with any folder structure - extracts what we can
                     parts = file_path.relative_to(self.root).parts
                     
-                    # Try to detect AutoFolder organized structure
-                    category = parts[0] if len(parts) > 0 else 'Unknown'
+                    # Smart detection of folder structure
+                    category = parts[0] if len(parts) > 0 else 'Root'
                     ai_group = None
                     file_type = None
                     
-                    # If path has Documents/Category/AI_Group structure
-                    if len(parts) >= 3:
+                    # Try to detect organized structure intelligently
+                    # Common patterns: Documents/Praveen/PDF, Images/Photos/2024, etc.
+                    if len(parts) >= 2:
+                        # First folder is usually category (Documents, Images, Code, etc.)
                         category = parts[0]
-                        ai_group = parts[1] if parts[1] not in ['Audio', 'Video', 'Images', 'Code', 'Archives', 'Installers', 'Documents'] else None
-                        file_type = parts[2] if len(parts) > 2 else None
+                        
+                        # Second folder might be AI group (if not a standard category)
+                        if len(parts) >= 3 and parts[1] not in ['Audio', 'Video', 'Images', 'Code', 'Archives', 'Installers', 'Documents', 'PDF', 'DOCX', 'JPG', 'PNG', 'MP3', 'MP4', 'ZIP']:
+                            ai_group = parts[1]
+                            file_type = parts[2] if len(parts) > 2 else None
+                        else:
+                            # Second folder is file type
+                            file_type = parts[1] if len(parts) >= 2 else None
                     
                     self.index[file_path] = {
                         'name': file_path.name,
@@ -118,10 +126,15 @@ class SearchEngine:
         query_lower = query.lower() if query else ""
         
         for file_path, metadata in self.index.items():
-            # Text search in filename, stem, or full path
+            # Text search in filename or path
             if query_lower:
+                # Search in filename (with extension)
                 name_match = query_lower in metadata['name'].lower()
+                
+                # Search in filename without extension
                 stem_match = query_lower in metadata['stem'].lower()
+                
+                # Also search in full path for broader results
                 path_match = query_lower in metadata['full_path_text']
                 
                 if not (name_match or stem_match or path_match):

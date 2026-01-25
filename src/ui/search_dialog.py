@@ -239,10 +239,9 @@ class SearchDialog(QDialog):
         
         # Results table
         self.results_table = QTableWidget()
-        self.results_table.setColumnCount(6)
+        self.results_table.setColumnCount(4)
         self.results_table.setHorizontalHeaderLabels([
-            "📄 Filename", "📁 Category", "🤖 AI Group", 
-            "📦 Type", "💾 Size", "📅 Modified"
+            "📄 Filename", "📁 Location", "💾 Size", "📅 Modified"
         ])
         self.results_table.setStyleSheet("""
             QTableWidget {
@@ -268,7 +267,15 @@ class SearchDialog(QDialog):
                 font-weight: bold;
             }
         """)
-        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        # Column resize modes
+        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)  # Filename
+        self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)      # Location (stretch)
+        self.results_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Size
+        self.results_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)  # Modified
+        
+        # Set default column widths
+        self.results_table.setColumnWidth(0, 250)  # Filename
+        
         self.results_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.results_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.results_table.doubleClicked.connect(self._open_file)
@@ -410,26 +417,20 @@ class SearchDialog(QDialog):
             # Filename
             self.results_table.setItem(row, 0, QTableWidgetItem(result['name']))
             
-            # Category
-            self.results_table.setItem(row, 1, QTableWidgetItem(result['category']))
-            
-            # AI Group
-            ai_group = result['ai_group'] or "N/A"
-            self.results_table.setItem(row, 2, QTableWidgetItem(ai_group))
-            
-            # Type
-            file_type = result['file_type'] or "N/A"
-            self.results_table.setItem(row, 3, QTableWidgetItem(file_type))
+            # Location (show the parent folder path)
+            path_obj = Path(result['path'])
+            location = str(path_obj.parent)
+            self.results_table.setItem(row, 1, QTableWidgetItem(location))
             
             # Size
             size_str = f"{result['size_mb']:.2f} MB"
-            self.results_table.setItem(row, 4, QTableWidgetItem(size_str))
+            self.results_table.setItem(row, 2, QTableWidgetItem(size_str))
             
             # Modified date
             date_str = result['modified'].strftime("%Y-%m-%d %H:%M")
-            self.results_table.setItem(row, 5, QTableWidgetItem(date_str))
+            self.results_table.setItem(row, 3, QTableWidgetItem(date_str))
             
-            # Store path in row data
+            # Store full path in row data
             self.results_table.item(row, 0).setData(Qt.UserRole, result['path'])
         
         logger.info(f"Displayed {len(self.results)} search results")
@@ -450,6 +451,32 @@ class SearchDialog(QDialog):
         """Open selected file."""
         current_row = self.results_table.currentRow()
         if current_row < 0:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("No Selection")
+            msg.setText("Please select a file from the search results first.")
+            msg.setStyleSheet("""
+                QMessageBox {
+                    background-color: #EFF6FF;
+                }
+                QLabel {
+                    color: #1E3A8A;
+                    background-color: #EFF6FF;
+                }
+                QPushButton {
+                    background-color: #3B82F6;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    border: none;
+                }
+                QPushButton:hover {
+                    background-color: #2563EB;
+                }
+            """)
+            msg.exec_()
             return
         
         file_path = self.results_table.item(current_row, 0).data(Qt.UserRole)
@@ -490,6 +517,32 @@ class SearchDialog(QDialog):
         """Show selected file in Windows Explorer."""
         current_row = self.results_table.currentRow()
         if current_row < 0:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("No Selection")
+            msg.setText("Please select a file from the search results first.")
+            msg.setStyleSheet("""
+                QMessageBox {
+                    background-color: #EFF6FF;
+                }
+                QLabel {
+                    color: #1E3A8A;
+                    background-color: #EFF6FF;
+                }
+                QPushButton {
+                    background-color: #3B82F6;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    border: none;
+                }
+                QPushButton:hover {
+                    background-color: #2563EB;
+                }
+            """)
+            msg.exec_()
             return
         
         file_path = self.results_table.item(current_row, 0).data(Qt.UserRole)
@@ -504,6 +557,32 @@ class SearchDialog(QDialog):
         """Copy file path to clipboard."""
         current_row = self.results_table.currentRow()
         if current_row < 0:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("No Selection")
+            msg.setText("Please select a file from the search results first.")
+            msg.setStyleSheet("""
+                QMessageBox {
+                    background-color: #EFF6FF;
+                }
+                QLabel {
+                    color: #1E3A8A;
+                    background-color: #EFF6FF;
+                }
+                QPushButton {
+                    background-color: #3B82F6;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    border: none;
+                }
+                QPushButton:hover {
+                    background-color: #2563EB;
+                }
+            """)
+            msg.exec_()
             return
         
         file_path = self.results_table.item(current_row, 0).data(Qt.UserRole)

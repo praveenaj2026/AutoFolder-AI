@@ -26,9 +26,7 @@ try:
     from ..utils.icon_manager import IconManager
     from .duplicate_dialog import DuplicateDialog
     from .stats_dialog import StatsDialog
-    from .ai_group_editor import AIGroupEditor
     from .search_dialog import SearchDialog
-    from .schedule_settings import ScheduleSettingsDialog
 except ImportError:
     from core import FileOrganizer
     from ai import AIClassifier
@@ -36,9 +34,7 @@ except ImportError:
     from utils.icon_manager import IconManager
     from ui.duplicate_dialog import DuplicateDialog
     from ui.stats_dialog import StatsDialog
-    from ui.ai_group_editor import AIGroupEditor
     from ui.search_dialog import SearchDialog
-    from ui.schedule_settings import ScheduleSettingsDialog
 
 
 logger = logging.getLogger(__name__)
@@ -437,32 +433,9 @@ class MainWindow(QMainWindow):
         
         # Column 2: AI Features
         col2 = QVBoxLayout()
-        col2_header = QLabel("🤖 AI Features")
+        col2_header = QLabel("🔍 Find & Organize")
         col2_header.setStyleSheet("font-size: 16px; font-weight: bold; color: #3B82F6; margin-bottom: 10px;")
         col2.addWidget(col2_header)
-        
-        self.edit_ai_groups_btn_tools = QPushButton("🎨 Edit AI Groups")
-        self.edit_ai_groups_btn_tools.clicked.connect(self._open_ai_group_editor)
-        self.edit_ai_groups_btn_tools.setEnabled(False)
-        self.edit_ai_groups_btn_tools.setMinimumHeight(50)
-        self.edit_ai_groups_btn_tools.setStyleSheet("""
-            QPushButton {
-                background-color: #EC4899;
-                color: #F0F9FF;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 10px;
-            }
-            QPushButton:hover {
-                background-color: #DB2777;
-            }
-            QPushButton:disabled {
-                background-color: #DBEAFE;
-                color: #9CA3AF;
-            }
-        """)
-        col2.addWidget(self.edit_ai_groups_btn_tools)
         
         self.search_files_btn_tools = QPushButton("🔍 Search Files")
         self.search_files_btn_tools.clicked.connect(self._open_search_dialog)
@@ -488,39 +461,8 @@ class MainWindow(QMainWindow):
         col2.addWidget(self.search_files_btn_tools)
         col2.addStretch()
         
-        # Column 3: Automation
-        col3 = QVBoxLayout()
-        col3_header = QLabel("⏰ Automation")
-        col3_header.setStyleSheet("font-size: 16px; font-weight: bold; color: #3B82F6; margin-bottom: 10px;")
-        col3.addWidget(col3_header)
-        
-        self.schedule_btn_tools = QPushButton("⏰ Auto Schedule")
-        self.schedule_btn_tools.clicked.connect(self._open_scheduler_settings)
-        self.schedule_btn_tools.setMinimumHeight(50)
-        self.schedule_btn_tools.setEnabled(True)  # Ensure enabled
-        self.schedule_btn_tools.setCursor(Qt.PointingHandCursor)  # Show clickable cursor
-        self.schedule_btn_tools.setStyleSheet("""
-            QPushButton {
-                background-color: #10B981;
-                color: white;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 10px;
-            }
-            QPushButton:hover {
-                background-color: #059669;
-            }
-            QPushButton:pressed {
-                background-color: #047857;
-            }
-        """)
-        col3.addWidget(self.schedule_btn_tools)
-        col3.addStretch()
-        
         tools_grid.addLayout(col1)
         tools_grid.addLayout(col2)
-        tools_grid.addLayout(col3)
         layout.addLayout(tools_grid)
         
         # Info text
@@ -643,7 +585,7 @@ class MainWindow(QMainWindow):
         
         self.preview_table = QTableWidget()
         self.preview_table.setColumnCount(5)
-        self.preview_table.setHorizontalHeaderLabels(["📦 Type", "📄 Original Name", "🏷️ Category", "📦 Size", "📁 Destination"])
+        self.preview_table.setHorizontalHeaderLabels(["� Original Name", "📦 Type", "🏷️ Category", "📦 Size", "📁 Destination"])
         
         # Blueish theme table styling
         self.preview_table.setStyleSheet("""
@@ -682,9 +624,11 @@ class MainWindow(QMainWindow):
         """)
         
         header = self.preview_table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(0, QHeaderView.Stretch)  # Original Name - wide
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Type - compact
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Category
+        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)  # Size
+        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Destination
         
         # Configure selection behavior - DISABLE selection for cleaner look
         self.preview_table.setSelectionMode(QTableWidget.NoSelection)
@@ -1018,7 +962,6 @@ class MainWindow(QMainWindow):
             self.search_files_action.setEnabled(len(self.current_preview) > 0)
             
             # Enable Tools tab buttons
-            self.edit_ai_groups_btn_tools.setEnabled(len(self.current_preview) > 0)
             self.search_files_btn_tools.setEnabled(len(self.current_preview) > 0)
             
             # Update status message - AI is always active
@@ -1234,6 +1177,16 @@ class MainWindow(QMainWindow):
                 if result['kept_files']:
                     message += f"📌 Kept {len(result['kept_files'])} files based on '{action}' strategy\n\n"
                 
+                # Show failed deletions (OneDrive issues)
+                if result.get('failed_deletes'):
+                    message += f"\n⚠️ Failed to delete {len(result['failed_deletes'])} files:\n"
+                    for failed_path, reason in result['failed_deletes'][:5]:
+                        file_name = Path(failed_path).name
+                        message += f"  • {file_name} ({reason})\n"
+                    if len(result['failed_deletes']) > 5:
+                        message += f"  ... and {len(result['failed_deletes']) - 5} more\n"
+                    message += "\n💡 Tip: Pause OneDrive sync or close programs using these files\n\n"
+                
                 # Show first few deleted files
                 if result['deleted_files']:
                     message += "🗑️ Files Deleted:\n"
@@ -1381,11 +1334,7 @@ class MainWindow(QMainWindow):
                 type_item.setText(file_type)
                 type_item.setFont(QFont("Segoe UI", 10))
             
-            type_item.setTextAlignment(Qt.AlignCenter)
-            type_item.setForeground(QColor("#1E3A8A"))
-            self.preview_table.setItem(i, 0, type_item)
-            
-            # Original name - sanitize to remove problematic characters
+            # Column 0: Original name - sanitize to remove problematic characters
             filename = op['source'].name
             # Remove non-printable characters, box-drawing, and control characters
             cleaned = []
@@ -1400,30 +1349,35 @@ class MainWindow(QMainWindow):
             
             name_item = QTableWidgetItem(filename)
             name_item.setForeground(QColor("#1E3A8A"))
-            self.preview_table.setItem(i, 1, name_item)
+            self.preview_table.setItem(i, 0, name_item)
             
-            # Category
+            # Column 1: Type (with icon)
+            type_item.setTextAlignment(Qt.AlignCenter)
+            type_item.setForeground(QColor("#1E3A8A"))
+            self.preview_table.setItem(i, 1, type_item)
+            
+            # Column 2: Category
             category_item = QTableWidgetItem(op['category'].title())
             category_item.setForeground(QColor("#2563EB"))
             self.preview_table.setItem(i, 2, category_item)
             
-            # Size
+            # Column 3: Size
             size_item = QTableWidgetItem(self._format_size(op['size']))
             size_item.setForeground(QColor("#7C3AED"))
             self.preview_table.setItem(i, 3, size_item)
             
-            # Target folder (showing nested structure)
+            # Column 4: Target folder (showing nested structure)
             target_path = str(op['target'].relative_to(self.current_folder))
             target_item = QTableWidgetItem(target_path)
             target_item.setForeground(QColor("#059669"))
             self.preview_table.setItem(i, 4, target_item)
         
-        # Resize type column to fit content  
-        self.preview_table.setColumnWidth(0, 100)
+        # Type column stays compact  
+        self.preview_table.setColumnWidth(1, 100)
         
         # Disable selection highlight on type column to prevent black box
         for i in range(len(display_ops)):
-            type_item = self.preview_table.item(i, 0)
+            type_item = self.preview_table.item(i, 1)  # Type is now column 1
             if type_item:
                 type_item.setFlags(type_item.flags() & ~Qt.ItemIsSelectable)
         
