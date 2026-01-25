@@ -100,10 +100,10 @@ class AIGroupEditor(QDialog):
         header = QLabel("✏️ Customize AI Groups")
         header.setStyleSheet("""
             QLabel {
-                font-size: 20px;
+                font-size: 18px;
                 font-weight: bold;
                 color: #1E3A8A;
-                padding: 15px;
+                padding: 8px;
                 background-color: #EFF6FF;
                 border-radius: 8px;
             }
@@ -118,6 +118,13 @@ class AIGroupEditor(QDialog):
         )
         instructions.setStyleSheet("""
             QLabel {
+                color: #6B7280;
+                font-size: 12px;
+                padding: 5px;
+                background-color: #F9FAFB;
+                border-radius: 5px;
+            }
+        """)
                 padding: 10px;
                 color: #64748B;
                 font-size: 13px;

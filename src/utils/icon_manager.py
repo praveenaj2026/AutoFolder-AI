@@ -20,7 +20,8 @@ class IconManager:
             # Get the project root directory
             current_file = Path(__file__)
             project_root = current_file.parent.parent.parent
-            cls._icon_dir = project_root / 'resources' / 'icons'
+            # Use the downloaded Icons folder
+            cls._icon_dir = project_root / 'Icons'
     
     @classmethod
     def get_icon(cls, name: str) -> QIcon:

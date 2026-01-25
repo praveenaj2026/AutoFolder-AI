@@ -497,10 +497,12 @@ class MainWindow(QMainWindow):
         self.schedule_btn_tools = QPushButton("⏰ Auto Schedule")
         self.schedule_btn_tools.clicked.connect(self._open_scheduler_settings)
         self.schedule_btn_tools.setMinimumHeight(50)
+        self.schedule_btn_tools.setEnabled(True)  # Ensure enabled
+        self.schedule_btn_tools.setCursor(Qt.PointingHandCursor)  # Show clickable cursor
         self.schedule_btn_tools.setStyleSheet("""
             QPushButton {
                 background-color: #10B981;
-                color: #1E3A8A;
+                color: white;
                 border-radius: 8px;
                 font-size: 14px;
                 font-weight: bold;
@@ -508,6 +510,9 @@ class MainWindow(QMainWindow):
             }
             QPushButton:hover {
                 background-color: #059669;
+            }
+            QPushButton:pressed {
+                background-color: #047857;
             }
         """)
         col3.addWidget(self.schedule_btn_tools)
@@ -1576,8 +1581,9 @@ class MainWindow(QMainWindow):
             progress.setWindowTitle("Processing Undo")
             progress.setWindowModality(Qt.WindowModal)
             progress.setMinimumDuration(0)  # Show immediately
+            progress.setMinimumSize(400, 150)  # Ensure visible size
             ThemeHelper.style_progress_dialog(progress)
-            progress.show()
+            progress.forceShow()  # Force it to show immediately
             QApplication.processEvents()  # Force UI update
             
             self.statusBar().showMessage("⟲ Undoing organization...")

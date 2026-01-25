@@ -48,6 +48,10 @@ coverage.xml
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs - Keep log files for reference but don't commit individual logs
+logs/*.log
+!logs/.gitkeep
 desktop.ini
 
 # Project specific
