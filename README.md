@@ -6,19 +6,19 @@ AutoFolder AI is a powerful, AI-assisted file organizer that helps you automatic
 
 ## ✨ Key Features
 
-### Version 1.0 (Base)
-- ✅ **Rule-Based Organization**: Sort by extension, date, size, and name patterns
-- ✅ **Batch Rename**: Prefix, suffix, numbering, and regex support
-- ✅ **Preview Mode**: See changes before applying them
+### Phase 3.6 - Current Version
+- ✅ **21 File Categories**: Extended support for Spreadsheets, Databases, Ebooks, Fonts, CAD, 3D Models, and more
+- ✅ **Smart Preview Table**: Organized by filename first with intelligent column sizing
+- ✅ **Duplicate Scanner**: Find and handle duplicate files with OneDrive error reporting
+- ✅ **Search Engine**: Find files by name or folder path with 4-column results
+- ✅ **Statistics Dashboard**: 5-card summary with category and file type breakdowns
 - ✅ **Undo Support**: Safely revert your last organization
 - ✅ **Profiles**: Pre-built templates (Downloads, Media, Work Files, etc.)
 - ✅ **100% Offline**: No data leaves your PC
 
-### Version 2.0 (Pro - AI Features)
-- 🤖 **AI Content Classification**: Smart categorization of PDFs, images, and documents
-- 🧠 **Intelligent Folder Naming**: Auto-suggest meaningful folder names
-- 🔍 **Semantic Duplicate Detection**: Find similar files with different names
-- ⚡ **One-Click Smart Organize**: AI analyzes and organizes your folder
+### Removed Features (Simplified in Phase 3.6)
+- ❌ Edit AI Groups - Removed for simplicity (complex UI, rarely used)
+- ❌ Auto Schedule - Removed due to Windows Task Scheduler complexity
 
 ## 🎯 Target Use Cases
 
