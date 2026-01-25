@@ -1539,7 +1539,15 @@ class MainWindow(QMainWindow):
             self.preview_table.setItem(i, 3, size_item)
             
             # Column 4: Target folder (showing nested structure with custom folder icon)
-            target_path = str(op['target'].relative_to(self.current_folder))
+            if self.current_folder and op.get('target'):
+                try:
+                    target_path = str(op['target'].relative_to(self.current_folder))
+                except (ValueError, AttributeError):
+                    # Fallback if relative_to fails
+                    target_path = str(op['target'])
+            else:
+                target_path = str(op.get('target', 'Unknown'))
+            
             target_item = QTableWidgetItem(target_path)
             target_item.setForeground(QColor("#059669"))
             
@@ -2204,10 +2212,61 @@ class MainWindow(QMainWindow):
                 path = Path(url.toLocalFile())
                 if path.is_dir():
                     logger.info(f"Folder dropped: {path}")
-                    # Set the folder and start analysis
+                    # Set the folder and start analysis DIRECTLY (no file dialog)
                     self.current_folder = path
                     self.folder_label.setText(f"📁 {path}")
-                    self._browse_and_analyze()
+                    
+                    # Analyze the folder immediately (same as _browse_and_analyze but without QFileDialog)
+                    self.organize_btn.setEnabled(False)
+                    self.undo_btn.setEnabled(False)
+                    
+                    # Show loading dialog immediately
+                    self.loading_dialog = QProgressDialog(
+                        "⏳ Analyzing folder...\n\n"
+                        "📊 Scanning files and categories...\n"
+                        "🤖 AI is analyzing content...\n\n"
+                        "⏳ This may take a moment for large folders.",
+                        None,  # No cancel button
+                        0, 0,  # Indeterminate progress
+                        self
+                    )
+                    self.loading_dialog.setWindowTitle("⏲️ Loading")
+                    self.loading_dialog.setWindowModality(Qt.WindowModal)
+                    self.loading_dialog.setMinimumDuration(0)
+                    self.loading_dialog.setMinimumSize(450, 200)
+                    self.loading_dialog.setStyleSheet("""
+                        QProgressDialog {
+                            background-color: #EFF6FF;
+                            border: 2px solid #3B82F6;
+                            border-radius: 8px;
+                        }
+                        QLabel {
+                            color: #1E3A8A;
+                            font-size: 14px;
+                            padding: 15px;
+                        }
+                        QProgressBar {
+                            background-color: #DBEAFE;
+                            border: 1px solid #3B82F6;
+                            border-radius: 4px;
+                            text-align: center;
+                        }
+                    """)
+                    self.loading_dialog.setValue(0)
+                    self.loading_dialog.forceShow()
+                    QApplication.processEvents()
+                    
+                    # Create and start analyze thread
+                    self.analyze_thread = AnalyzeThread(
+                        organizer=self.organizer,
+                        ai_classifier=self.ai_classifier,
+                        folder=self.current_folder
+                    )
+                    self.analyze_thread.progress.connect(self._on_analyze_progress)
+                    self.analyze_thread.finished.connect(self._on_analyze_finished)
+                    self.analyze_thread.error.connect(self._on_analyze_error)
+                    self.analyze_thread.start()
+                    
                     event.acceptProposedAction()
                     return
         event.ignore()

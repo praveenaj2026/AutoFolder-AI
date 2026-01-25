@@ -580,6 +580,20 @@ class CompressionDialog(QDialog):
         
         logger.info(f"Starting compression of {len(selected_files)} files")
         
+        # Recalculate analysis for SELECTED files only
+        selected_file_dicts = []
+        for file_path in selected_files:
+            # Find the file info from scanned_files
+            for file_info in self.scanned_files:
+                if file_info['path'] == file_path:
+                    selected_file_dicts.append(file_info)
+                    break
+        
+        # Update analysis display with selected files only
+        if selected_file_dicts:
+            self.analysis = self.compressor.analyze_compression_potential(selected_file_dicts)
+            self._update_analysis_display()
+        
         # Get output folder - user must select where to save archives
         output_folder = QFileDialog.getExistingDirectory(
             self, "Select Output Folder for Archives",
@@ -644,7 +658,7 @@ class CompressionDialog(QDialog):
             )
             ThemeHelper.style_message_box(msg, 'success')
             msg.setStandardButtons(QMessageBox.Ok)
-            msg.exec()
+            msg.exec_()  # Use exec_() for PySide6 compatibility
             
             self.progress_label.setText(f"Compressed {compressed} files, saved {savings:.1f} MB")
         else:

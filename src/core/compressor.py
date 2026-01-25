@@ -241,9 +241,9 @@ class SmartCompressor:
         output_folder.mkdir(parents=True, exist_ok=True)
         
         # Generate readable archive name with date/time
-        # Format: AutoFolder_AI_Archive_25Jan_9PM
+        # Format: AutoFolder_AI_Archive_25Jan_9_42PM (with minutes)
         now = datetime.now()
-        readable_date = now.strftime('%d%b_%I%p').replace('AM', 'AM').replace('PM', 'PM')
+        readable_date = now.strftime('%d%b_%I_%M%p').replace('AM', 'AM').replace('PM', 'PM')
         
         # Clean archive name and add readable timestamp
         clean_name = archive_name.replace('_20', '_').split('_')[0]  # Remove numeric timestamps
