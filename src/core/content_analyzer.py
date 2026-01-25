@@ -6,6 +6,10 @@ AI classification accuracy from ~80% to 95%+.
 """
 
 import logging
+import os
+import sys
+import shutil
+import ctypes
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import re
@@ -154,24 +158,40 @@ class ContentAnalyzer:
         try:
             import pytesseract
             from PIL import Image
+
+            # Try PATH first
+            tesseract_on_path = shutil.which('tesseract')
+            if tesseract_on_path:
+                pytesseract.pytesseract.tesseract_cmd = tesseract_on_path
+                logger.info(f"Found Tesseract on PATH: {tesseract_on_path}")
             
-            # Try common Tesseract installation paths on Windows
-            import os
-            username = os.getenv('USERNAME', '')
-            common_paths = [
-                r"C:\Program Files\Tesseract-OCR\tesseract.exe",
-                r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
-                f"C:\\Users\\{username}\\AppData\\Local\\Tesseract-OCR\\tesseract.exe",
-                r"C:\Tesseract-OCR\tesseract.exe",
-            ]
-            
-            tesseract_found = False
-            for path in common_paths:
-                if os.path.exists(path):
-                    pytesseract.pytesseract.tesseract_cmd = path
-                    tesseract_found = True
-                    logger.info(f"Found Tesseract at: {path}")
-                    break
+            # Try common installation + bundled locations
+            current_cmd = getattr(pytesseract.pytesseract, 'tesseract_cmd', None)
+            if not current_cmd or not os.path.exists(current_cmd):
+                username = os.getenv('USERNAME', '')
+                common_paths = [
+                    os.getenv('TESSERACT_CMD'),
+                    os.getenv('TESSERACT_PATH'),
+                    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+                    r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+                    f"C:\\Users\\{username}\\AppData\\Local\\Tesseract-OCR\\tesseract.exe",
+                    r"C:\Tesseract-OCR\tesseract.exe",
+                ]
+
+                app_root = self._get_app_root()
+                common_paths.extend([
+                    str(app_root / 'tesseract.exe'),
+                    str(app_root / 'Tesseract-OCR' / 'tesseract.exe'),
+                    str(app_root / 'third_party' / 'tesseract.exe'),
+                    str(app_root / 'third_party' / 'Tesseract-OCR' / 'tesseract.exe'),
+                    str(app_root / 'third_party' / 'tesseract' / 'tesseract.exe'),
+                ])
+
+                for path in common_paths:
+                    if path and os.path.exists(path):
+                        pytesseract.pytesseract.tesseract_cmd = path
+                        logger.info(f"Found Tesseract at: {path}")
+                        break
             
             # Quick test to see if tesseract is installed
             try:
@@ -180,12 +200,79 @@ class ContentAnalyzer:
                 logger.info("OCR analysis available (pytesseract + Tesseract-OCR)")
             except Exception as e:
                 logger.warning(f"pytesseract installed but Tesseract-OCR software not found: {e}")
-                logger.warning("To enable OCR, download and install Tesseract from:")
-                logger.warning("https://github.com/UB-Mannheim/tesseract/wiki")
-                logger.warning("After installing, restart the application.")
+                bundled = self._find_bundled_tesseract_installer()
+                if bundled:
+                    logger.warning("Tesseract installer is bundled with this app.")
+                    logger.warning("Open Tools → Install OCR (Tesseract), then restart.")
+                else:
+                    logger.warning("To enable OCR, download and install Tesseract from:")
+                    logger.warning("https://github.com/UB-Mannheim/tesseract/wiki")
+                    logger.warning("After installing, restart the application.")
         except ImportError:
             logger.warning("OCR not available. Install: pip install pytesseract Pillow")
             logger.warning("Then install Tesseract-OCR from: https://github.com/UB-Mannheim/tesseract/wiki")
+
+    def _get_app_root(self) -> Path:
+        if getattr(sys, 'frozen', False):
+            return Path(sys.executable).resolve().parent
+        return Path(__file__).resolve().parents[2]
+
+    def _find_bundled_tesseract_installer(self) -> Optional[Path]:
+        """Find a bundled Tesseract installer EXE if present."""
+        roots = [self._get_app_root()]
+        meipass = getattr(sys, '_MEIPASS', None)
+        if meipass:
+            roots.append(Path(meipass))
+
+        patterns = [
+            'tesseract-ocr-*-setup-*.exe',
+            'tesseract*setup*.exe',
+        ]
+
+        for root in roots:
+            third_party = root / 'third_party'
+            for pattern in patterns:
+                if third_party.exists():
+                    for candidate in third_party.glob(pattern):
+                        if candidate.is_file():
+                            return candidate
+                for candidate in root.glob(pattern):
+                    if candidate.is_file():
+                        return candidate
+        return None
+
+    def install_tesseract(self) -> Tuple[bool, str]:
+        """Attempt to install Tesseract OCR on Windows using the bundled installer."""
+        if os.name != 'nt':
+            return False, "Tesseract auto-install is only supported on Windows."
+
+        installer = self._find_bundled_tesseract_installer()
+        if not installer:
+            return False, "Bundled Tesseract installer not found."
+
+        try:
+            # Launch installer elevated (UAC) in silent mode.
+            # The UB-Mannheim installer supports /S for silent.
+            rc = ctypes.windll.shell32.ShellExecuteW(
+                None,
+                'runas',
+                str(installer),
+                '/S',
+                str(installer.parent),
+                1,
+            )
+            if rc <= 32:
+                return False, f"Failed to launch installer (ShellExecute rc={rc})."
+
+            return True, "Installer launched. Finish install, then restart AutoFolder AI."
+        except Exception as e:
+            return False, f"Failed to start installer: {e}"
+
+    def refresh_dependencies(self):
+        """Re-check OCR/PDF dependency availability."""
+        self._pdf_available = False
+        self._ocr_available = False
+        self._check_dependencies()
     
     def is_available(self) -> bool:
         """Check if any content analysis is available."""

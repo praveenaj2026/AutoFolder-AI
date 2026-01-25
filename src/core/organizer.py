@@ -5,6 +5,7 @@ Core logic for analyzing, categorizing, and organizing files.
 This is the heart of AutoFolder AI.
 """
 
+import os
 import shutil
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
@@ -491,6 +492,9 @@ class FileOrganizer:
                     conflict_resolution = self.config.get('organization', {}).get('handle_conflicts', 'rename')
                     if conflict_resolution == 'rename':
                         target_path = self._get_unique_path(target_path)
+                        if target_path is None:  # Conflict - skip this file
+                            logger.info(f"Skipping {file_path.name} due to conflict")
+                            continue
                     elif conflict_resolution == 'skip':
                         logger.debug(f"  -> Skipping (conflict, skip mode)")
                         continue
@@ -557,6 +561,9 @@ class FileOrganizer:
                         'is_folder': True
                     })
         
+        # Build list of folders that will be moved (to avoid moving their contents twice)
+        folders_being_moved = {op['source'] for op in operations if op.get('is_folder', False)}
+        
         # Also preview files from subfolders (for display purposes)
         organized_folder_names = {
             'Documents', 'Images', 'Videos', 'Audio', 'Archives', 
@@ -578,8 +585,23 @@ class FileOrganizer:
             if subfolder_file.parent == folder_path:
                 continue
             
-            # Skip if in system/app folder (but NOT organized folders - we want to reorganize those)
+            # Skip if this file is inside a folder that will be moved (avoid double-move)
             skip_this_file = False
+            for moving_folder in folders_being_moved:
+                try:
+                    subfolder_file.relative_to(moving_folder)
+                    # File is inside a folder that will be moved - skip it
+                    logger.debug(f"Skipping {subfolder_file.name} (inside folder being moved: {moving_folder.name})")
+                    skip_this_file = True
+                    break
+                except ValueError:
+                    # File is not inside this folder - continue checking
+                    continue
+            
+            if skip_this_file:
+                continue
+            
+            # Skip if in system/app folder (but NOT organized folders - we want to reorganize those)
             try:
                 rel_path = subfolder_file.relative_to(folder_path)
                 for part in rel_path.parts:
@@ -680,7 +702,8 @@ class FileOrganizer:
         profile: str = None,
         custom_rules: List[Dict] = None,
         dry_run: bool = None,
-        recursive: bool = True
+        recursive: bool = True,
+        progress_callback=None
     ) -> Dict:
         """
         Organize files in a folder based on rules.
@@ -691,6 +714,7 @@ class FileOrganizer:
             custom_rules: Custom rule list
             dry_run: If True, don't actually move files
             recursive: If True, also organize subfolders
+            progress_callback: Optional callback(current, total) for progress updates
             
         Returns:
             Dictionary with results
@@ -723,8 +747,11 @@ class FileOrganizer:
         # Execute operations
         completed = []
         failed = []
+        total = len(operations)
+        logger.debug(f"🚀 PROGRESS: Starting to process {total} operations")
         
-        for op in operations:
+        for i, op in enumerate(operations, 1):
+            logger.debug(f"📊 PROGRESS: Processing operation {i}/{total} ({int(i/total*100)}%)")
             try:
                 # Safety check: Skip if target is None or invalid
                 if not op.get('target') or op['target'] is None:
@@ -744,11 +771,27 @@ class FileOrganizer:
                 completed.append(op)
                 logger.debug(f"Moved: {op['source'].name} -> {op['target']}")
                 
+                # Emit progress update
+                if progress_callback:
+                    try:
+                        logger.debug(f"🔔 PROGRESS: Calling progress_callback({i}, {total})")
+                        progress_callback(i, total)
+                        logger.debug(f"✅ PROGRESS: Callback completed successfully")
+                    except Exception as e:
+                        logger.error(f"❌ PROGRESS: Callback error: {e}", exc_info=True)
+                
             except Exception as e:
                 op['status'] = 'failed'
                 op['error'] = str(e)
                 failed.append(op)
                 logger.error(f"Failed to move {op['source'].name}: {e}")
+                
+                # Emit progress even on failure
+                if progress_callback:
+                    try:
+                        progress_callback(i, total)
+                    except Exception as e:
+                        logger.debug(f"Progress callback error: {e}")
         
         # Save to undo history
         if completed:
@@ -776,26 +819,88 @@ class FileOrganizer:
         logger.info(f"AI Learning: Recorded {len(completed)} files organized, {ai_group_count} AI groups")
         
         # Customize folder icons (Windows only)
+        logger.debug(f"🎨 FOLDER ICONS: Checking if should create icons...")
+        logger.debug(f"   - Completed operations: {len(completed)}")
+        logger.debug(f"   - OS name: {os.name}")
+        logger.debug(f"   - Is Windows: {os.name == 'nt'}")
+        
         if completed and os.name == 'nt':
+            logger.info("🎨 FOLDER ICONS: Attempting to create Windows folder icons...")
             try:
-                from ..utils.windows_folder_icons import WindowsFolderIconCustomizer
+                # Fix import - use absolute import instead of relative
+                logger.debug("   - Importing WindowsFolderIconCustomizer...")
+                from utils.windows_folder_icons import WindowsFolderIconCustomizer
+                logger.debug("   - Import successful!")
+                
+                logger.debug("   - Creating icon customizer instance...")
                 icon_customizer = WindowsFolderIconCustomizer()
+                logger.debug("   - Icon customizer created!")
                 
                 # Get unique folder paths from completed operations
+                # Extract top-level category folders (e.g., Documents/Archives, not Documents/Archives/ZIP/Jan-26)
                 category_folders = {}
+                logger.debug(f"   - Collecting category folders from {len(completed)} completed operations...")
+                logger.debug(f"   - Base folder: {folder_path}")
+                
                 for op in completed:
                     target = op.get('target')
-                    if target and isinstance(target, Path):
-                        folder = target.parent
-                        category = op.get('category', 'Other')
-                        if folder not in category_folders.values():
-                            category_folders[category] = folder
+                    category = op.get('category', 'Other')
+                    
+                    logger.debug(f"     • Processing op: category={category}, target={target}")
+                    
+                    if target:
+                        try:
+                            # Convert to Path if it's a string
+                            if isinstance(target, str):
+                                target = Path(target)
+                                logger.debug(f"       - Converted string to Path: {target}")
+                            
+                            if not isinstance(target, Path):
+                                logger.debug(f"       ⚠️ Invalid target type: {type(target)}")
+                                continue
+                            # Get relative path from base folder to target
+                            rel_path = target.relative_to(folder_path)
+                            logger.debug(f"       - Relative path: {rel_path}")
+                            logger.debug(f"       - Path parts: {rel_path.parts}")
+                            
+                            # First component is the category folder (e.g., "Archives" or "Documents")
+                            category_folder_name = rel_path.parts[0]
+                            logger.debug(f"       - Category folder name: {category_folder_name}")
+                            
+                            # Construct full category folder path
+                            category_folder_path = folder_path / category_folder_name
+                            logger.debug(f"       - Full category path: {category_folder_path}")
+                            
+                            # Add to dict if not already present
+                            if category not in category_folders:
+                                category_folders[category] = category_folder_path
+                                logger.debug(f"       ✅ Added: {category} -> {category_folder_path}")
+                            else:
+                                logger.debug(f"       ⏭️ Already exists: {category}")
+                            
+                        except (ValueError, IndexError) as e:
+                            logger.debug(f"       ❌ Skipped {target}: {e}")
+                    else:
+                        logger.debug(f"       ⚠️ Invalid target: {target} (type: {type(target)})")
+                
+                logger.info(f"   - Found {len(category_folders)} unique category folders to customize")
+                logger.debug(f"   - Categories: {list(category_folders.keys())}")
                 
                 # Set icons for all category folders
+                logger.info("   - Calling customize_organized_folders()...")
                 icon_count = icon_customizer.customize_organized_folders(folder_path, category_folders)
-                logger.info(f"Customized {icon_count} folder icons")
+                logger.info(f"✅ FOLDER ICONS: Successfully customized {icon_count} folder icons!")
+            except ImportError as e:
+                logger.error(f"❌ FOLDER ICONS: Import error - {e}")
+                logger.debug(f"   - Full error: {e}", exc_info=True)
             except Exception as e:
-                logger.warning(f"Could not customize folder icons: {e}")
+                logger.error(f"❌ FOLDER ICONS: Could not customize folder icons - {e}")
+                logger.debug(f"   - Full error: {e}", exc_info=True)
+        elif not completed:
+            logger.debug("   - SKIPPED: No completed operations")
+        elif os.name != 'nt':
+            logger.debug(f"   - SKIPPED: Not Windows (os.name={os.name})")
+        
         
         logger.info(f"Organization complete: {len(completed)} files organized, {len(failed)} failed")
         return result

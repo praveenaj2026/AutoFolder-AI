@@ -83,6 +83,12 @@ python src/main.py
 - Windows 10/11 compatible
 - Single file distribution via PyInstaller
 
+### Optional OCR (Tesseract)
+
+- OCR requires the Tesseract engine.
+- The Windows build can bundle the Tesseract installer; users can run it from `Tools → Install OCR (Tesseract)`.
+- PowerShell alternative: run [scripts/install_tesseract.ps1](scripts/install_tesseract.ps1) as Administrator.
+
 ---
 
 **Current Status**: Development Phase

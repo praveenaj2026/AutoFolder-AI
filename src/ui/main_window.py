@@ -60,12 +60,19 @@ class OrganizeThread(QThread):
         self.folder_path = folder_path
         self.dry_run = dry_run
     
+    def _progress_callback(self, current, total):
+        """Progress callback that emits signal."""
+        logger.debug(f"🔔 THREAD: _progress_callback({current}, {total})")
+        self.progress.emit(current, total)
+        logger.debug(f"✅ THREAD: Signal emitted")
+    
     def run(self):
         try:
             result = self.organizer.organize_folder(
                 self.folder_path,
                 profile='downloads',
-                dry_run=self.dry_run
+                dry_run=self.dry_run,
+                progress_callback=self._progress_callback
             )
             self.finished.emit(result)
         except Exception as e:
@@ -785,6 +792,11 @@ class MainWindow(QMainWindow):
         view_stats_action.setShortcut("Ctrl+S")
         view_stats_action.triggered.connect(self._show_stats)
         tools_menu.addAction(view_stats_action)
+
+        # Install OCR (Tesseract)
+        install_ocr_action = QAction("📄 Install OCR (Tesseract)", self)
+        install_ocr_action.triggered.connect(self._install_ocr_tesseract)
+        tools_menu.addAction(install_ocr_action)
         
         tools_menu.addSeparator()
         
@@ -807,6 +819,40 @@ class MainWindow(QMainWindow):
         schedule_action.setShortcut("Ctrl+T")
         schedule_action.triggered.connect(self._open_scheduler_settings)
         tools_menu.addAction(schedule_action)
+
+    def _install_ocr_tesseract(self):
+        """Launch the bundled Tesseract installer (Windows) to enable OCR."""
+        try:
+            analyzer = None
+            if hasattr(self, 'organizer') and hasattr(self.organizer, 'ai_classifier'):
+                analyzer = getattr(self.organizer.ai_classifier, 'content_analyzer', None)
+
+            if not analyzer:
+                msg = QMessageBox(self)
+                msg.setWindowTitle("OCR Not Available")
+                msg.setText("Content analyzer is not available in this build.")
+                msg.exec()
+                return
+
+            ok, message = analyzer.install_tesseract()
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Install OCR (Tesseract)")
+            msg.setText(message)
+            msg.setIcon(QMessageBox.Information if ok else QMessageBox.Warning)
+            msg.exec()
+
+            # Re-check status (installer runs async; restart still required)
+            try:
+                analyzer.refresh_dependencies()
+            except Exception:
+                pass
+            self._update_content_analysis_status()
+        except Exception as e:
+            logger.error(f"Failed to launch Tesseract installer: {e}")
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Install Failed")
+            msg.setText(f"Failed to start installer: {e}")
+            msg.exec()
     
     def _create_action_buttons(self) -> QHBoxLayout:
         """Create action buttons."""
@@ -1521,9 +1567,25 @@ class MainWindow(QMainWindow):
             self.current_folder,
             dry_run=False
         )
+        self.organize_thread.progress.connect(self._on_organize_progress)
         self.organize_thread.finished.connect(self._on_organize_finished)
         self.organize_thread.error.connect(self._on_organize_error)
         self.organize_thread.start()
+    
+    def _on_organize_progress(self, current, total):
+        """Update progress bar during organization."""
+        logger.debug(f"🎯 UI: _on_organize_progress({current}, {total})")
+        percentage = int((current / total) * 100) if total > 0 else 0
+        logger.debug(f"📊 UI: Setting progress bar to {current}, percentage={percentage}%")
+        self.progress_bar.setValue(current)
+        self.statusBar().showMessage(
+            f"🚀 Organizing... {current}/{total} files ({percentage}%)"
+        )
+        logger.debug(f"✅ UI: Progress bar and status updated")
+        # Force immediate UI repaint
+        self.progress_bar.repaint()
+        QApplication.processEvents()
+        logger.debug(f"✅ UI: Forced repaint and event processing")
     
     def _on_organize_finished(self, result):
         """Handle organization completion with popup."""
@@ -2121,62 +2183,23 @@ class MainWindow(QMainWindow):
                 path = Path(url.toLocalFile())
                 if path.is_dir():
                     logger.info(f"Folder dropped: {path}")
-                    # Set the folder and start analysis DIRECTLY (no file dialog)
+                    # Set the folder and trigger normal browse+analyze flow
                     self.current_folder = path
                     self.folder_label.setText(f"📁 {path}")
-                    
-                    # Analyze the folder immediately (same as _browse_and_analyze but without QFileDialog)
-                    self.organize_btn.setEnabled(False)
-                    self.undo_btn.setEnabled(False)
-                    
-                    # Show loading dialog immediately
-                    self.loading_dialog = QProgressDialog(
-                        "⏳ Analyzing folder...\n\n"
-                        "📊 Scanning files and categories...\n"
-                        "🤖 AI is analyzing content...\n\n"
-                        "⏳ This may take a moment for large folders.",
-                        None,  # No cancel button
-                        0, 0,  # Indeterminate progress
-                        self
-                    )
-                    self.loading_dialog.setWindowTitle("⏲️ Loading")
-                    self.loading_dialog.setWindowModality(Qt.WindowModal)
-                    self.loading_dialog.setMinimumDuration(0)
-                    self.loading_dialog.setMinimumSize(450, 200)
-                    self.loading_dialog.setStyleSheet("""
-                        QProgressDialog {
-                            background-color: #EFF6FF;
+                    self.folder_label.setStyleSheet("""
+                        QLabel {
+                            padding: 14px;
+                            background-color: #DBEAFE;
                             border: 2px solid #3B82F6;
                             border-radius: 8px;
-                        }
-                        QLabel {
+                            font-size: 13px;
                             color: #1E3A8A;
-                            font-size: 14px;
-                            padding: 15px;
-                        }
-                        QProgressBar {
-                            background-color: #DBEAFE;
-                            border: 1px solid #3B82F6;
-                            border-radius: 4px;
-                            text-align: center;
+                            font-weight: bold;
                         }
                     """)
-                    self.loading_dialog.setValue(0)
-                    self.loading_dialog.forceShow()
-                    QApplication.processEvents()
                     
-                    # Create and start organize thread for analysis
-                    self.organize_thread = OrganizeThread(
-                        organizer=self.organizer,
-                        ai_classifier=self.ai_classifier,
-                        folder=self.current_folder,
-                        profile='downloads',
-                        preview_only=True
-                    )
-                    self.organize_thread.progress.connect(self._on_analyze_progress)
-                    self.organize_thread.finished.connect(self._on_analyze_finished)
-                    self.organize_thread.error.connect(self._on_analyze_error)
-                    self.organize_thread.start()
+                    # Use the same analysis flow as Browse button (via QTimer for UI responsiveness)
+                    QTimer.singleShot(50, self._analyze_folder)
                     
                     event.acceptProposedAction()
                     return

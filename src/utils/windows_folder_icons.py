@@ -38,6 +38,166 @@ class WindowsFolderIconCustomizer:
         'Software': {'color': (99, 102, 241), 'emoji': '💿'},  # Indigo
         'Books': {'color': (168, 85, 247), 'emoji': '📚'},  # Purple
         'Music': {'color': (234, 88, 12), 'emoji': '🎸'},  # Orange
+        'Torrents': {'color': (5, 150, 105), 'emoji': '🌊'},  # Emerald
+        'AutoFolder_Logs': {'color': (107, 114, 128), 'emoji': '📋'},  # Gray
+        'Logs': {'color': (107, 114, 128), 'emoji': '📋'},  # Gray
+        'Other': {'color': (156, 163, 175), 'emoji': '📂'},  # Light Gray
+        'Fonts': {'color': (244, 63, 94), 'emoji': '🔤'},  # Rose
+        'Data': {'color': (14, 165, 233), 'emoji': '💾'},  # Sky Blue
+        'DATE_FOLDER': {'color': (209, 213, 219), 'emoji': '📅'},  # Subtle Gray
+        
+        # Work / Personal
+        'Work': {'color': (37, 99, 235), 'emoji': '💼'},  # Blue
+        'Personal': {'color': (236, 72, 153), 'emoji': '🏠'},  # Pink
+        'Projects': {'color': (99, 102, 241), 'emoji': '📁'},  # Indigo
+        'Temp': {'color': (156, 163, 175), 'emoji': '🧹'},  # Gray
+        'Misc': {'color': (156, 163, 175), 'emoji': '📂'},  # Gray
+        
+        # Screens / Media capture
+        'Screenshots': {'color': (59, 130, 246), 'emoji': '📸'},  # Blue
+        'Recordings': {'color': (239, 68, 68), 'emoji': '⏺️'},  # Red
+        'Clips': {'color': (239, 68, 68), 'emoji': '🎯'},  # Red
+        
+        # Backups / System
+        'Backups': {'color': (156, 163, 175), 'emoji': '🛡️'},  # Gray
+        'Drivers': {'color': (20, 184, 166), 'emoji': '🚗'},  # Teal
+        'Firmware': {'color': (99, 102, 241), 'emoji': '🔌'},  # Indigo
+        'Configs': {'color': (107, 114, 128), 'emoji': '⚙️'},  # Gray
+        
+        # Downloads / Cleanup
+        'Downloads': {'color': (14, 165, 233), 'emoji': '⬇️'},  # Sky Blue
+        'Archives_Old': {'color': (146, 64, 14), 'emoji': '🗃️'},  # Brown
+        'Duplicates': {'color': (185, 28, 28), 'emoji': '♻️'},  # Dark Red
+        
+        # Cloud / Sync
+        'Cloud': {'color': (59, 130, 246), 'emoji': '☁️'},  # Blue
+        'Sync': {'color': (20, 184, 166), 'emoji': '🔄'},  # Teal
+    }
+    
+    # File type-specific icons (for subfolders)
+    FILE_TYPE_ICONS = {
+        # Documents
+        'PDF': {'color': (220, 38, 38), 'emoji': '📕'},  # Red
+        'DOCX': {'color': (37, 99, 235), 'emoji': '📘'},  # Blue
+        'DOC': {'color': (37, 99, 235), 'emoji': '📘'},  # Blue
+        'TXT': {'color': (107, 114, 128), 'emoji': '📝'},  # Gray
+        'RTF': {'color': (107, 114, 128), 'emoji': '📝'},  # Gray
+        'ODT': {'color': (59, 130, 246), 'emoji': '📄'},  # Light Blue
+        'XLSX': {'color': (21, 128, 61), 'emoji': '📊'},  # Green
+        'XLS': {'color': (21, 128, 61), 'emoji': '📊'},  # Green
+        'CSV': {'color': (5, 150, 105), 'emoji': '📈'},  # Emerald
+        'PPTX': {'color': (234, 88, 12), 'emoji': '📽️'},  # Orange
+        'PPT': {'color': (234, 88, 12), 'emoji': '📽️'},  # Orange
+        
+        # Archives
+        'ZIP': {'color': (202, 138, 4), 'emoji': '🗜️'},  # Yellow
+        'RAR': {'color': (202, 138, 4), 'emoji': '📦'},  # Yellow
+        '7Z': {'color': (202, 138, 4), 'emoji': '🗜️'},  # Yellow
+        'TAR': {'color': (146, 64, 14), 'emoji': '📦'},  # Brown
+        'GZ': {'color': (146, 64, 14), 'emoji': '🗜️'},  # Brown
+        
+        # Images
+        'JPG': {'color': (34, 197, 94), 'emoji': '🖼️'},  # Green
+        'JPEG': {'color': (34, 197, 94), 'emoji': '🖼️'},  # Green
+        'PNG': {'color': (59, 130, 246), 'emoji': '🖼️'},  # Blue
+        'GIF': {'color': (236, 72, 153), 'emoji': '🎞️'},  # Pink
+        'SVG': {'color': (249, 115, 22), 'emoji': '🎨'},  # Orange
+        'BMP': {'color': (107, 114, 128), 'emoji': '🖼️'},  # Gray
+        'WEBP': {'color': (59, 130, 246), 'emoji': '🖼️'},  # Blue
+        
+        # Video
+        'MP4': {'color': (220, 38, 38), 'emoji': '🎬'},  # Red
+        'AVI': {'color': (220, 38, 38), 'emoji': '🎬'},  # Red
+        'MKV': {'color': (185, 28, 28), 'emoji': '🎬'},  # Dark Red
+        'MOV': {'color': (239, 68, 68), 'emoji': '🎥'},  # Red
+        'WMV': {'color': (220, 38, 38), 'emoji': '🎬'},  # Red
+        
+        # Audio
+        'MP3': {'color': (249, 115, 22), 'emoji': '🎵'},  # Orange
+        'WAV': {'color': (249, 115, 22), 'emoji': '🎵'},  # Orange
+        'FLAC': {'color': (234, 88, 12), 'emoji': '🎶'},  # Dark Orange
+        'AAC': {'color': (249, 115, 22), 'emoji': '🎵'},  # Orange
+        'M4A': {'color': (249, 115, 22), 'emoji': '🎵'},  # Orange
+        
+        # Code
+        'PY': {'color': (59, 130, 246), 'emoji': '🐍'},  # Blue (Python)
+        'JS': {'color': (234, 179, 8), 'emoji': '📜'},  # Yellow (JavaScript)
+        'HTML': {'color': (234, 88, 12), 'emoji': '🌐'},  # Orange
+        'CSS': {'color': (59, 130, 246), 'emoji': '🎨'},  # Blue
+        'JAVA': {'color': (220, 38, 38), 'emoji': '☕'},  # Red
+        'CPP': {'color': (99, 102, 241), 'emoji': '⚙️'},  # Indigo
+        'C': {'color': (107, 114, 128), 'emoji': '⚙️'},  # Gray
+        
+        # Executables
+        'EXE': {'color': (20, 184, 166), 'emoji': '⚙️'},  # Teal
+        'MSI': {'color': (20, 184, 166), 'emoji': '📀'},  # Teal
+        'DMG': {'color': (99, 102, 241), 'emoji': '💿'},  # Indigo
+        'APK': {'color': (34, 197, 94), 'emoji': '📱'},  # Green
+        
+        # Other
+        'TORRENT': {'color': (34, 197, 94), 'emoji': '🌊'},  # Green
+        'ISO': {'color': (99, 102, 241), 'emoji': '💿'},  # Indigo
+        'URL': {'color': (59, 130, 246), 'emoji': '🔗'},  # Blue
+        
+        # Office / Business
+        'XLSM': {'color': (21, 128, 61), 'emoji': '📊'},  # Green
+        'PPTM': {'color': (234, 88, 12), 'emoji': '📽️'},  # Orange
+        'ONE': {'color': (139, 92, 246), 'emoji': '📓'},  # Purple (OneNote)
+        'EML': {'color': (59, 130, 246), 'emoji': '✉️'},  # Blue (Email)
+        'MSG': {'color': (59, 130, 246), 'emoji': '✉️'},  # Blue (Outlook)
+        'VCF': {'color': (20, 184, 166), 'emoji': '👤'},  # Teal (vCard)
+        
+        # Dev / Config / Logs
+        'JSON': {'color': (234, 179, 8), 'emoji': '🧩'},  # Yellow
+        'YAML': {'color': (234, 179, 8), 'emoji': '🧩'},  # Yellow
+        'YML': {'color': (234, 179, 8), 'emoji': '🧩'},  # Yellow
+        'XML': {'color': (99, 102, 241), 'emoji': '🧾'},  # Indigo
+        'INI': {'color': (107, 114, 128), 'emoji': '⚙️'},  # Gray
+        'CFG': {'color': (107, 114, 128), 'emoji': '⚙️'},  # Gray
+        'LOG': {'color': (107, 114, 128), 'emoji': '📜'},  # Gray
+        'ENV': {'color': (20, 184, 166), 'emoji': '🌱'},  # Teal
+        
+        # RAW Photos
+        'CR2': {'color': (34, 197, 94), 'emoji': '📷'},  # Green (Canon)
+        'NEF': {'color': (34, 197, 94), 'emoji': '📷'},  # Green (Nikon)
+        'ARW': {'color': (34, 197, 94), 'emoji': '📷'},  # Green (Sony)
+        'DNG': {'color': (34, 197, 94), 'emoji': '📷'},  # Green (Adobe)
+        'HEIC': {'color': (59, 130, 246), 'emoji': '📱'},  # Blue (iPhone)
+        
+        # Media Production
+        'SRT': {'color': (107, 114, 128), 'emoji': '💬'},  # Gray (Subtitles)
+        'VTT': {'color': (107, 114, 128), 'emoji': '💬'},  # Gray (Subtitles)
+        'PRPROJ': {'color': (185, 28, 28), 'emoji': '🎞️'},  # Dark Red (Premiere)
+        'VEG': {'color': (239, 68, 68), 'emoji': '🎬'},  # Red (Vegas)
+        'MID': {'color': (249, 115, 22), 'emoji': '🎹'},  # Orange (MIDI)
+        'MIDI': {'color': (249, 115, 22), 'emoji': '🎹'},  # Orange
+        
+        # Design / 3D
+        'PSD': {'color': (37, 99, 235), 'emoji': '🎨'},  # Blue (Photoshop)
+        'AI': {'color': (234, 88, 12), 'emoji': '✒️'},  # Orange (Illustrator)
+        'FIG': {'color': (139, 92, 246), 'emoji': '🖼️'},  # Purple (Figma)
+        'BLEND': {'color': (249, 115, 22), 'emoji': '🧊'},  # Orange (Blender)
+        'FBX': {'color': (99, 102, 241), 'emoji': '🧊'},  # Indigo (3D Model)
+        'OBJ': {'color': (99, 102, 241), 'emoji': '🧊'},  # Indigo (3D Model)
+        'STL': {'color': (14, 165, 233), 'emoji': '🖨️'},  # Sky Blue (3D Print)
+        
+        # Database / Data / AI
+        'DB': {'color': (14, 165, 233), 'emoji': '🗄️'},  # Sky Blue
+        'SQLITE': {'color': (14, 165, 233), 'emoji': '🗄️'},  # Sky Blue
+        'IPYNB': {'color': (249, 115, 22), 'emoji': '📓'},  # Orange (Jupyter)
+        'PKL': {'color': (99, 102, 241), 'emoji': '🧠'},  # Indigo (Pickle)
+        'PARQUET': {'color': (5, 150, 105), 'emoji': '📊'},  # Emerald
+        
+        # Backup / System / VM
+        'BAK': {'color': (156, 163, 175), 'emoji': '🛡️'},  # Gray (Backup)
+        'OLD': {'color': (156, 163, 175), 'emoji': '🕰️'},  # Gray (Old)
+        'LNK': {'color': (59, 130, 246), 'emoji': '🔗'},  # Blue (Shortcut)
+        'DLL': {'color': (107, 114, 128), 'emoji': '🧩'},  # Gray (Library)
+        'REG': {'color': (239, 68, 68), 'emoji': '🧬'},  # Red (Registry)
+        'VHD': {'color': (99, 102, 241), 'emoji': '🖥️'},  # Indigo (Virtual Disk)
+        'VHDX': {'color': (99, 102, 241), 'emoji': '🖥️'},  # Indigo (Virtual Disk)
+        'QCOW2': {'color': (99, 102, 241), 'emoji': '🖥️'},  # Indigo (QEMU)
+        'OVA': {'color': (99, 102, 241), 'emoji': '📦'},  # Indigo (VM Package)
     }
     
     def __init__(self, icon_folder: Path = None):
@@ -56,20 +216,24 @@ class WindowsFolderIconCustomizer:
     
     def create_folder_icon(self, category: str) -> Optional[Path]:
         """
-        Create a .ico file for the given category.
+        Create a .ico file for the given category or file type.
         
         Args:
-            category: Category name (Documents, Images, etc.)
+            category: Category name (Documents, Images, etc.) or file type (PDF, ZIP, etc.)
         
         Returns:
             Path to created .ico file or None if failed
         """
         try:
-            if category not in self.CATEGORY_ICONS:
-                logger.warning(f"Unknown category: {category}")
+            # Check category icons first, then file type icons
+            if category in self.CATEGORY_ICONS:
+                icon_data = self.CATEGORY_ICONS[category]
+            elif category in self.FILE_TYPE_ICONS:
+                icon_data = self.FILE_TYPE_ICONS[category]
+            else:
+                logger.warning(f"Unknown category/type: {category}")
                 return None
             
-            icon_data = self.CATEGORY_ICONS[category]
             color = icon_data['color']
             
             # Create icon image (256x256 for high quality)
@@ -159,8 +323,23 @@ FolderType=Generic
 """
             
             # Write desktop.ini
-            with open(desktop_ini, 'w', encoding='utf-8') as f:
-                f.write(ini_content)
+            try:
+                # Try to remove existing desktop.ini if it exists (might be read-only)
+                if desktop_ini.exists():
+                    try:
+                        ctypes.windll.kernel32.SetFileAttributesW(str(desktop_ini), 0x80)  # Normal
+                        desktop_ini.unlink()
+                    except:
+                        pass  # If we can't delete, we'll try to overwrite
+                
+                with open(desktop_ini, 'w', encoding='utf-8') as f:
+                    f.write(ini_content)
+            except PermissionError:
+                logger.warning(f"Skipping {folder_path.name}: OneDrive sync or permissions prevent icon customization")
+                return False
+            except Exception as e:
+                logger.error(f"Failed to write desktop.ini: {e}")
+                return False
             
             # Set file attributes: hidden + system
             ctypes.windll.kernel32.SetFileAttributesW(str(desktop_ini), 0x02 | 0x04)
@@ -183,30 +362,134 @@ FolderType=Generic
             logger.error(f"Failed to set folder icon: {e}", exc_info=True)
             return False
     
-    def customize_organized_folders(self, base_folder: Path, category_folders: dict) -> int:
+    def customize_organized_folders(self, base_folder: Path, category_folders: dict = None) -> int:
         """
         Set custom icons for all organized category folders.
         
         Args:
             base_folder: Root folder containing organized folders
-            category_folders: Dict mapping category names to folder paths
+            category_folders: Dict mapping category names to folder paths (optional)
         
         Returns:
             Number of folders successfully customized
         """
         count = 0
         
+        # If no specific folders provided, scan all folders in base directory
+        if not category_folders:
+            category_folders = {}
+        
+        # Scan base folder for all category folders (Archives, Documents, Images, etc.)
+        if base_folder.exists() and base_folder.is_dir():
+            for folder in base_folder.iterdir():
+                if folder.is_dir():
+                    folder_name = folder.name
+                    # Check if it's a known category
+                    if folder_name in self.CATEGORY_ICONS:
+                        if folder_name not in category_folders:
+                            category_folders[folder_name] = folder
+        
         for category, folder_path in category_folders.items():
             if folder_path.exists() and folder_path.is_dir():
+                # Set category icon for main folder
                 if self.set_folder_icon(folder_path, category):
                     count += 1
+                
+                # Recursively process ALL subfolders at any depth
+                import os
+                for root, dirs, files in os.walk(folder_path):
+                    root_path = Path(root)
                     
-                    # Also customize subfolders (AI groups)
-                    for subfolder in folder_path.iterdir():
-                        if subfolder.is_dir():
-                            # Use same category icon for subfolders
-                            if self.set_folder_icon(subfolder, category):
-                                count += 1
+                    # Skip the category folder itself (already processed)
+                    if root_path == folder_path:
+                        # Process only immediate subfolders for file type icons
+                        for subfolder in folder_path.iterdir():
+                            if subfolder.is_dir():
+                                folder_name = subfolder.name.upper()
+                                logger.debug(f"🔍 Processing 1st level subfolder: {subfolder.name} (uppercase: {folder_name})")
+                                
+                                # Check if it's a date folder
+                                if self._is_date_folder(folder_name):
+                                    logger.debug(f"  📅 Identified as date folder: {folder_name}")
+                                    if self.set_folder_icon(subfolder, 'DATE_FOLDER'):
+                                        count += 1
+                                        logger.debug(f"  ✅ Date icon applied")
+                                    continue
+                                
+                                # Try to match with file type icons
+                                icon_type = None
+                                logger.debug(f"  🔎 Checking file type match for: {folder_name}")
+                                
+                                # PRIORITY 1: Exact match (case-insensitive)
+                                if folder_name in self.FILE_TYPE_ICONS:
+                                    icon_type = folder_name
+                                    logger.debug(f"  ✅ EXACT MATCH found: {icon_type}")
+                                else:
+                                    # PRIORITY 2: Substring match (but prefer longer matches)
+                                    # Sort by length DESC to match longer strings first (e.g., "DOCX" before "DOC")
+                                    matches = []
+                                    for file_type in sorted(self.FILE_TYPE_ICONS.keys(), key=len, reverse=True):
+                                        if file_type in folder_name:
+                                            matches.append(file_type)
+                                    
+                                    # Use the longest match (most specific)
+                                    if matches:
+                                        icon_type = matches[0]
+                                        logger.debug(f"  ✅ SUBSTRING MATCH found: {icon_type} (from {len(matches)} candidates)")
+                                
+                                # Use type-specific icon if found, otherwise use category icon
+                                if icon_type:
+                                    logger.debug(f"  🎨 Applying type-specific icon: {icon_type} to {subfolder.name}")
+                                    if self.set_folder_icon(subfolder, icon_type):
+                                        count += 1
+                                        logger.debug(f"  ✅ Icon applied successfully")
+                                    else:
+                                        logger.warning(f"  ❌ Failed to apply icon: {icon_type}")
+                                else:
+                                    # For AI group folders (not file types), use category icon
+                                    logger.debug(f"  🎨 Applying category icon: {category} to {subfolder.name}")
+                                    if self.set_folder_icon(subfolder, category):
+                                        count += 1
+                                        logger.debug(f"  ✅ Category icon applied")
+                                    else:
+                                        logger.warning(f"  ❌ Failed to apply category icon")
+                    else:
+                        # For deeper levels, only process date folders
+                        for dir_name in dirs:
+                            subfolder = root_path / dir_name
+                            folder_name = dir_name.upper()
+                            
+                            # Check if this is a date folder at any depth
+                            if self._is_date_folder(folder_name):
+                                if self.set_folder_icon(subfolder, 'DATE_FOLDER'):
+                                    count += 1
         
         logger.info(f"Customized {count} folder icons")
         return count
+    
+    def _is_date_folder(self, folder_name: str) -> bool:
+        """
+        Check if folder name looks like a date folder.
+        
+        Args:
+            folder_name: Folder name (uppercase)
+        
+        Returns:
+            True if it's a date folder (Jan-26, Feb-25, 2025, etc.)
+        """
+        # Common date patterns
+        date_patterns = [
+            'JAN-', 'FEB-', 'MAR-', 'APR-', 'MAY-', 'JUN-',
+            'JUL-', 'AUG-', 'SEP-', 'OCT-', 'NOV-', 'DEC-'
+        ]
+        
+        # Check for month patterns
+        for pattern in date_patterns:
+            if pattern in folder_name:
+                return True
+        
+        # Check if it's just a year (2024, 2025, etc.)
+        if folder_name.isdigit() and len(folder_name) == 4:
+            return True
+        
+        return False

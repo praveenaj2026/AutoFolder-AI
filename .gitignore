@@ -68,6 +68,9 @@ models/*.pt
 models/*.pth
 models/pytorch_model.bin
 
+# HuggingFace / SentenceTransformer cache (kept local; bundled at build time)
+models/
+
 # Build artifacts
 AutoFolder_AI.exe
 AutoFolder_AI_Pro.exe

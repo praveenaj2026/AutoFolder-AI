@@ -6,6 +6,7 @@ NO cloud APIs - fully offline.
 """
 
 import logging
+import sys
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 import re
@@ -113,12 +114,27 @@ class AIClassifier:
             model_name = self.ai_config.get('embedding_model', 'all-MiniLM-L6-v2')
             logger.info(f"Loading AI model: {model_name}")
             
-            # Use cache directory
-            cache_dir = Path(self.ai_config.get('model_path', '../AI Model'))
+            # Use cache directory.
+            # - In dev: relative to project root
+            # - In frozen EXE: relative to the EXE folder
+            if getattr(sys, 'frozen', False):
+                app_root = Path(sys.executable).resolve().parent
+            else:
+                app_root = Path(__file__).resolve().parents[2]
+
+            configured = self.ai_config.get('model_path', 'models')
+            cache_dir = Path(configured)
+            if not cache_dir.is_absolute():
+                cache_dir = app_root / cache_dir
             cache_dir.mkdir(parents=True, exist_ok=True)
             
-            self.model = SentenceTransformer(model_name, cache_folder=str(cache_dir))
-            logger.info("AI model loaded successfully")
+            # Force offline mode - use cached model only, no internet required
+            self.model = SentenceTransformer(
+                model_name, 
+                cache_folder=str(cache_dir),
+                local_files_only=True  # OFFLINE MODE: Use cached model only
+            )
+            logger.info("AI model loaded successfully (offline mode)")
             
         except Exception as e:
             logger.error(f"Failed to load AI model: {e}")

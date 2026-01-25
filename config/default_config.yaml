@@ -76,7 +76,7 @@ compression:
 
 ui:
   theme: "light"  # light or dark
-  show_preview: true
+  model_path: "models"  # Relative cache folder (bundled in EXE build)
   confirm_before_organize: true
   show_file_count: true
   window_width: 1200
