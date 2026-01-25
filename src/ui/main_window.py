@@ -24,12 +24,18 @@ try:
     from ..utils.config_manager import ConfigManager
     from .duplicate_dialog import DuplicateDialog
     from .stats_dialog import StatsDialog
+    from .ai_group_editor import AIGroupEditor
+    from .search_dialog import SearchDialog
+    from .schedule_settings import ScheduleSettingsDialog
 except ImportError:
     from core import FileOrganizer
     from ai import AIClassifier
     from utils.config_manager import ConfigManager
     from ui.duplicate_dialog import DuplicateDialog
     from ui.stats_dialog import StatsDialog
+    from ui.ai_group_editor import AIGroupEditor
+    from ui.search_dialog import SearchDialog
+    from ui.schedule_settings import ScheduleSettingsDialog
 
 
 logger = logging.getLogger(__name__)
@@ -194,6 +200,10 @@ class MainWindow(QMainWindow):
         
         ai_options = self._create_ai_options()
         main_layout.addWidget(ai_options)
+        
+        # Add Phase 3.6 utilities row
+        utilities_layout = self._create_utilities_buttons()
+        main_layout.addLayout(utilities_layout)
         
         button_layout = self._create_action_buttons()
         main_layout.addLayout(button_layout)
@@ -495,6 +505,93 @@ class MainWindow(QMainWindow):
         
         return widget
     
+    def _create_utilities_buttons(self) -> QHBoxLayout:
+        """Create utility feature buttons for Phase 3.6 features."""
+        layout = QHBoxLayout()
+        layout.setSpacing(12)
+        
+        # AI Group Editor Button
+        self.ai_editor_btn = QPushButton("🎨 Edit AI Groups")
+        self.ai_editor_btn.clicked.connect(self._open_ai_group_editor)
+        self.ai_editor_btn.setEnabled(False)
+        self.ai_editor_btn.setFixedHeight(45)
+        self.ai_editor_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #8B5CF6;
+                color: white;
+                font-size: 13px;
+                font-weight: bold;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #7C3AED;
+            }
+            QPushButton:pressed {
+                background-color: #6D28D9;
+            }
+            QPushButton:disabled {
+                background-color: #E9D5FF;
+                color: #C4B5FD;
+            }
+        """)
+        layout.addWidget(self.ai_editor_btn)
+        
+        # Search Button
+        self.search_btn = QPushButton("🔍 Search Files")
+        self.search_btn.clicked.connect(self._open_search_dialog)
+        self.search_btn.setEnabled(False)
+        self.search_btn.setFixedHeight(45)
+        self.search_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #10B981;
+                color: white;
+                font-size: 13px;
+                font-weight: bold;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #059669;
+            }
+            QPushButton:pressed {
+                background-color: #047857;
+            }
+            QPushButton:disabled {
+                background-color: #D1FAE5;
+                color: #A7F3D0;
+            }
+        """)
+        layout.addWidget(self.search_btn)
+        
+        # Scheduler Button
+        self.scheduler_btn = QPushButton("⏰ Auto Schedule")
+        self.scheduler_btn.clicked.connect(self._open_scheduler_settings)
+        self.scheduler_btn.setFixedHeight(45)
+        self.scheduler_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #F59E0B;
+                color: white;
+                font-size: 13px;
+                font-weight: bold;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #D97706;
+            }
+            QPushButton:pressed {
+                background-color: #B45309;
+            }
+        """)
+        layout.addWidget(self.scheduler_btn)
+        
+        layout.addStretch()
+        return layout
+    
     def _create_action_buttons(self) -> QHBoxLayout:
         """Create action buttons."""
         
@@ -682,6 +779,10 @@ class MainWindow(QMainWindow):
             # Enable organize and stats buttons after preview is ready
             self.organize_btn.setEnabled(len(self.current_preview) > 0)
             self.view_stats_btn.setEnabled(self.current_stats is not None)
+            
+            # Enable Phase 3.6 feature buttons after organization
+            self.ai_editor_btn.setEnabled(len(self.current_preview) > 0)
+            self.search_btn.setEnabled(len(self.current_preview) > 0)
             
             # Update status message - AI is always active
             self.statusBar().showMessage(
@@ -1363,6 +1464,79 @@ class MainWindow(QMainWindow):
                 return f"{size_bytes:.1f} {unit}"
             size_bytes /= 1024.0
         return f"{size_bytes:.1f} TB"
+    
+    def _open_ai_group_editor(self):
+        """Open AI Group Editor dialog."""
+        if not self.current_folder:
+            QMessageBox.information(
+                self,
+                "No Folder Selected",
+                "<p style='color:#1E3A8A;'>Please organize a folder first to edit AI groups.</p>"
+            )
+            return
+        
+        try:
+            # Get AI groups from last organization
+            ai_groups = getattr(self.organizer, 'last_ai_groups', {})
+            if not ai_groups:
+                QMessageBox.information(
+                    self,
+                    "No AI Groups",
+                    "<p style='color:#1E3A8A;'>No AI groups found. Organize a folder first to create AI groups.</p>"
+                )
+                return
+            
+            dialog = AIGroupEditor(ai_groups, self.current_folder, self)
+            if dialog.exec_():
+                updated_groups = dialog.get_updated_groups()
+                # Store updated groups
+                self.organizer.last_ai_groups = updated_groups
+                self.statusBar().showMessage("✅ AI groups updated successfully")
+        except Exception as e:
+            logger.error(f"Error opening AI Group Editor: {e}", exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"<p style='color:#DC2626;'>Failed to open AI Group Editor:</p>"
+                f"<p style='color:#1E3A8A;'>{str(e)}</p>"
+            )
+    
+    def _open_search_dialog(self):
+        """Open search dialog."""
+        if not self.current_folder:
+            QMessageBox.information(
+                self,
+                "No Folder Selected",
+                "<p style='color:#1E3A8A;'>Please organize a folder first to enable search.</p>"
+            )
+            return
+        
+        try:
+            dialog = SearchDialog(self.current_folder, self)
+            dialog.exec_()
+        except Exception as e:
+            logger.error(f"Error opening search dialog: {e}", exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"<p style='color:#DC2626;'>Failed to open search:</p>"
+                f"<p style='color:#1E3A8A;'>{str(e)}</p>"
+            )
+    
+    def _open_scheduler_settings(self):
+        """Open scheduler settings dialog."""
+        try:
+            dialog = ScheduleSettingsDialog(self.config, self)
+            if dialog.exec_():
+                self.statusBar().showMessage("✅ Schedule settings saved")
+        except Exception as e:
+            logger.error(f"Error opening scheduler settings: {e}", exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"<p style='color:#DC2626;'>Failed to open scheduler settings:</p>"
+                f"<p style='color:#1E3A8A;'>{str(e)}</p>"
+            )
     
     def closeEvent(self, event):
         """Handle window close."""
