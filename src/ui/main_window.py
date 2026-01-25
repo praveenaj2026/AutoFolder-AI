@@ -916,9 +916,8 @@ class MainWindow(QMainWindow):
             
             self._update_preview_table(self.current_preview)
             
-            # Enable organize and stats buttons after preview is ready
+            # Enable organize button after preview is ready
             self.organize_btn.setEnabled(len(self.current_preview) > 0)
-            self.view_stats_btn.setEnabled(self.current_stats is not None)
             
             # Enable Phase 3.6 feature menu actions after organization
             self.edit_ai_groups_action.setEnabled(len(self.current_preview) > 0)
@@ -974,8 +973,6 @@ class MainWindow(QMainWindow):
             error_msg.exec_()
         finally:
             self.browse_btn.setEnabled(True)
-            # Enable duplicate scan button after folder selection
-            self.scan_duplicates_btn.setEnabled(True)
     
     def _scan_duplicates(self):
         """Scan for duplicate files in selected folder."""
@@ -1004,6 +1001,9 @@ class MainWindow(QMainWindow):
                 QProgressDialog {
                     background-color: #EFF6FF;
                     min-width: 400px;
+                }
+                QWidget {
+                    background-color: #EFF6FF;
                 }
                 QLabel {
                     color: #1E3A8A;
