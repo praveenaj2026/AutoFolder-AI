@@ -40,11 +40,12 @@ class SearchDialog(QDialog):
         self.results = []
         
         self.setWindowTitle("🔍 Search Organized Files")
-        self.setMinimumSize(1200, 800)        self.setStyleSheet("""
+        self.setMinimumSize(1200, 800)
+        self.setStyleSheet("""
             QDialog {
                 background-color: #F0F9FF;
             }
-        """)        
+        """)
         self._setup_ui()
         self._populate_filters()
         
