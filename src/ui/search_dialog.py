@@ -16,7 +16,10 @@ from datetime import datetime
 import subprocess
 import logging
 
-from ..core.search_engine import SearchEngine
+try:
+    from ..core.search_engine import SearchEngine
+except ImportError:
+    from core.search_engine import SearchEngine
 
 logger = logging.getLogger(__name__)
 

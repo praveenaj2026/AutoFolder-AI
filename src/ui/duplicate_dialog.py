@@ -7,10 +7,10 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
     QPushButton, QTreeWidget, QTreeWidgetItem,
     QGroupBox, QRadioButton, QButtonGroup, QMessageBox,
-    QProgressDialog
+    QProgressDialog, QFileIconProvider
 )
 from PySide6.QtCore import Qt, Signal, QFileInfo
-from PySide6.QtGui import QFont, QColor, QIcon, QFileIconProvider
+from PySide6.QtGui import QFont, QColor, QIcon
 from pathlib import Path
 from typing import Dict, List
 import logging

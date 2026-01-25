@@ -13,10 +13,11 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QLabel, QFileDialog,
     QTableWidget, QTableWidgetItem, QProgressBar,
-    QMessageBox, QGroupBox, QHeaderView, QCheckBox, QProgressDialog
+    QMessageBox, QGroupBox, QHeaderView, QCheckBox, QProgressDialog,
+    QFileIconProvider
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QFileInfo
-from PySide6.QtGui import QFont, QColor, QIcon, QFileIconProvider, QPixmap
+from PySide6.QtGui import QFont, QColor, QIcon, QPixmap
 
 try:
     from ..core import FileOrganizer
