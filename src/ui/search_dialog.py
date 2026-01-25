@@ -397,15 +397,10 @@ class SearchDialog(QDialog):
         logger.info(f"Search returned {len(self.results)} results")
         self._display_results()
         
-        # Update status label
-        self.status_label.setText(f"Found {len(self.results)} files")
-        self.status_label.setStyleSheet("""
-            QLabel {
-                color: #059669;
-                font-weight: bold;
-                font-size: 13px;
-            }
-        """)
+        # Update stats to show result count
+        if hasattr(self, 'stats_label'):
+            current_stats = self.stats_label.text()
+            self.stats_label.setText(f"🔍 Found {len(self.results)} files | {current_stats}")
     
     def _display_results(self):
         """Display search results in table."""

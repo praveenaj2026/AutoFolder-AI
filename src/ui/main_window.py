@@ -1083,7 +1083,9 @@ class MainWindow(QMainWindow):
             # Clear duplicate cache to ensure fresh scan
             logger.info("Clearing duplicate cache for fresh scan")
             if hasattr(self.organizer, 'duplicate_detector'):
-                self.organizer.duplicate_detector._hash_cache.clear()
+                self.organizer.duplicate_detector.hash_cache.clear()
+                self.organizer.duplicate_detector.size_cache.clear()
+                logger.info("Cache cleared successfully")
             
             # Update status bar to show scanning in progress
             self.statusBar().showMessage("🔍 Scanning for duplicates... Please wait.")
@@ -1832,19 +1834,21 @@ class MainWindow(QMainWindow):
     
     def _open_scheduler_settings(self):
         """Open scheduler settings dialog."""
+        logger.info("Schedule button clicked - opening settings dialog")
         try:
             # Pass config.config dict instead of ConfigManager object
             dialog = ScheduleSettingsDialog(self.config.config, self)
             if dialog.exec_():
                 self.statusBar().showMessage("✅ Schedule settings saved")
+                logger.info("Schedule settings saved successfully")
         except Exception as e:
             logger.error(f"Error opening scheduler settings: {e}", exc_info=True)
-            QMessageBox.critical(
-                self,
-                "Error",
-                f"<p style='color:#DC2626;'>Failed to open scheduler settings:</p>"
-                f"<p style='color:#1E3A8A;'>{str(e)}</p>"
-            )
+            error_msg = QMessageBox(self)
+            error_msg.setWindowTitle("Error")
+            error_msg.setText(f"<p style='color:#DC2626;'>Failed to open scheduler settings:</p>"
+                f"<p style='color:#1E3A8A;'>{str(e)}</p>")
+            ThemeHelper.style_message_box(error_msg, 'error')
+            error_msg.exec_()
     
     def closeEvent(self, event):
         """Handle window close."""

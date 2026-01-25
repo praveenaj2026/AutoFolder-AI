@@ -95,23 +95,25 @@ class AIGroupEditor(QDialog):
     def _setup_ui(self):
         """Setup the user interface."""
         layout = QVBoxLayout(self)
+        layout.setSpacing(5)  # Reduce spacing between elements
+        layout.setContentsMargins(10, 10, 10, 10)  # Reduce margins
         
-        # Header
+        # Header - more compact
         header = QLabel("✏️ Customize AI Groups")
         header.setStyleSheet("""
             QLabel {
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: bold;
                 color: #1E3A8A;
-                padding: 8px;
+                padding: 5px;
                 background-color: #EFF6FF;
-                border-radius: 8px;
+                border-radius: 5px;
             }
         """)
         header.setAlignment(Qt.AlignCenter)
         layout.addWidget(header)
         
-        # Instructions
+        # Instructions - more compact
         instructions = QLabel(
             "💡 Select groups to rename, merge, or split. "
             "Drag files between groups to reorganize."
@@ -119,10 +121,10 @@ class AIGroupEditor(QDialog):
         instructions.setStyleSheet("""
             QLabel {
                 color: #6B7280;
-                font-size: 12px;
-                padding: 5px;
+                font-size: 11px;
+                padding: 3px;
                 background-color: #F9FAFB;
-                border-radius: 5px;
+                border-radius: 3px;
             }
         """)
         layout.addWidget(instructions)
