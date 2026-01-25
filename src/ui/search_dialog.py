@@ -267,16 +267,6 @@ class SearchDialog(QDialog):
                 font-weight: bold;
             }
         """)
-            QTableWidget::item {
-                padding: 8px;
-            }
-            QHeaderView::section {
-                background-color: #F3F4F6;
-                padding: 10px;
-                font-weight: bold;
-                border: none;
-            }
-        """)
         self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.results_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.results_table.setEditTriggers(QTableWidget.NoEditTriggers)
