@@ -1746,26 +1746,6 @@ class MainWindow(QMainWindow):
                 
                 # Perform undo
                 success = self.organizer.undo_last_operation()
-                0, 0,  # Indeterminate progress
-                self
-            )
-            progress.setWindowTitle("Processing Undo")
-            progress.setWindowModality(Qt.WindowModal)
-            progress.setMinimumDuration(0)  # Show immediately
-            progress.setMinimumSize(400, 150)  # Ensure visible size
-            ThemeHelper.style_progress_dialog(progress)
-            progress.forceShow()  # Force it to show immediately
-            QApplication.processEvents()  # Force UI update
-            
-            self.statusBar().showMessage("⟲ Undoing organization...")
-            
-            undo_manager = self.organizer.undo_manager
-            if undo_manager.can_undo():
-                last_operation = undo_manager.get_last_operation()
-                file_count = len(last_operation.get('operations', []))
-                
-                # Perform undo
-                success = self.organizer.undo_last_operation()
                 
                 # Close progress dialog
                 progress.close()
