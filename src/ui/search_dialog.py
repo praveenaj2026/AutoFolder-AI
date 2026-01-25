@@ -451,7 +451,32 @@ class SearchDialog(QDialog):
                 logger.info(f"Opened file: {file_path}")
             except Exception as e:
                 logger.error(f"Error opening file: {e}")
-                QMessageBox.warning(self, "Error", f"Could not open file:\n{e}")
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Warning)
+                msg.setWindowTitle("Error")
+                msg.setText(f"Could not open file:\n{e}")
+                msg.setStyleSheet("""
+                    QMessageBox {
+                        background-color: #EFF6FF;
+                    }
+                    QLabel {
+                        color: #1E3A8A;
+                        background-color: #EFF6FF;
+                    }
+                    QPushButton {
+                        background-color: #3B82F6;
+                        color: #F0F9FF;
+                        padding: 8px 20px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        border: none;
+                    }
+                    QPushButton:hover {
+                        background-color: #2563EB;
+                    }
+                """)
+                msg.exec_()
     
     def _show_in_explorer(self):
         """Show selected file in Windows Explorer."""

@@ -311,7 +311,32 @@ class DuplicateDialog(QDialog):
     def _process_duplicates(self):
         """Process duplicates based on selected action."""
         if not self.duplicates:
-            QMessageBox.information(self, "No Duplicates", "No duplicate files to process.")
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("No Duplicates")
+            msg.setText("No duplicate files to process.")
+            msg.setStyleSheet("""
+                QMessageBox {
+                    background-color: #EFF6FF;
+                }
+                QLabel {
+                    color: #1E3A8A;
+                    background-color: #EFF6FF;
+                }
+                QPushButton {
+                    background-color: #3B82F6;
+                    color: #F0F9FF;
+                    padding: 8px 20px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    border: none;
+                }
+                QPushButton:hover {
+                    background-color: #2563EB;
+                }
+            """)
+            msg.exec_()
             self.accept()
             return
         
@@ -332,13 +357,34 @@ class DuplicateDialog(QDialog):
                 f"⚠️ {total_to_delete} files will be PERMANENTLY DELETED.\n\n"
                 f"Are you sure you want to continue?"
             )
-            reply = QMessageBox.question(
-                self,
-                "Confirm Deletion",
-                msg,
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No
-            )
+            msg_box = QMessageBox(self)
+            msg_box.setIcon(QMessageBox.Question)
+            msg_box.setWindowTitle("Confirm Deletion")
+            msg_box.setText(msg)
+            msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            msg_box.setDefaultButton(QMessageBox.No)
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: #EFF6FF;
+                }
+                QLabel {
+                    color: #1E3A8A;
+                    background-color: #EFF6FF;
+                }
+                QPushButton {
+                    background-color: #3B82F6;
+                    color: #F0F9FF;
+                    padding: 8px 20px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    border: none;
+                }
+                QPushButton:hover {
+                    background-color: #2563EB;
+                }
+            """)
+            reply = msg_box.exec_()
             
             if reply == QMessageBox.No:
                 return

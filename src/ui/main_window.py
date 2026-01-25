@@ -42,6 +42,80 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+class ThemeHelper:
+    """Helper class for consistent blue theme across all dialogs."""
+    
+    BLUE_DIALOG_STYLE = """
+        QMessageBox {
+            background-color: #EFF6FF;
+        }
+        QLabel {
+            color: #1E3A8A;
+            background-color: #EFF6FF;
+        }
+        QPushButton {
+            background-color: #3B82F6;
+            color: #F0F9FF;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: #2563EB;
+        }
+    """
+    
+    PROGRESS_DIALOG_STYLE = """
+        QProgressDialog {
+            background-color: #EFF6FF;
+            min-width: 400px;
+        }
+        QWidget {
+            background-color: #EFF6FF;
+        }
+        QLabel {
+            color: #1E3A8A;
+            font-size: 13px;
+            padding: 10px;
+            background-color: #EFF6FF;
+        }
+        QProgressBar {
+            background-color: #DBEAFE;
+            border: 2px solid #3B82F6;
+            border-radius: 5px;
+            text-align: center;
+            color: #1E3A8A;
+        }
+        QProgressBar::chunk {
+            background-color: #3B82F6;
+        }
+        QPushButton {
+            background-color: #EF4444;
+            color: #F0F9FF;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: #DC2626;
+        }
+    """
+    
+    @staticmethod
+    def style_message_box(msg_box):
+        """Apply blue theme to a QMessageBox."""
+        msg_box.setStyleSheet(ThemeHelper.BLUE_DIALOG_STYLE)
+    
+    @staticmethod
+    def style_progress_dialog(progress):
+        """Apply blue theme to a QProgressDialog."""
+        progress.setStyleSheet(ThemeHelper.PROGRESS_DIALOG_STYLE)
+
+
 class OrganizeThread(QThread):
     """Background thread for organization operations."""
     
@@ -977,11 +1051,12 @@ class MainWindow(QMainWindow):
     def _scan_duplicates(self):
         """Scan for duplicate files in selected folder."""
         if not self.current_folder:
-            QMessageBox.warning(
-                self,
-                "No Folder Selected",
-                "Please select a folder first using the Browse button."
-            )
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("No Folder Selected")
+            msg.setText("Please select a folder first using the Browse button.")
+            ThemeHelper.style_message_box(msg)
+            msg.exec_()
             return
         
         try:
@@ -997,43 +1072,7 @@ class MainWindow(QMainWindow):
             progress.setWindowModality(Qt.WindowModal)
             progress.setMinimumDuration(0)
             progress.setValue(0)
-            progress.setStyleSheet("""
-                QProgressDialog {
-                    background-color: #EFF6FF;
-                    min-width: 400px;
-                }
-                QWidget {
-                    background-color: #EFF6FF;
-                }
-                QLabel {
-                    color: #1E3A8A;
-                    font-size: 13px;
-                    padding: 10px;
-                    background-color: #EFF6FF;
-                }
-                QProgressBar {
-                    background-color: #DBEAFE;
-                    border: 2px solid #3B82F6;
-                    border-radius: 5px;
-                    text-align: center;
-                    color: #1E3A8A;
-                }
-                QProgressBar::chunk {
-                    background-color: #3B82F6;
-                }
-                QPushButton {
-                    background-color: #EF4444;
-                    color: #F0F9FF;
-                    padding: 6px 16px;
-                    border-radius: 6px;
-                    font-size: 12px;
-                    font-weight: bold;
-                    border: none;
-                }
-                QPushButton:hover {
-                    background-color: #DC2626;
-                }
-            """)
+            ThemeHelper.style_progress_dialog(progress)
             progress.show()
             
             # Get hash algorithm from config
@@ -1232,11 +1271,12 @@ class MainWindow(QMainWindow):
     def _show_stats(self):
         """Show organization statistics dashboard."""
         if not self.current_stats:
-            QMessageBox.information(
-                self,
-                "No Statistics",
-                "No statistics available. Please analyze a folder first."
-            )
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("No Statistics")
+            msg.setText("No statistics available. Please analyze a folder first.")
+            ThemeHelper.style_message_box(msg)
+            msg.exec_()
             return
         
         try:
@@ -1416,13 +1456,16 @@ class MainWindow(QMainWindow):
         self._set_controls_enabled(True)
         
         if result['success']:
-            QMessageBox.information(
-                self,
-                "✅ Success!",
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("✅ Success!")
+            msg.setText(
                 f"<h3 style='color:#059669;'>Successfully organized {result['completed']} items!</h3>"
                 f"<p style='color:#1E3A8A;'>Multi-level organization complete (including subfolders).</p>"
                 f"<p style='color:#3B82F6;'><i>Click 'Undo Last' if you want to revert.</i></p>"
             )
+            ThemeHelper.style_message_box(msg)
+            msg.exec_()
             
             self.undo_btn.setEnabled(result['can_undo'])
             self.statusBar().showMessage(
@@ -1463,15 +1506,18 @@ class MainWindow(QMainWindow):
                 if len(result['completed_items']) > 5:
                     success_details += f" <i>(+{len(result['completed_items']) - 5} more)</i>"
             
-            QMessageBox.warning(
-                self,
-                "⚠️ Partial Success",
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("⚠️ Partial Success")
+            msg.setText(
                 f"<h3 style='color:#D97706;'>Partially completed</h3>"
                 f"<p style='color:#1E3A8A;'>Organized {result['completed']} items.</p>"
                 f"<p style='color:#DC2626;'>{result['failed']} items could not be organized.</p>"
                 f"{success_details}"
                 f"{error_details}"
             )
+            ThemeHelper.style_message_box(msg)
+            msg.exec_()
     
     def _on_organize_error(self, error):
         """Handle organization error with popup."""
@@ -1525,27 +1571,32 @@ class MainWindow(QMainWindow):
                     # PROPERLY clean up empty folders
                     deleted_count = self._cleanup_empty_folders_recursive(self.current_folder)
                     
-                    QMessageBox.information(
-                        self, 
-                        "✅ Undo Complete", 
+                    msg = QMessageBox(self)
+                    msg.setIcon(QMessageBox.Information)
+                    msg.setWindowTitle("✅ Undo Complete")
+                    msg.setText(
                         f"<h3 style='color:#059669;'>Successfully undone!</h3>"
                         f"<p style='color:#1E3A8A;'>• Moved {file_count} items back</p>"
                         f"<p style='color:#1E3A8A;'>• Removed {deleted_count} empty folders</p>"
                     )
+                    ThemeHelper.style_message_box(msg)
+                    msg.exec_()
                     self.undo_btn.setEnabled(False)
                     self.statusBar().showMessage(f"✅ Undo complete: {file_count} items restored")
                 else:
-                    QMessageBox.warning(
-                        self, 
-                        "⚠️ Warning", 
-                        "<p style='color:#D97706;'>Undo partially completed.</p>"
-                    )
+                    msg = QMessageBox(self)
+                    msg.setIcon(QMessageBox.Warning)
+                    msg.setWindowTitle("⚠️ Warning")
+                    msg.setText("Undo partially completed.")
+                    ThemeHelper.style_message_box(msg)
+                    msg.exec_()
             else:
-                QMessageBox.information(
-                    self, 
-                    "ℹ️ Info", 
-                    "<p style='color:#3B82F6;'>Nothing to undo.</p>"
-                )
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Information)
+                msg.setWindowTitle("ℹ️ Info")
+                msg.setText("Nothing to undo.")
+                ThemeHelper.style_message_box(msg)
+                msg.exec_()
                 
         except Exception as e:
             logger.error(f"Undo error: {e}", exc_info=True)
@@ -1655,11 +1706,12 @@ class MainWindow(QMainWindow):
     def _open_ai_group_editor(self):
         """Open AI Group Editor dialog."""
         if not self.current_folder:
-            QMessageBox.information(
-                self,
-                "No Folder Selected",
-                "<p style='color:#1E3A8A;'>Please organize a folder first to edit AI groups.</p>"
-            )
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("No Folder Selected")
+            msg.setText("Please organize a folder first to edit AI groups.")
+            ThemeHelper.style_message_box(msg)
+            msg.exec_()
             return
         
         try:
@@ -1720,11 +1772,12 @@ class MainWindow(QMainWindow):
     def _open_search_dialog(self):
         """Open search dialog."""
         if not self.current_folder:
-            QMessageBox.information(
-                self,
-                "No Folder Selected",
-                "<p style='color:#1E3A8A;'>Please organize a folder first to enable search.</p>"
-            )
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("No Folder Selected")
+            msg.setText("Please organize a folder first to enable search.")
+            ThemeHelper.style_message_box(msg)
+            msg.exec_()
             return
         
         try:

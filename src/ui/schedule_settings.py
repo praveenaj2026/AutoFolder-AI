@@ -305,7 +305,32 @@ class ScheduleSettingsDialog(QDialog):
             if folder not in existing:
                 list_widget.addItem(folder)
             else:
-                QMessageBox.information(self, "Already Added", "This folder is already in the list.")
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Information)
+                msg.setWindowTitle("Already Added")
+                msg.setText("This folder is already in the list.")
+                msg.setStyleSheet("""
+                    QMessageBox {
+                        background-color: #EFF6FF;
+                    }
+                    QLabel {
+                        color: #1E3A8A;
+                        background-color: #EFF6FF;
+                    }
+                    QPushButton {
+                        background-color: #3B82F6;
+                        color: #F0F9FF;
+                        padding: 8px 20px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        border: none;
+                    }
+                    QPushButton:hover {
+                        background-color: #2563EB;
+                    }
+                """)
+                msg.exec_()
     
     def _remove_folder(self, list_widget: QListWidget):
         """Remove selected folder from list."""
@@ -400,19 +425,61 @@ class ScheduleSettingsDialog(QDialog):
         # Validate
         if automation_config['enabled']:
             if not schedule_folders and not watch_folders:
-                QMessageBox.warning(
-                    self,
-                    "No Folders Selected",
-                    "Please add at least one folder to organize or watch."
-                )
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Warning)
+                msg.setWindowTitle("No Folders Selected")
+                msg.setText("Please add at least one folder to organize or watch.")
+                msg.setStyleSheet("""
+                    QMessageBox {
+                        background-color: #EFF6FF;
+                    }
+                    QLabel {
+                        color: #1E3A8A;
+                        background-color: #EFF6FF;
+                    }
+                    QPushButton {
+                        background-color: #3B82F6;
+                        color: #F0F9FF;
+                        padding: 8px 20px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        border: none;
+                    }
+                    QPushButton:hover {
+                        background-color: #2563EB;
+                    }
+                """)
+                msg.exec_()
                 return
             
             if automation_config['schedule']['frequency'] == 'daily' and not selected_days:
-                QMessageBox.warning(
-                    self,
-                    "No Days Selected",
-                    "Please select at least one day for daily scheduling."
-                )
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Warning)
+                msg.setWindowTitle("No Days Selected")
+                msg.setText("Please select at least one day for daily scheduling.")
+                msg.setStyleSheet("""
+                    QMessageBox {
+                        background-color: #EFF6FF;
+                    }
+                    QLabel {
+                        color: #1E3A8A;
+                        background-color: #EFF6FF;
+                    }
+                    QPushButton {
+                        background-color: #3B82F6;
+                        color: #F0F9FF;
+                        padding: 8px 20px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        border: none;
+                    }
+                    QPushButton:hover {
+                        background-color: #2563EB;
+                    }
+                """)
+                msg.exec_()
                 return
         
         logger.info("Automation settings saved")
