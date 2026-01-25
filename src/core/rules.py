@@ -63,6 +63,60 @@ class RuleEngine:
                     'type': 'extension',
                     'patterns': ['.py', '.js', '.java', '.cpp', '.c', '.cs', '.html', '.css', '.php', '.json', '.xml', '.ini', '.cfg', '.conf', '.yaml', '.yml'],
                     'target_folder': 'Code'
+                },
+                {
+                    'name': 'Spreadsheets',
+                    'type': 'extension',
+                    'patterns': ['.xlsx', '.xls', '.xlsm', '.csv', '.ods', '.numbers'],
+                    'target_folder': 'Spreadsheets'
+                },
+                {
+                    'name': 'Databases',
+                    'type': 'extension',
+                    'patterns': ['.db', '.sqlite', '.sqlite3', '.mdb', '.accdb'],
+                    'target_folder': 'Databases'
+                },
+                {
+                    'name': 'Ebooks',
+                    'type': 'extension',
+                    'patterns': ['.epub', '.mobi', '.azw', '.azw3'],
+                    'target_folder': 'Ebooks'
+                },
+                {
+                    'name': 'Fonts',
+                    'type': 'extension',
+                    'patterns': ['.ttf', '.otf', '.woff', '.woff2', '.eot'],
+                    'target_folder': 'Fonts'
+                },
+                {
+                    'name': 'CAD',
+                    'type': 'extension',
+                    'patterns': ['.dwg', '.dxf', '.step', '.stp', '.iges'],
+                    'target_folder': 'CAD'
+                },
+                {
+                    'name': '3D_Models',
+                    'type': 'extension',
+                    'patterns': ['.obj', '.fbx', '.blend', '.dae', '.3ds', '.stl'],
+                    'target_folder': '3D_Models'
+                },
+                {
+                    'name': 'Torrents',
+                    'type': 'extension',
+                    'patterns': ['.torrent'],
+                    'target_folder': 'Torrents'
+                },
+                {
+                    'name': 'Disk_Images',
+                    'type': 'extension',
+                    'patterns': ['.iso', '.img', '.dmg', '.vhd', '.vmdk'],
+                    'target_folder': 'Disk_Images'
+                },
+                {
+                    'name': 'Backups',
+                    'type': 'extension',
+                    'patterns': ['.bak', '.backup', '.old'],
+                    'target_folder': 'Backups'
                 }
             ],
             

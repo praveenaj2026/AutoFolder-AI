@@ -39,7 +39,16 @@ class FileAnalyzer:
             'archive': ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.xz'],
             'executable': ['.exe', '.msi', '.dmg', '.pkg', '.deb', '.rpm', '.apk', '.bat', '.sh'],
             'code': ['.py', '.js', '.java', '.cpp', '.c', '.cs', '.html', '.css', '.php', '.rb', '.go', '.rs'],
-            'data': ['.json', '.xml', '.yaml', '.yml', '.csv', '.sql']
+            'data': ['.json', '.xml', '.yaml', '.yml', '.csv', '.sql'],
+            'spreadsheet': ['.xlsx', '.xls', '.xlsm', '.csv', '.ods', '.numbers'],
+            'database': ['.db', '.sqlite', '.sqlite3', '.mdb', '.accdb'],
+            'ebook': ['.epub', '.mobi', '.azw', '.azw3'],
+            'font': ['.ttf', '.otf', '.woff', '.woff2', '.eot'],
+            'cad': ['.dwg', '.dxf', '.step', '.stp', '.iges'],
+            '3d_model': ['.obj', '.fbx', '.blend', '.dae', '.3ds', '.stl'],
+            'torrent': ['.torrent'],
+            'disk_image': ['.iso', '.img', '.dmg', '.vhd', '.vmdk'],
+            'backup': ['.bak', '.backup', '.old']
         }
     
     def analyze_file(self, file_path: Path) -> Dict:
