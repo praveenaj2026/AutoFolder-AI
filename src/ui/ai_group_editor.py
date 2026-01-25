@@ -125,11 +125,6 @@ class AIGroupEditor(QDialog):
                 border-radius: 5px;
             }
         """)
-                padding: 10px;
-                color: #64748B;
-                font-size: 13px;
-            }
-        """)
         layout.addWidget(instructions)
         
         # Main content - Splitter for groups and files
