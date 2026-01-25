@@ -239,20 +239,20 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("🚀 Ready")
         
     def _create_header(self) -> QWidget:
-        """Create modern header."""
+        """Create compact header."""
         header_widget = QWidget()
-        header_widget.setFixedHeight(110)
+        header_widget.setFixedHeight(60)
         
         layout = QVBoxLayout(header_widget)
-        layout.setContentsMargins(0, 0, 0, 10)
-        layout.setSpacing(5)
+        layout.setContentsMargins(0, 5, 0, 5)
+        layout.setSpacing(0)
         
         title = QLabel("AutoFolder AI")
         title_font = QFont()
-        title_font.setPointSize(32)
+        title_font.setPointSize(22)
         title_font.setBold(True)
         title.setFont(title_font)
-        title.setStyleSheet("color: #1E3A8A;")  # Dark blue
+        title.setStyleSheet("color: #1E3A8A;")
         layout.addWidget(title)
         
         return header_widget
@@ -261,14 +261,14 @@ class MainWindow(QMainWindow):
         """Create the main Organize tab with folder selection and preview."""
         tab = QWidget()
         layout = QVBoxLayout(tab)
-        layout.setContentsMargins(15, 15, 15, 15)
-        layout.setSpacing(15)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(8)
         
         # Folder selection
         folder_group = self._create_folder_selection()
         layout.addWidget(folder_group)
         
-        # Preview area (gets more space now!)
+        # Preview area (MAXIMUM SPACE!)
         preview_group = self._create_preview_area()
         layout.addWidget(preview_group, stretch=1)
         
@@ -276,7 +276,7 @@ class MainWindow(QMainWindow):
         ai_options = self._create_ai_options()
         layout.addWidget(ai_options)
         
-        # Action buttons
+        # Action buttons (only Undo and Organize)
         button_layout = self._create_action_buttons()
         layout.addLayout(button_layout)
         
@@ -451,19 +451,19 @@ class MainWindow(QMainWindow):
         group = QGroupBox("📁 Select Folder to Organize")
         group.setStyleSheet("""
             QGroupBox {
-                font-size: 15px;
+                font-size: 13px;
                 font-weight: bold;
                 color: #1E3A8A;
-                padding: 18px;
+                padding: 10px;
                 border: 2px solid #93C5FD;
-                border-radius: 10px;
-                margin-top: 12px;
+                border-radius: 8px;
+                margin-top: 8px;
                 background-color: #EFF6FF;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 18px;
-                padding: 0 8px;
+                left: 12px;
+                padding: 0 6px;
                 background-color: #EFF6FF;
             }
         """)
@@ -471,7 +471,7 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout()
         layout.setSpacing(12)
         
-        self.folder_label = QLabel("No folder selected - Click Browse to get started")
+        self.folder_label = QLabel("No folder selected")
         self.folder_label.setStyleSheet("""
             QLabel {
                 padding: 14px;
@@ -682,31 +682,31 @@ class MainWindow(QMainWindow):
         """Create AI status panel - AI is always enabled."""
         widget = QWidget()
         layout = QHBoxLayout(widget)
-        layout.setContentsMargins(10, 5, 10, 5)
+        layout.setContentsMargins(0, 0, 0, 0)
         
         # AI Status label (always enabled)
         ai_status_label = QLabel("🤖 AI Semantic Grouping: ALWAYS ENABLED")
         ai_status_label.setStyleSheet("""
             QLabel {
                 color: #059669;
-                font-size: 13px;
+                font-size: 11px;
                 font-weight: bold;
-                padding: 8px;
+                padding: 4px 8px;
                 background-color: #D1FAE5;
-                border-radius: 6px;
-                border: 2px solid #10B981;
+                border-radius: 4px;
+                border: 1px solid #10B981;
             }
         """)
         layout.addWidget(ai_status_label)
         
-        # Info label
-        ai_info_label = QLabel("✨ Intelligently groups similar files using AI embeddings")
+        # Info label - more concise
+        ai_info_label = QLabel("⚡ Groups similar files")
         ai_info_label.setStyleSheet("""
             QLabel {
-                color: #6B7280;
-                font-size: 11px;
+                color: #F59E0B;
+                font-size: 10px;
                 font-style: italic;
-                padding-left: 10px;
+                padding-left: 8px;
             }
         """)
         layout.addWidget(ai_info_label)
@@ -792,21 +792,21 @@ class MainWindow(QMainWindow):
         """Create action buttons."""
         
         layout = QHBoxLayout()
-        layout.setSpacing(18)
+        layout.setSpacing(12)
         
         self.undo_btn = QPushButton("⟲ Undo Last")
         self.undo_btn.clicked.connect(self._undo_last)
         self.undo_btn.setEnabled(False)
-        self.undo_btn.setFixedHeight(55)
+        self.undo_btn.setFixedHeight(45)
         self.undo_btn.setStyleSheet("""
             QPushButton {
                 background-color: #60A5FA;
-                color: white;
-                font-size: 15px;
+                color: #1E3A8A;
+                font-size: 14px;
                 font-weight: bold;
-                padding: 14px 35px;
+                padding: 10px 25px;
                 border: none;
-                border-radius: 10px;
+                border-radius: 8px;
             }
             QPushButton:hover {
                 background-color: #3B82F6;
@@ -826,17 +826,17 @@ class MainWindow(QMainWindow):
         self.organize_btn = QPushButton("✨ Smart Organize")
         self.organize_btn.clicked.connect(self._organize_folder)
         self.organize_btn.setEnabled(False)
-        self.organize_btn.setFixedHeight(55)
+        self.organize_btn.setFixedHeight(45)
         self.organize_btn.setStyleSheet("""
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                                            stop:0 #2563EB, stop:1 #1E40AF);
-                color: white;
-                font-size: 17px;
+                color: #F0F9FF;
+                font-size: 16px;
                 font-weight: bold;
-                padding: 14px 55px;
+                padding: 10px 40px;
                 border: none;
-                border-radius: 10px;
+                border-radius: 8px;
             }
             QPushButton:hover {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
