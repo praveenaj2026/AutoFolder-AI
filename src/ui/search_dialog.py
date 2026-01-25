@@ -40,8 +40,11 @@ class SearchDialog(QDialog):
         self.results = []
         
         self.setWindowTitle("🔍 Search Organized Files")
-        self.setMinimumSize(1200, 800)
-        
+        self.setMinimumSize(1200, 800)        self.setStyleSheet("""
+            QDialog {
+                background-color: #F0F9FF;
+            }
+        """)        
         self._setup_ui()
         self._populate_filters()
         
@@ -79,13 +82,15 @@ class SearchDialog(QDialog):
         self.search_input.setStyleSheet("""
             QLineEdit {
                 padding: 12px;
-                border: 2px solid #E5E7EB;
+                border: 2px solid #93C5FD;
                 border-radius: 8px;
                 font-size: 14px;
-                background-color: white;
+                background-color: #EFF6FF;
+                color: #1E3A8A;
             }
             QLineEdit:focus {
                 border-color: #3B82F6;
+                background-color: #DBEAFE;
             }
         """)
         self.search_input.returnPressed.connect(self._perform_search)
@@ -119,16 +124,18 @@ class SearchDialog(QDialog):
             QGroupBox {
                 font-weight: bold;
                 font-size: 14px;
-                border: 2px solid #E5E7EB;
+                border: 2px solid #93C5FD;
                 border-radius: 8px;
                 margin-top: 10px;
                 padding-top: 15px;
-                background-color: #F9FAFB;
+                background-color: #EFF6FF;
+                color: #1E3A8A;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
                 left: 10px;
                 padding: 0 5px;
+                color: #1E40AF;
             }
         """)
         filter_layout = QVBoxLayout(filter_group)
@@ -138,22 +145,22 @@ class SearchDialog(QDialog):
         
         row1.addWidget(QLabel("Category:"))
         self.category_combo = QComboBox()
-        self.category_combo.setStyleSheet("padding: 8px; font-size: 13px;")
+        self.category_combo.setStyleSheet("padding: 8px; font-size: 13px; background-color: #DBEAFE; color: #1E3A8A;")
         row1.addWidget(self.category_combo)
         
         row1.addWidget(QLabel("AI Group:"))
         self.ai_group_combo = QComboBox()
-        self.ai_group_combo.setStyleSheet("padding: 8px; font-size: 13px;")
+        self.ai_group_combo.setStyleSheet("padding: 8px; font-size: 13px; background-color: #DBEAFE; color: #1E3A8A;")
         row1.addWidget(self.ai_group_combo)
         
         row1.addWidget(QLabel("Type:"))
         self.type_combo = QComboBox()
-        self.type_combo.setStyleSheet("padding: 8px; font-size: 13px;")
+        self.type_combo.setStyleSheet("padding: 8px; font-size: 13px; background-color: #DBEAFE; color: #1E3A8A;")
         row1.addWidget(self.type_combo)
         
         row1.addWidget(QLabel("Extension:"))
         self.ext_combo = QComboBox()
-        self.ext_combo.setStyleSheet("padding: 8px; font-size: 13px;")
+        self.ext_combo.setStyleSheet("padding: 8px; font-size: 13px; background-color: #DBEAFE; color: #1E3A8A;")
         row1.addWidget(self.ext_combo)
         
         filter_layout.addLayout(row1)
@@ -165,14 +172,14 @@ class SearchDialog(QDialog):
         self.date_from = QDateEdit()
         self.date_from.setCalendarPopup(True)
         self.date_from.setDate(QDate.currentDate().addYears(-1))
-        self.date_from.setStyleSheet("padding: 8px; font-size: 13px;")
+        self.date_from.setStyleSheet("padding: 8px; font-size: 13px; background-color: #DBEAFE; color: #1E3A8A;")
         row2.addWidget(self.date_from)
         
         row2.addWidget(QLabel("To:"))
         self.date_to = QDateEdit()
         self.date_to.setCalendarPopup(True)
         self.date_to.setDate(QDate.currentDate())
-        self.date_to.setStyleSheet("padding: 8px; font-size: 13px;")
+        self.date_to.setStyleSheet("padding: 8px; font-size: 13px; background-color: #DBEAFE; color: #1E3A8A;")
         row2.addWidget(self.date_to)
         
         # Size range
@@ -181,7 +188,7 @@ class SearchDialog(QDialog):
         self.size_min.setRange(0, 100000)
         self.size_min.setDecimals(2)
         self.size_min.setPrefix("Min: ")
-        self.size_min.setStyleSheet("padding: 8px; font-size: 13px;")
+        self.size_min.setStyleSheet("padding: 8px; font-size: 13px; background-color: #DBEAFE; color: #1E3A8A;")
         row2.addWidget(self.size_min)
         
         self.size_max = QDoubleSpinBox()
@@ -189,7 +196,7 @@ class SearchDialog(QDialog):
         self.size_max.setValue(100000)
         self.size_max.setDecimals(2)
         self.size_max.setPrefix("Max: ")
-        self.size_max.setStyleSheet("padding: 8px; font-size: 13px;")
+        self.size_max.setStyleSheet("padding: 8px; font-size: 13px; background-color: #DBEAFE; color: #1E3A8A;")
         row2.addWidget(self.size_max)
         
         filter_layout.addLayout(row2)
@@ -202,12 +209,12 @@ class SearchDialog(QDialog):
                 padding: 8px 20px;
                 border-radius: 6px;
                 font-size: 13px;
-                background-color: #E5E7EB;
-                color: #374151;
-                border: none;
+                background-color: #BFDBFE;
+                color: #1E40AF;
+                border: 2px solid #93C5FD;
             }
             QPushButton:hover {
-                background-color: #D1D5DB;
+                background-color: #93C5FD;
             }
         """)
         filter_layout.addWidget(clear_btn)
@@ -219,10 +226,12 @@ class SearchDialog(QDialog):
         self.stats_label.setStyleSheet("""
             QLabel {
                 padding: 10px;
-                color: #64748B;
+                color: #1E40AF;
                 font-size: 13px;
-                background-color: #F1F5F9;
+                font-weight: bold;
+                background-color: #DBEAFE;
                 border-radius: 6px;
+                border: 2px solid #93C5FD;
             }
         """)
         layout.addWidget(self.stats_label)
@@ -236,11 +245,28 @@ class SearchDialog(QDialog):
         ])
         self.results_table.setStyleSheet("""
             QTableWidget {
-                border: 2px solid #E5E7EB;
+                border: 2px solid #93C5FD;
                 border-radius: 8px;
-                background-color: white;
+                background-color: #F0F9FF;
                 font-size: 13px;
+                color: #1E3A8A;
             }
+            QTableWidget::item {
+                padding: 8px;
+                color: #1E3A8A;
+            }
+            QTableWidget::item:selected {
+                background-color: #DBEAFE;
+                color: #1E40AF;
+            }
+            QHeaderView::section {
+                background-color: #3B82F6;
+                color: white;
+                padding: 10px;
+                border: none;
+                font-weight: bold;
+            }
+        """)
             QTableWidget::item {
                 padding: 8px;
             }

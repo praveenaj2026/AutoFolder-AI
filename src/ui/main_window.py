@@ -14,10 +14,10 @@ from PySide6.QtWidgets import (
     QPushButton, QLabel, QFileDialog,
     QTableWidget, QTableWidgetItem, QProgressBar,
     QMessageBox, QGroupBox, QHeaderView, QCheckBox, QProgressDialog,
-    QFileIconProvider
+    QFileIconProvider, QMenuBar, QMenu
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QFileInfo
-from PySide6.QtGui import QFont, QColor, QIcon, QPixmap
+from PySide6.QtGui import QFont, QColor, QIcon, QPixmap, QAction
 
 try:
     from ..core import FileOrganizer
@@ -202,12 +202,11 @@ class MainWindow(QMainWindow):
         ai_options = self._create_ai_options()
         main_layout.addWidget(ai_options)
         
-        # Add Phase 3.6 utilities row
-        utilities_layout = self._create_utilities_buttons()
-        main_layout.addLayout(utilities_layout)
-        
         button_layout = self._create_action_buttons()
         main_layout.addLayout(button_layout)
+        
+        # Create menu bar with Tools menu
+        self._create_menu_bar()
         
         self.statusBar().showMessage("🚀 Ready • AI-Powered Multi-Level Organization")
         
@@ -506,92 +505,79 @@ class MainWindow(QMainWindow):
         
         return widget
     
-    def _create_utilities_buttons(self) -> QHBoxLayout:
-        """Create utility feature buttons for Phase 3.6 features."""
-        layout = QHBoxLayout()
-        layout.setSpacing(12)
-        
-        # AI Group Editor Button
-        self.ai_editor_btn = QPushButton("🎨 Edit AI Groups")
-        self.ai_editor_btn.clicked.connect(self._open_ai_group_editor)
-        self.ai_editor_btn.setEnabled(False)
-        self.ai_editor_btn.setFixedHeight(45)
-        self.ai_editor_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #8B5CF6;
+    def _create_menu_bar(self):
+        """Create menu bar with Tools menu for secondary features."""
+        menubar = self.menuBar()
+        menubar.setStyleSheet("""
+            QMenuBar {
+                background-color: #3B82F6;
                 color: white;
+                padding: 5px;
                 font-size: 13px;
                 font-weight: bold;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 8px;
             }
-            QPushButton:hover {
-                background-color: #7C3AED;
+            QMenuBar::item {
+                background-color: transparent;
+                padding: 8px 15px;
             }
-            QPushButton:pressed {
-                background-color: #6D28D9;
+            QMenuBar::item:selected {
+                background-color: #2563EB;
+                border-radius: 4px;
             }
-            QPushButton:disabled {
-                background-color: #E9D5FF;
-                color: #C4B5FD;
+            QMenu {
+                background-color: #EFF6FF;
+                border: 2px solid #3B82F6;
+                border-radius: 6px;
+                padding: 5px;
             }
-        """)
-        layout.addWidget(self.ai_editor_btn)
-        
-        # Search Button
-        self.search_btn = QPushButton("🔍 Search Files")
-        self.search_btn.clicked.connect(self._open_search_dialog)
-        self.search_btn.setEnabled(False)
-        self.search_btn.setFixedHeight(45)
-        self.search_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #10B981;
-                color: white;
+            QMenu::item {
+                padding: 10px 30px;
+                color: #1E3A8A;
                 font-size: 13px;
-                font-weight: bold;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 8px;
+                border-radius: 4px;
             }
-            QPushButton:hover {
-                background-color: #059669;
-            }
-            QPushButton:pressed {
-                background-color: #047857;
-            }
-            QPushButton:disabled {
-                background-color: #D1FAE5;
-                color: #A7F3D0;
+            QMenu::item:selected {
+                background-color: #DBEAFE;
+                color: #1E40AF;
             }
         """)
-        layout.addWidget(self.search_btn)
         
-        # Scheduler Button
-        self.scheduler_btn = QPushButton("⏰ Auto Schedule")
-        self.scheduler_btn.clicked.connect(self._open_scheduler_settings)
-        self.scheduler_btn.setFixedHeight(45)
-        self.scheduler_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #F59E0B;
-                color: white;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 8px;
-            }
-            QPushButton:hover {
-                background-color: #D97706;
-            }
-            QPushButton:pressed {
-                background-color: #B45309;
-            }
-        """)
-        layout.addWidget(self.scheduler_btn)
+        # Tools menu
+        tools_menu = menubar.addMenu("🛠️ Tools")
         
-        layout.addStretch()
-        return layout
+        # Scan for Duplicates
+        scan_duplicates_action = QAction("🔍 Scan for Duplicates", self)
+        scan_duplicates_action.setShortcut("Ctrl+D")
+        scan_duplicates_action.triggered.connect(self._scan_duplicates)
+        tools_menu.addAction(scan_duplicates_action)
+        
+        # View Stats
+        view_stats_action = QAction("📊 View Statistics", self)
+        view_stats_action.setShortcut("Ctrl+S")
+        view_stats_action.triggered.connect(self._view_stats)
+        tools_menu.addAction(view_stats_action)
+        
+        tools_menu.addSeparator()
+        
+        # Edit AI Groups
+        self.edit_ai_groups_action = QAction("🎨 Edit AI Groups", self)
+        self.edit_ai_groups_action.setShortcut("Ctrl+E")
+        self.edit_ai_groups_action.triggered.connect(self._open_ai_group_editor)
+        self.edit_ai_groups_action.setEnabled(False)
+        tools_menu.addAction(self.edit_ai_groups_action)
+        
+        # Search Files
+        self.search_files_action = QAction("🔍 Search Files", self)
+        self.search_files_action.setShortcut("Ctrl+F")
+        self.search_files_action.triggered.connect(self._open_search_dialog)
+        self.search_files_action.setEnabled(False)
+        tools_menu.addAction(self.search_files_action)
+        
+        # Auto Schedule
+        schedule_action = QAction("⏰ Auto Schedule", self)
+        schedule_action.setShortcut("Ctrl+T")
+        schedule_action.triggered.connect(self._open_scheduler_settings)
+        tools_menu.addAction(schedule_action)
     
     def _create_action_buttons(self) -> QHBoxLayout:
         """Create action buttons."""
@@ -781,9 +767,9 @@ class MainWindow(QMainWindow):
             self.organize_btn.setEnabled(len(self.current_preview) > 0)
             self.view_stats_btn.setEnabled(self.current_stats is not None)
             
-            # Enable Phase 3.6 feature buttons after organization
-            self.ai_editor_btn.setEnabled(len(self.current_preview) > 0)
-            self.search_btn.setEnabled(len(self.current_preview) > 0)
+            # Enable Phase 3.6 feature menu actions after organization
+            self.edit_ai_groups_action.setEnabled(len(self.current_preview) > 0)
+            self.search_files_action.setEnabled(len(self.current_preview) > 0)
             
             # Update status message - AI is always active
             self.statusBar().showMessage(
@@ -1477,21 +1463,50 @@ class MainWindow(QMainWindow):
             return
         
         try:
-            # Get AI groups from last organization
-            ai_groups = getattr(self.organizer, 'last_ai_groups', {})
+            # Get AI groups from organizer's semantic_groups (created during preview/organization)
+            ai_groups = getattr(self.organizer, 'semantic_groups', {})
             if not ai_groups:
-                QMessageBox.information(
-                    self,
-                    "No AI Groups",
-                    "<p style='color:#1E3A8A;'>No AI groups found. Organize a folder first to create AI groups.</p>"
+                # Styled information dialog
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Information)
+                msg.setWindowTitle("🤖 No AI Groups")
+                msg.setText(
+                    "<div style='background-color:#F0F9FF; padding:20px;'>" 
+                    "<h3 style='color:#1E40AF;'>🤖 No AI Groups Found</h3>"
+                    "<p style='color:#1E3A8A;'>AI semantic groups are created when you organize a folder.</p>"
+                    "<p style='color:#3B82F6;'><b>Please organize a folder first to create AI groups.</b></p>"
+                    "</div>"
                 )
+                msg.setStyleSheet("""
+                    QMessageBox {
+                        background-color: #F0F9FF;
+                    }
+                    QPushButton {
+                        background-color: #3B82F6;
+                        color: white;
+                        padding: 8px 20px;
+                        border-radius: 6px;
+                        min-width: 80px;
+                    }
+                    QPushButton:hover {
+                        background-color: #2563EB;
+                    }
+                """)
+                msg.exec_()
                 return
             
-            dialog = AIGroupEditor(ai_groups, self.current_folder, self)
+            # Convert string paths to Path objects for AIGroupEditor
+            ai_groups_paths = {}
+            for group_name, file_paths in ai_groups.items():
+                ai_groups_paths[group_name] = [Path(p) for p in file_paths]
+            
+            dialog = AIGroupEditor(ai_groups_paths, self.current_folder, self)
             if dialog.exec_():
                 updated_groups = dialog.get_updated_groups()
-                # Store updated groups
-                self.organizer.last_ai_groups = updated_groups
+                # Convert back to strings and store in organizer
+                self.organizer.semantic_groups = {}
+                for group_name, file_paths in updated_groups.items():
+                    self.organizer.semantic_groups[group_name] = [str(p) for p in file_paths]
                 self.statusBar().showMessage("✅ AI groups updated successfully")
         except Exception as e:
             logger.error(f"Error opening AI Group Editor: {e}", exc_info=True)
@@ -1527,7 +1542,8 @@ class MainWindow(QMainWindow):
     def _open_scheduler_settings(self):
         """Open scheduler settings dialog."""
         try:
-            dialog = ScheduleSettingsDialog(self.config, self)
+            # Pass config.config dict instead of ConfigManager object
+            dialog = ScheduleSettingsDialog(self.config.config, self)
             if dialog.exec_():
                 self.statusBar().showMessage("✅ Schedule settings saved")
         except Exception as e:
