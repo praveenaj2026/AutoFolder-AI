@@ -23,6 +23,7 @@ try:
     from ..core import FileOrganizer
     from ..ai import AIClassifier
     from ..utils.config_manager import ConfigManager
+    from ..utils.icon_manager import IconManager
     from .duplicate_dialog import DuplicateDialog
     from .stats_dialog import StatsDialog
     from .ai_group_editor import AIGroupEditor
@@ -32,6 +33,7 @@ except ImportError:
     from core import FileOrganizer
     from ai import AIClassifier
     from utils.config_manager import ConfigManager
+    from utils.icon_manager import IconManager
     from ui.duplicate_dialog import DuplicateDialog
     from ui.stats_dialog import StatsDialog
     from ui.ai_group_editor import AIGroupEditor
@@ -106,9 +108,19 @@ class ThemeHelper:
     """
     
     @staticmethod
-    def style_message_box(msg_box):
-        """Apply blue theme to a QMessageBox."""
+    def style_message_box(msg_box, icon_type=None):
+        """
+        Apply blue theme to a QMessageBox.
+        
+        Args:
+            msg_box: QMessageBox instance
+            icon_type: Optional custom icon type ('info', 'warning', 'error', 'question', 'success')
+        """
         msg_box.setStyleSheet(ThemeHelper.BLUE_DIALOG_STYLE)
+        
+        # Set custom icon if specified
+        if icon_type:
+            IconManager.set_message_box_icon(msg_box, icon_type)
     
     @staticmethod
     def style_progress_dialog(progress):
@@ -246,6 +258,9 @@ class MainWindow(QMainWindow):
         
         self._init_ui()
         self._apply_blue_theme()
+        
+        # Set custom application icon
+        self.setWindowIcon(IconManager.get_app_icon())
         
         logger.info("Main window initialized with blueish theme")
     
@@ -1016,12 +1031,12 @@ class MainWindow(QMainWindow):
                 f"Failed to generate preview: {str(e)}"
             )
             error_msg = QMessageBox(self)
-            error_msg.setIcon(QMessageBox.Critical)
             error_msg.setWindowTitle("❌ Analysis Error")
             error_msg.setText(f"<h2 style='color:#DC2626;'>Failed to analyze folder</h2>")
             error_msg.setInformativeText(
                 f"<p style='font-size:14px; color:#1E3A8A;'><b>Error:</b> {str(e)}</p>"
             )
+            ThemeHelper.style_message_box(error_msg, 'error')
             error_msg.setStandardButtons(QMessageBox.Ok)
             error_msg.setStyleSheet("""
                 QMessageBox {
@@ -1078,12 +1093,12 @@ class MainWindow(QMainWindow):
             
             if not duplicates:
                 msg = QMessageBox(self)
-                msg.setIcon(QMessageBox.Information)
                 msg.setWindowTitle("✅ No Duplicates Found")
                 msg.setText(f"<h3 style='color:#10B981;'>No duplicate files found!</h3>")
                 msg.setInformativeText(
                     f"<p style='color:#1E3A8A;'>All files in <b>{self.current_folder.name}</b> are unique.</p>"
                 )
+                ThemeHelper.style_message_box(msg, 'success')
                 msg.setStyleSheet("""
                     QMessageBox {
                         background-color: #F0F9FF;
@@ -1533,20 +1548,38 @@ class MainWindow(QMainWindow):
     
     def _undo_last(self):
         """Undo last organization with improved feedback."""
-        reply = QMessageBox.question(
-            self,
-            "⟲ Confirm Undo",
+        msg = QMessageBox(self)
+        msg.setWindowTitle("⟲ Confirm Undo")
+        msg.setText(
             "<b style='color:#1E3A8A;'>Undo the last organization?</b><br><br>"
             "<span style='color:#3B82F6;'>Items will be moved back to original locations.</span><br>"
-            "<span style='color:#D97706;'>Empty folders will be removed.</span>",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            "<span style='color:#D97706;'>Empty folders will be removed.</span>"
         )
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg.setDefaultButton(QMessageBox.No)
+        ThemeHelper.style_message_box(msg, 'question')
+        reply = msg.exec()
         
         if reply != QMessageBox.Yes:
             return
         
         try:
+            # Show progress message BEFORE starting
+            progress = QProgressDialog(
+                "⟲ Undoing organization...\n\n"
+                "This may take a few seconds.\n"
+                "Please wait while files are being moved back.",
+                None,  # No cancel button
+                0, 0,  # Indeterminate progress
+                self
+            )
+            progress.setWindowTitle("Processing Undo")
+            progress.setWindowModality(Qt.WindowModal)
+            progress.setMinimumDuration(0)  # Show immediately
+            ThemeHelper.style_progress_dialog(progress)
+            progress.show()
+            QApplication.processEvents()  # Force UI update
+            
             self.statusBar().showMessage("⟲ Undoing organization...")
             
             undo_manager = self.organizer.undo_manager
@@ -1557,13 +1590,16 @@ class MainWindow(QMainWindow):
                 # Perform undo
                 success = self.organizer.undo_last_operation()
                 
+                # Close progress dialog
+                progress.close()
+                
                 if success and self.current_folder:
                     # PROPERLY clean up empty folders
                     deleted_count = self._cleanup_empty_folders_recursive(self.current_folder)
                     
                     msg = QMessageBox(self)
-                    msg.setIcon(QMessageBox.Information)
                     msg.setWindowTitle("✅ Undo Complete")
+                    ThemeHelper.style_message_box(msg, 'success')
                     msg.setText(
                         f"<h3 style='color:#059669;'>Successfully undone!</h3>"
                         f"<p style='color:#1E3A8A;'>• Moved {file_count} items back</p>"
@@ -1574,9 +1610,10 @@ class MainWindow(QMainWindow):
                     self.undo_btn.setEnabled(False)
                     self.statusBar().showMessage(f"✅ Undo complete: {file_count} items restored")
                 else:
+                    progress.close()
                     msg = QMessageBox(self)
-                    msg.setIcon(QMessageBox.Warning)
                     msg.setWindowTitle("⚠️ Warning")
+                    ThemeHelper.style_message_box(msg, 'warning')
                     msg.setText("Undo partially completed.")
                     ThemeHelper.style_message_box(msg)
                     msg.exec_()

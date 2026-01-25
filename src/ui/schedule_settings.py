@@ -40,6 +40,55 @@ class ScheduleSettingsDialog(QDialog):
             QDialog {
                 background-color: #F0F9FF;
             }
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #3B82F6;
+                border-radius: 8px;
+                margin-top: 10px;
+                padding-top: 15px;
+                background-color: #EFF6FF;
+                color: #1E3A8A;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+                color: #1E40AF;
+            }
+            QLabel {
+                color: #1E3A8A;
+                background-color: transparent;
+            }
+            QLineEdit, QComboBox, QSpinBox, QTimeEdit {
+                padding: 8px;
+                border: 2px solid #DBEAFE;
+                border-radius: 5px;
+                background-color: white;
+                color: #1E3A8A;
+            }
+            QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QTimeEdit:focus {
+                border: 2px solid #3B82F6;
+            }
+            QListWidget {
+                border: 2px solid #DBEAFE;
+                border-radius: 5px;
+                background-color: white;
+                color: #1E3A8A;
+            }
+            QPushButton {
+                background-color: #3B82F6;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #2563EB;
+            }
+            QCheckBox {
+                color: #1E3A8A;
+                background-color: transparent;
+            }
         """)
         
         self._setup_ui()

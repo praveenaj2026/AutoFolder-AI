@@ -42,7 +42,16 @@ class DuplicateDialog(QDialog):
         self.icon_provider = QFileIconProvider()
         
         self.setWindowTitle("🔍 Duplicate Files Found")
-        self.setMinimumSize(1000, 700)  # Increased from 800x600 for better spacing
+        self.setMinimumSize(1100, 750)  # Increased more for better spacing
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #F0F9FF;
+            }
+            QLabel {
+                color: #1E3A8A;
+                background-color: transparent;
+            }
+        """)
         
         self._setup_ui()
     
@@ -195,24 +204,24 @@ class DuplicateDialog(QDialog):
         group = QGroupBox("⚙️ Duplicate Handling Options")
         group.setStyleSheet("""
             QGroupBox {
-                font-size: 13px;
+                font-size: 14px;
                 font-weight: bold;
                 border: 2px solid #3B82F6;
                 border-radius: 5px;
-                margin-top: 10px;
-                padding-top: 10px;
-                background-color: #DBEAFE;
+                margin-top: 15px;
+                padding: 20px 15px 15px 15px;
+                background-color: #EFF6FF;
             }
             QGroupBox::title {
                 color: #1E40AF;
-                border: 2px solid #3B82F6;
-                border-radius: 5px;
-                margin-top: 10px;
-                padding-top: 10px;
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
             }
         """)
         
         layout = QVBoxLayout(group)
+        layout.setSpacing(12)  # More space between radio buttons
         
         self.action_group = QButtonGroup(self)
         

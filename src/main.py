@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from ui.main_window import MainWindow
 from utils.config_manager import ConfigManager
 from utils.logger import setup_logger
+from utils.icon_manager import IconManager
 
 
 def main():
@@ -39,6 +40,9 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("AutoFolder AI")
     app.setOrganizationName("AutoFolder")
+    
+    # Set application icon globally
+    app.setWindowIcon(IconManager.get_app_icon())
     
     # Set high DPI scaling (suppress Qt6 deprecation warnings)
     import warnings
