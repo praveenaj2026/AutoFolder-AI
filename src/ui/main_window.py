@@ -554,7 +554,7 @@ class MainWindow(QMainWindow):
         # View Stats
         view_stats_action = QAction("📊 View Statistics", self)
         view_stats_action.setShortcut("Ctrl+S")
-        view_stats_action.triggered.connect(self._view_stats)
+        view_stats_action.triggered.connect(self._show_stats)
         tools_menu.addAction(view_stats_action)
         
         tools_menu.addSeparator()
