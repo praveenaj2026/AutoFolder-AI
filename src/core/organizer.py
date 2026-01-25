@@ -330,6 +330,14 @@ class FileOrganizer:
                         space_freed += file_size
                         deleted_files.append(str(file_path))
                         logger.info(f"Deleted duplicate: {file_path.name}")
+                    except PermissionError as e:
+                        logger.error(
+                            f"⚠️ Permission denied - cannot delete '{file_path.name}'. "
+                            f"This may be a OneDrive synced file or file in use. "
+                            f"Try: 1) Close programs using this file, "
+                            f"2) Pause OneDrive sync temporarily, "
+                            f"3) Delete manually in File Explorer"
+                        )
                     except Exception as e:
                         logger.error(f"Error deleting duplicate {file_path}: {e}")
         

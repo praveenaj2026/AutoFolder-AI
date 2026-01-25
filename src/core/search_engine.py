@@ -45,9 +45,20 @@ class SearchEngine:
                 try:
                     stat = file_path.stat()
                     
-                    # Extract metadata from path structure
-                    # Expected: Category/AI_Group/Type/Date/filename
+                    # Extract metadata from path structure (flexible)
+                    # Can be: Category/AI_Group/Type/Date/filename OR any other structure
                     parts = file_path.relative_to(self.root).parts
+                    
+                    # Try to detect AutoFolder organized structure
+                    category = parts[0] if len(parts) > 0 else 'Unknown'
+                    ai_group = None
+                    file_type = None
+                    
+                    # If path has Documents/Category/AI_Group structure
+                    if len(parts) >= 3:
+                        category = parts[0]
+                        ai_group = parts[1] if parts[1] not in ['Audio', 'Video', 'Images', 'Code', 'Archives', 'Installers', 'Documents'] else None
+                        file_type = parts[2] if len(parts) > 2 else None
                     
                     self.index[file_path] = {
                         'name': file_path.name,
@@ -56,12 +67,15 @@ class SearchEngine:
                         'size': stat.st_size,
                         'size_mb': stat.st_size / (1024 * 1024),
                         'modified': datetime.fromtimestamp(stat.st_mtime),
-                        'category': parts[0] if len(parts) > 0 else 'Unknown',
-                        'ai_group': parts[1] if len(parts) > 1 else None,
-                        'file_type': parts[2] if len(parts) > 2 else None,
+                        'category': category,
+                        'ai_group': ai_group,
+                        'file_type': file_type,
                         'date_folder': parts[3] if len(parts) > 3 else None,
-                        'path': file_path
+                        'path': file_path,
+                        'full_path_text': str(file_path).lower()
                     }
+                    
+                    logger.debug(f"Indexed: {file_path.name}")
                 except Exception as e:
                     logger.error(f"Error indexing {file_path}: {e}")
         
@@ -104,9 +118,14 @@ class SearchEngine:
         query_lower = query.lower() if query else ""
         
         for file_path, metadata in self.index.items():
-            # Text search in filename
-            if query_lower and query_lower not in metadata['name'].lower():
-                continue
+            # Text search in filename, stem, or full path
+            if query_lower:
+                name_match = query_lower in metadata['name'].lower()
+                stem_match = query_lower in metadata['stem'].lower()
+                path_match = query_lower in metadata['full_path_text']
+                
+                if not (name_match or stem_match or path_match):
+                    continue
             
             # Category filter
             if category and category != "All" and metadata['category'] != category:

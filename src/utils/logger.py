@@ -53,7 +53,27 @@ def setup_logger(
     console_handler.setFormatter(simple_formatter)
     logger.addHandler(console_handler)
     
-    # File handler - create logs in Documents/AutoFolder_Logs for easy access
+    # File handler 1 - Project logs/ directory
+    try:
+        # Save to project logs/ directory
+        project_log_path = Path(__file__).parent.parent.parent / 'logs' / 'autofolder.log'
+        project_log_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        project_handler = RotatingFileHandler(
+            str(project_log_path),
+            maxBytes=max_bytes,
+            backupCount=backup_count,
+            encoding='utf-8'
+        )
+        project_handler.setLevel(logging.DEBUG)
+        project_handler.setFormatter(detailed_formatter)
+        logger.addHandler(project_handler)
+        
+        logger.info(f"Project log file: {project_log_path}")
+    except Exception as e:
+        logger.warning(f"Could not create project log file: {e}")
+    
+    # File handler 2 - Documents/AutoFolder_Logs for easy access
     try:
         if log_file is None:
             # Default to Documents/AutoFolder_Logs
@@ -86,19 +106,19 @@ def setup_logger(
                 # If backup fails, just delete old log
                 log_path.unlink()
         
-        file_handler = RotatingFileHandler(
+        documents_handler = RotatingFileHandler(
             str(log_file),
             maxBytes=max_bytes,
             backupCount=backup_count,
             encoding='utf-8'
         )
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(detailed_formatter)
-        logger.addHandler(file_handler)
+        documents_handler.setLevel(logging.DEBUG)
+        documents_handler.setFormatter(detailed_formatter)
+        logger.addHandler(documents_handler)
         
         # Log where logs are being saved
-        logger.info(f"Log file: {log_file}")
+        logger.info(f"Documents log file: {log_file}")
     except Exception as e:
-        logger.warning(f"Could not create log file: {e}")
+        logger.warning(f"Could not create documents log file: {e}")
     
     return logger
