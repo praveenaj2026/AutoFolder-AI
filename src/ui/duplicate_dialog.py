@@ -62,6 +62,7 @@ class DuplicateDialog(QDialog):
         self.tree = QTreeWidget()
         self.tree.setHeaderLabels(["File Name", "Location", "Size"])
         self.tree.setAlternatingRowColors(True)
+        self.tree.setEditTriggers(QTreeWidget.NoEditTriggers)  # Disable editing
         self.tree.setStyleSheet("""
             QTreeWidget {
                 border: 2px solid #3B82F6;
@@ -270,10 +271,14 @@ class DuplicateDialog(QDialog):
             group_item.setForeground(1, QColor("#1E3A8A"))  # Dark blue text
             group_item.setForeground(2, QColor("#1E3A8A"))  # Dark blue text
             
+            # Make group item non-editable
+            group_item.setFlags(group_item.flags() & ~Qt.ItemIsEditable)
+            
             font = QFont()
             font.setBold(True)
             group_item.setFont(0, font)
             group_item.setFont(1, font)
+            group_item.setFont(2, font)
             
             # Add child items for each file
             for file_path in files:

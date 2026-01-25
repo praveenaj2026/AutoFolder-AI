@@ -36,6 +36,11 @@ class ScheduleSettingsDialog(QDialog):
         
         self.setWindowTitle("Schedule & Automation Settings")
         self.setMinimumSize(600, 500)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #F0F9FF;
+            }
+        """)
         
         self._setup_ui()
         self._load_settings()

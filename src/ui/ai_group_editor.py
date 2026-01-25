@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
     QPushButton, QTreeWidget, QTreeWidgetItem, QInputDialog,
     QGroupBox, QMessageBox, QListWidget, QListWidgetItem,
-    QSplitter
+    QSplitter, QWidget
 )
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont
@@ -38,6 +38,11 @@ class AIGroupEditor(QDialog):
         
         self.setWindowTitle("✏️ Edit AI Groups")
         self.setMinimumSize(1000, 700)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #F0F9FF;
+            }
+        """)
         
         self._setup_ui()
         self._populate_groups()

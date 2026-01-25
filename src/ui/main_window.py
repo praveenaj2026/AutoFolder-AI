@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QPushButton, QLabel, QFileDialog,
     QTableWidget, QTableWidgetItem, QProgressBar,
     QMessageBox, QGroupBox, QHeaderView, QCheckBox, QProgressDialog,
-    QFileIconProvider, QMenuBar, QMenu, QTabWidget
+    QFileIconProvider, QMenuBar, QMenu, QTabWidget, QApplication
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QFileInfo
 from PySide6.QtGui import QFont, QColor, QIcon, QPixmap, QAction
@@ -1060,31 +1060,21 @@ class MainWindow(QMainWindow):
             return
         
         try:
-            # Show progress dialog
-            progress = QProgressDialog(
-                "Scanning for duplicate files...\n\nThis may take a few minutes for large folders.",
-                "Cancel",
-                0,
-                0,
-                self
-            )
-            progress.setWindowTitle("🔍 Scanning Duplicates")
-            progress.setWindowModality(Qt.WindowModal)
-            progress.setMinimumDuration(0)
-            progress.setValue(0)
-            ThemeHelper.style_progress_dialog(progress)
-            progress.show()
+            # Update status bar to show scanning in progress
+            self.statusBar().showMessage("🔍 Scanning for duplicates... Please wait.")
+            QApplication.processEvents()  # Force UI update
             
             # Get hash algorithm from config
             algorithm = self.config.config.get('duplicates', {}).get('hash_algorithm', 'sha256')
             
-            # Scan for duplicates
+            # Scan for duplicates (no progress dialog - faster!)
             duplicates, stats = self.organizer.scan_for_duplicates(
                 self.current_folder,
                 algorithm=algorithm
             )
             
-            progress.close()
+            # Restore status bar
+            self.statusBar().showMessage("✅ Duplicate scan complete")
             
             if not duplicates:
                 msg = QMessageBox(self)
