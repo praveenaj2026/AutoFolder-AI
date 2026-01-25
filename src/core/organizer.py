@@ -775,6 +775,28 @@ class FileOrganizer:
         self.ai_learning.record_organization(len(completed), ai_group_count)
         logger.info(f"AI Learning: Recorded {len(completed)} files organized, {ai_group_count} AI groups")
         
+        # Customize folder icons (Windows only)
+        if completed and os.name == 'nt':
+            try:
+                from ..utils.windows_folder_icons import WindowsFolderIconCustomizer
+                icon_customizer = WindowsFolderIconCustomizer()
+                
+                # Get unique folder paths from completed operations
+                category_folders = {}
+                for op in completed:
+                    target = op.get('target')
+                    if target and isinstance(target, Path):
+                        folder = target.parent
+                        category = op.get('category', 'Other')
+                        if folder not in category_folders.values():
+                            category_folders[category] = folder
+                
+                # Set icons for all category folders
+                icon_count = icon_customizer.customize_organized_folders(folder_path, category_folders)
+                logger.info(f"Customized {icon_count} folder icons")
+            except Exception as e:
+                logger.warning(f"Could not customize folder icons: {e}")
+        
         logger.info(f"Organization complete: {len(completed)} files organized, {len(failed)} failed")
         return result
     
