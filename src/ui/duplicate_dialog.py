@@ -261,11 +261,14 @@ class DuplicateDialog(QDialog):
             # Create parent item for group
             group_item = QTreeWidgetItem(self.tree)
             group_item.setText(0, f"Group {group_idx} ({len(files)} copies)")
-            group_item.setText(1, f"Wasting: {(len(files)-1) * size_mb:.2f} MB")
+            group_item.setText(1, "")  # Empty middle column
+            group_item.setText(2, f"Wasting: {(len(files)-1) * size_mb:.2f} MB")
             group_item.setBackground(0, QColor("#60A5FA"))  # Bright blue background
             group_item.setBackground(1, QColor("#60A5FA"))  # Bright blue background
+            group_item.setBackground(2, QColor("#60A5FA"))  # Bright blue background
             group_item.setForeground(0, QColor("#1E3A8A"))  # Dark blue text
             group_item.setForeground(1, QColor("#1E3A8A"))  # Dark blue text
+            group_item.setForeground(2, QColor("#1E3A8A"))  # Dark blue text
             
             font = QFont()
             font.setBold(True)

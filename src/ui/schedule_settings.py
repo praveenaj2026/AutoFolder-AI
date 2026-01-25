@@ -287,8 +287,9 @@ class ScheduleSettingsDialog(QDialog):
         
         # Enable/disable all child widgets
         for group in self.findChildren(QGroupBox):
-            for widget in group.findChildren((QComboBox, QTimeEdit, QCheckBox, QSpinBox, QListWidget, QPushButton)):
-                widget.setEnabled(enabled)
+            for widget_type in [QComboBox, QTimeEdit, QCheckBox, QSpinBox, QListWidget, QPushButton]:
+                for widget in group.findChildren(widget_type):
+                    widget.setEnabled(enabled)
     
     def _add_folder(self, list_widget: QListWidget):
         """Add folder to list."""

@@ -506,62 +506,6 @@ class MainWindow(QMainWindow):
         """)
         layout.addWidget(self.browse_btn)
         
-        # Duplicate scan button
-        self.scan_duplicates_btn = QPushButton("🔍 Scan Duplicates")
-        self.scan_duplicates_btn.clicked.connect(self._scan_duplicates)
-        self.scan_duplicates_btn.setFixedHeight(48)
-        self.scan_duplicates_btn.setEnabled(False)  # Enabled after folder selection
-        self.scan_duplicates_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #F59E0B;
-                color: white;
-                font-size: 15px;
-                font-weight: bold;
-                padding: 12px 30px;
-                border: none;
-                border-radius: 8px;
-            }
-            QPushButton:hover {
-                background-color: #D97706;
-            }
-            QPushButton:pressed {
-                background-color: #B45309;
-            }
-            QPushButton:disabled {
-                background-color: #D1D5DB;
-                color: #9CA3AF;
-            }
-        """)
-        layout.addWidget(self.scan_duplicates_btn)
-        
-        # View Stats button
-        self.view_stats_btn = QPushButton("📊 View Stats")
-        self.view_stats_btn.clicked.connect(self._show_stats)
-        self.view_stats_btn.setFixedHeight(48)
-        self.view_stats_btn.setEnabled(False)  # Enabled after preview
-        self.view_stats_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #8B5CF6;
-                color: white;
-                font-size: 15px;
-                font-weight: bold;
-                padding: 12px 30px;
-                border: none;
-                border-radius: 8px;
-            }
-            QPushButton:hover {
-                background-color: #7C3AED;
-            }
-            QPushButton:pressed {
-                background-color: #6D28D9;
-            }
-            QPushButton:disabled {
-                background-color: #D1D5DB;
-                color: #9CA3AF;
-            }
-        """)
-        layout.addWidget(self.view_stats_btn)
-        
         group.setLayout(layout)
         return group
     
@@ -1079,11 +1023,12 @@ class MainWindow(QMainWindow):
                 }
                 QPushButton {
                     background-color: #EF4444;
-                    color: #1E3A8A;
+                    color: #F0F9FF;
                     padding: 6px 16px;
                     border-radius: 6px;
                     font-size: 12px;
                     font-weight: bold;
+                    border: none;
                 }
                 QPushButton:hover {
                     background-color: #DC2626;
@@ -1325,9 +1270,35 @@ class MainWindow(QMainWindow):
                 logger.error(f"Operation at index {i} must be a dict, got {type(op)}")
                 continue
             
-            # File thumbnail/icon using system icons
+            # File type with icon
             file_path = op['source']
-            icon_item = QTableWidgetItem()
+            ext = file_path.suffix.lower().lstrip('.')
+            
+            # Determine file type category
+            if ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico', 'tiff', 'raw', 'heic']:
+                file_type = "Image"
+            elif ext in ['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm', 'mpg', 'mpeg', 'm4v']:
+                file_type = "Video"
+            elif ext in ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a', 'opus']:
+                file_type = "Audio"
+            elif ext in ['pdf']:
+                file_type = "PDF"
+            elif ext in ['doc', 'docx', 'txt', 'rtf', 'odt']:
+                file_type = "Document"
+            elif ext in ['xls', 'xlsx', 'csv', 'ods']:
+                file_type = "Spreadsheet"
+            elif ext in ['ppt', 'pptx', 'odp']:
+                file_type = "Presentation"
+            elif ext in ['zip', 'rar', '7z', 'tar', 'gz', 'bz2']:
+                file_type = "Archive"
+            elif ext in ['exe', 'msi', 'dmg', 'app', 'deb', 'rpm']:
+                file_type = "Installer"
+            elif ext in ['py', 'js', 'html', 'css', 'java', 'cpp', 'c', 'cs', 'php', 'rb', 'go', 'rs', 'swift']:
+                file_type = "Code"
+            else:
+                file_type = ext.upper() if ext else "File"
+            
+            type_item = QTableWidgetItem()
             
             try:
                 # Get system file icon
@@ -1335,23 +1306,27 @@ class MainWindow(QMainWindow):
                 system_icon = self.icon_provider.icon(file_info)
                 
                 if not system_icon.isNull():
-                    icon_item.setIcon(system_icon)
+                    type_item.setIcon(system_icon)
                 else:
                     # Fallback to emoji if system icon fails
-                    ext = file_path.suffix.lower().lstrip('.')
                     emoji = self.FILE_TYPE_ICONS.get(ext, self.FILE_TYPE_ICONS['default'])
-                    icon_item.setText(emoji)
-                    icon_item.setFont(QFont("Segoe UI Emoji", 16))
+                    type_item.setText(emoji + " " + file_type)
+                    type_item.setFont(QFont("Segoe UI", 10))
             except Exception as e:
                 logger.debug(f"Failed to load icon for {file_path.name}: {e}")
                 # Fallback to emoji
-                ext = file_path.suffix.lower().lstrip('.')
                 emoji = self.FILE_TYPE_ICONS.get(ext, self.FILE_TYPE_ICONS['default'])
-                icon_item.setText(emoji)
-                icon_item.setFont(QFont("Segoe UI Emoji", 16))
+                type_item.setText(emoji + " " + file_type)
+                type_item.setFont(QFont("Segoe UI", 10))
             
-            icon_item.setTextAlignment(Qt.AlignCenter)
-            self.preview_table.setItem(i, 0, icon_item)
+            # If icon loaded successfully, show text alongside icon
+            if not type_item.icon().isNull():
+                type_item.setText(file_type)
+                type_item.setFont(QFont("Segoe UI", 10))
+            
+            type_item.setTextAlignment(Qt.AlignCenter)
+            type_item.setForeground(QColor("#1E3A8A"))
+            self.preview_table.setItem(i, 0, type_item)
             
             # Original name - sanitize to remove problematic characters
             filename = op['source'].name
@@ -1386,14 +1361,14 @@ class MainWindow(QMainWindow):
             target_item.setForeground(QColor("#059669"))
             self.preview_table.setItem(i, 4, target_item)
         
-        # Resize icon column to fit content
-        self.preview_table.setColumnWidth(0, 60)
+        # Resize type column to fit content  
+        self.preview_table.setColumnWidth(0, 100)
         
-        # Disable selection highlight on icon column to prevent black box
+        # Disable selection highlight on type column to prevent black box
         for i in range(len(display_ops)):
-            icon_item = self.preview_table.item(i, 0)
-            if icon_item:
-                icon_item.setFlags(icon_item.flags() & ~Qt.ItemIsSelectable)
+            type_item = self.preview_table.item(i, 0)
+            if type_item:
+                type_item.setFlags(type_item.flags() & ~Qt.ItemIsSelectable)
         
         # Show message if there are more items
         if len(operations) > display_limit:
@@ -1725,7 +1700,7 @@ class MainWindow(QMainWindow):
             for group_name, file_paths in ai_groups.items():
                 ai_groups_paths[group_name] = [Path(p) for p in file_paths]
             
-            dialog = AIGroupEditor(ai_groups_paths, self.current_folder, self)
+            dialog = AIGroupEditor(ai_groups_paths, self)
             if dialog.exec_():
                 updated_groups = dialog.get_updated_groups()
                 # Convert back to strings and store in organizer
