@@ -42,7 +42,7 @@ class DuplicateDialog(QDialog):
         self.icon_provider = QFileIconProvider()
         
         self.setWindowTitle("🔍 Duplicate Files Found")
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(1000, 700)  # Increased from 800x600 for better spacing
         
         self._setup_ui()
     

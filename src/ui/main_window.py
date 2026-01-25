@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QPushButton, QLabel, QFileDialog,
     QTableWidget, QTableWidgetItem, QProgressBar,
     QMessageBox, QGroupBox, QHeaderView, QCheckBox, QProgressDialog,
-    QFileIconProvider, QMenuBar, QMenu
+    QFileIconProvider, QMenuBar, QMenu, QTabWidget
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QFileInfo
 from PySide6.QtGui import QFont, QColor, QIcon, QPixmap, QAction
@@ -226,13 +226,6 @@ class MainWindow(QMainWindow):
         title.setFont(title_font)
         title.setStyleSheet("color: #1E3A8A;")  # Dark blue
         layout.addWidget(title)
-        
-        subtitle = QLabel("🤖 AI-Powered Multi-Level Smart Organization")
-        subtitle_font = QFont()
-        subtitle_font.setPointSize(13)
-        subtitle.setFont(subtitle_font)
-        subtitle.setStyleSheet("color: #3B82F6;")  # Bright blue
-        layout.addWidget(subtitle)
         
         return header_widget
     
@@ -845,20 +838,32 @@ class MainWindow(QMainWindow):
             progress.setValue(0)
             progress.setStyleSheet("""
                 QProgressDialog {
-                    background-color: #F0F9FF;
+                    background-color: #EFF6FF;
                     min-width: 400px;
                 }
                 QLabel {
                     color: #1E3A8A;
                     font-size: 13px;
                     padding: 10px;
+                    background-color: #EFF6FF;
+                }
+                QProgressBar {
+                    background-color: #DBEAFE;
+                    border: 2px solid #3B82F6;
+                    border-radius: 5px;
+                    text-align: center;
+                    color: #1E3A8A;
+                }
+                QProgressBar::chunk {
+                    background-color: #3B82F6;
                 }
                 QPushButton {
                     background-color: #EF4444;
-                    color: white;
+                    color: #1E3A8A;
                     padding: 6px 16px;
                     border-radius: 6px;
                     font-size: 12px;
+                    font-weight: bold;
                 }
                 QPushButton:hover {
                     background-color: #DC2626;
