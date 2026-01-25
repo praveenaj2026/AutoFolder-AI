@@ -193,22 +193,50 @@ class MainWindow(QMainWindow):
         header = self._create_header()
         main_layout.addWidget(header)
         
-        folder_group = self._create_folder_selection()
-        main_layout.addWidget(folder_group)
+        # Create tab widget for Organize and Tools pages
+        self.tab_widget = QTabWidget()
+        self.tab_widget.setStyleSheet("""
+            QTabWidget::pane {
+                border: 2px solid #3B82F6;
+                border-radius: 8px;
+                background-color: #F0F9FF;
+            }
+            QTabBar::tab {
+                background-color: #DBEAFE;
+                color: #1E3A8A;
+                padding: 12px 30px;
+                margin-right: 4px;
+                border: 2px solid #3B82F6;
+                border-bottom: none;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QTabBar::tab:selected {
+                background-color: #3B82F6;
+                color: #F0F9FF;
+            }
+            QTabBar::tab:hover {
+                background-color: #60A5FA;
+                color: #1E3A8A;
+            }
+        """)
         
-        preview_group = self._create_preview_area()
-        main_layout.addWidget(preview_group, stretch=1)
+        # Tab 1: Organize (main functionality)
+        organize_tab = self._create_organize_tab()
+        self.tab_widget.addTab(organize_tab, "📂 Organize")
         
-        ai_options = self._create_ai_options()
-        main_layout.addWidget(ai_options)
+        # Tab 2: Tools (all secondary features)
+        tools_tab = self._create_tools_tab()
+        self.tab_widget.addTab(tools_tab, "🛠️ Tools")
         
-        button_layout = self._create_action_buttons()
-        main_layout.addLayout(button_layout)
+        main_layout.addWidget(self.tab_widget)
         
-        # Create menu bar with Tools menu
+        # Create menu bar (keep for keyboard shortcuts)
         self._create_menu_bar()
         
-        self.statusBar().showMessage("🚀 Ready • AI-Powered Multi-Level Organization")
+        self.statusBar().showMessage("🚀 Ready")
         
     def _create_header(self) -> QWidget:
         """Create modern header."""
@@ -228,6 +256,194 @@ class MainWindow(QMainWindow):
         layout.addWidget(title)
         
         return header_widget
+    
+    def _create_organize_tab(self) -> QWidget:
+        """Create the main Organize tab with folder selection and preview."""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(15)
+        
+        # Folder selection
+        folder_group = self._create_folder_selection()
+        layout.addWidget(folder_group)
+        
+        # Preview area (gets more space now!)
+        preview_group = self._create_preview_area()
+        layout.addWidget(preview_group, stretch=1)
+        
+        # AI options
+        ai_options = self._create_ai_options()
+        layout.addWidget(ai_options)
+        
+        # Action buttons
+        button_layout = self._create_action_buttons()
+        layout.addLayout(button_layout)
+        
+        return tab
+    
+    def _create_tools_tab(self) -> QWidget:
+        """Create the Tools tab with all secondary features."""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(20)
+        
+        # Tools header
+        tools_header = QLabel("🛠️ All Tools")
+        tools_header.setStyleSheet("""
+            font-size: 24px;
+            font-weight: bold;
+            color: #1E3A8A;
+            padding: 10px;
+        """)
+        layout.addWidget(tools_header)
+        
+        # Tool buttons in a grid
+        tools_grid = QHBoxLayout()
+        tools_grid.setSpacing(15)
+        
+        # Column 1: File Management
+        col1 = QVBoxLayout()
+        col1_header = QLabel("📁 File Management")
+        col1_header.setStyleSheet("font-size: 16px; font-weight: bold; color: #3B82F6; margin-bottom: 10px;")
+        col1.addWidget(col1_header)
+        
+        self.scan_duplicates_btn_tools = QPushButton("🔍 Scan for Duplicates")
+        self.scan_duplicates_btn_tools.clicked.connect(self._scan_duplicates)
+        self.scan_duplicates_btn_tools.setMinimumHeight(50)
+        self.scan_duplicates_btn_tools.setStyleSheet("""
+            QPushButton {
+                background-color: #F59E0B;
+                color: #1E3A8A;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #D97706;
+            }
+        """)
+        col1.addWidget(self.scan_duplicates_btn_tools)
+        
+        self.view_stats_btn_tools = QPushButton("📊 View Statistics")
+        self.view_stats_btn_tools.clicked.connect(self._show_stats)
+        self.view_stats_btn_tools.setMinimumHeight(50)
+        self.view_stats_btn_tools.setStyleSheet("""
+            QPushButton {
+                background-color: #8B5CF6;
+                color: #F0F9FF;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #7C3AED;
+            }
+        """)
+        col1.addWidget(self.view_stats_btn_tools)
+        col1.addStretch()
+        
+        # Column 2: AI Features
+        col2 = QVBoxLayout()
+        col2_header = QLabel("🤖 AI Features")
+        col2_header.setStyleSheet("font-size: 16px; font-weight: bold; color: #3B82F6; margin-bottom: 10px;")
+        col2.addWidget(col2_header)
+        
+        self.edit_ai_groups_btn_tools = QPushButton("🎨 Edit AI Groups")
+        self.edit_ai_groups_btn_tools.clicked.connect(self._open_ai_group_editor)
+        self.edit_ai_groups_btn_tools.setEnabled(False)
+        self.edit_ai_groups_btn_tools.setMinimumHeight(50)
+        self.edit_ai_groups_btn_tools.setStyleSheet("""
+            QPushButton {
+                background-color: #EC4899;
+                color: #F0F9FF;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #DB2777;
+            }
+            QPushButton:disabled {
+                background-color: #DBEAFE;
+                color: #9CA3AF;
+            }
+        """)
+        col2.addWidget(self.edit_ai_groups_btn_tools)
+        
+        self.search_files_btn_tools = QPushButton("🔍 Search Files")
+        self.search_files_btn_tools.clicked.connect(self._open_search_dialog)
+        self.search_files_btn_tools.setEnabled(False)
+        self.search_files_btn_tools.setMinimumHeight(50)
+        self.search_files_btn_tools.setStyleSheet("""
+            QPushButton {
+                background-color: #06B6D4;
+                color: #1E3A8A;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #0891B2;
+            }
+            QPushButton:disabled {
+                background-color: #DBEAFE;
+                color: #9CA3AF;
+            }
+        """)
+        col2.addWidget(self.search_files_btn_tools)
+        col2.addStretch()
+        
+        # Column 3: Automation
+        col3 = QVBoxLayout()
+        col3_header = QLabel("⏰ Automation")
+        col3_header.setStyleSheet("font-size: 16px; font-weight: bold; color: #3B82F6; margin-bottom: 10px;")
+        col3.addWidget(col3_header)
+        
+        self.schedule_btn_tools = QPushButton("⏰ Auto Schedule")
+        self.schedule_btn_tools.clicked.connect(self._open_scheduler_settings)
+        self.schedule_btn_tools.setMinimumHeight(50)
+        self.schedule_btn_tools.setStyleSheet("""
+            QPushButton {
+                background-color: #10B981;
+                color: #1E3A8A;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #059669;
+            }
+        """)
+        col3.addWidget(self.schedule_btn_tools)
+        col3.addStretch()
+        
+        tools_grid.addLayout(col1)
+        tools_grid.addLayout(col2)
+        tools_grid.addLayout(col3)
+        layout.addLayout(tools_grid)
+        
+        # Info text
+        info_label = QLabel("💡 Tip: Use keyboard shortcuts from the Tools menu for quick access!")
+        info_label.setStyleSheet("""
+            color: #3B82F6;
+            font-size: 13px;
+            font-style: italic;
+            padding: 15px;
+            background-color: #EFF6FF;
+            border-radius: 8px;
+            border: 1px solid #DBEAFE;
+        """)
+        layout.addWidget(info_label)
+        layout.addStretch()
+        
+        return tab
     
     def _create_folder_selection(self) -> QGroupBox:
         """Create folder selection group."""
@@ -763,6 +979,10 @@ class MainWindow(QMainWindow):
             # Enable Phase 3.6 feature menu actions after organization
             self.edit_ai_groups_action.setEnabled(len(self.current_preview) > 0)
             self.search_files_action.setEnabled(len(self.current_preview) > 0)
+            
+            # Enable Tools tab buttons
+            self.edit_ai_groups_btn_tools.setEnabled(len(self.current_preview) > 0)
+            self.search_files_btn_tools.setEnabled(len(self.current_preview) > 0)
             
             # Update status message - AI is always active
             self.statusBar().showMessage(
