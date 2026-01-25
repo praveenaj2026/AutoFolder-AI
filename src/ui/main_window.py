@@ -6,6 +6,7 @@ Modern blueish theme UI with multi-level organization.
 
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -24,6 +25,7 @@ try:
     from ..ai import AIClassifier
     from ..utils.config_manager import ConfigManager
     from ..utils.icon_manager import IconManager
+    from ..utils.folder_icon_manager import FolderIconManager
     from .duplicate_dialog import DuplicateDialog
     from .stats_dialog import StatsDialog
     from .search_dialog import SearchDialog
@@ -33,6 +35,7 @@ except ImportError:
     from ai import AIClassifier
     from utils.config_manager import ConfigManager
     from utils.icon_manager import IconManager
+    from utils.folder_icon_manager import FolderIconManager
     from ui.duplicate_dialog import DuplicateDialog
     from ui.stats_dialog import StatsDialog
     from ui.search_dialog import SearchDialog
@@ -259,6 +262,9 @@ class MainWindow(QMainWindow):
         
         # Set custom application icon
         self.setWindowIcon(IconManager.get_app_icon())
+        
+        # Enable drag and drop
+        self.setAcceptDrops(True)
         
         logger.info("Main window initialized with blueish theme")
     
@@ -637,6 +643,10 @@ class MainWindow(QMainWindow):
         self.preview_table = QTableWidget()
         self.preview_table.setColumnCount(5)
         self.preview_table.setHorizontalHeaderLabels(["Original Name", "Type", "Category", "Size", "Destination"])
+        
+        # Enable context menu (right-click)
+        self.preview_table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.preview_table.customContextMenuRequested.connect(self._show_context_menu)
         
         # Blueish theme table styling
         self.preview_table.setStyleSheet("""
@@ -1528,10 +1538,16 @@ class MainWindow(QMainWindow):
             size_item.setForeground(QColor("#7C3AED"))
             self.preview_table.setItem(i, 3, size_item)
             
-            # Column 4: Target folder (showing nested structure)
+            # Column 4: Target folder (showing nested structure with custom folder icon)
             target_path = str(op['target'].relative_to(self.current_folder))
             target_item = QTableWidgetItem(target_path)
             target_item.setForeground(QColor("#059669"))
+            
+            # Add custom folder icon based on category
+            category = op['category'].title()
+            folder_icon = FolderIconManager.get_folder_icon(category)
+            target_item.setIcon(folder_icon)
+            
             self.preview_table.setItem(i, 4, target_item)
         
         # Type column stays compact  
@@ -1725,9 +1741,10 @@ class MainWindow(QMainWindow):
                 }
             """)
             progress.setValue(0)
-            progress.show()
-            progress.forceShow()  # Force immediate display
-            QApplication.processEvents()  # Force UI update
+            progress.forceShow()  # Force immediate display FIRST
+            QApplication.processEvents()  # Process the forceShow
+            progress.show()  # Then show normally
+            QApplication.processEvents()  # Final update for visibility
             
             self.statusBar().showMessage("⏲️ Undoing organization...")
             
@@ -2075,8 +2092,122 @@ class MainWindow(QMainWindow):
                 f"<p style='color:#DC2626;'>Failed to load AI stats:</p>"
                 f"<p style='color:#1E3A8A;'>{str(e)}</p>"
             )
+    
+    def _show_context_menu(self, position):
+        """Show context menu when right-clicking on preview table."""
+        # Check if a row is selected
+        row = self.preview_table.rowAt(position.y())
+        if row < 0 or not self.current_preview:
+            return
+        
+        # Get file info from current preview
+        if row >= len(self.current_preview):
+            return
+        
+        file_info = self.current_preview[row]
+        file_path = file_info['path']
+        
+        # Create context menu
+        menu = QMenu(self)
+        menu.setStyleSheet("""
+            QMenu {
+                background-color: #EFF6FF;
+                color: #1E3A8A;
+                border: 2px solid #3B82F6;
+                border-radius: 6px;
+                padding: 5px;
+            }
+            QMenu::item {
+                padding: 8px 25px;
+                border-radius: 4px;
+            }
+            QMenu::item:selected {
+                background-color: #DBEAFE;
+                color: #1E3A8A;
+            }
+        """)
+        
+        # Add actions
+        open_action = menu.addAction("📂 Open File")
+        open_folder_action = menu.addAction("📁 Open Containing Folder")
+        menu.addSeparator()
+        copy_path_action = menu.addAction("📋 Copy Full Path")
+        copy_name_action = menu.addAction("📝 Copy File Name")
+        
+        # Execute menu and handle action
+        action = menu.exec(self.preview_table.viewport().mapToGlobal(position))
+        
+        if action == open_action:
+            # Open file with default application
+            try:
+                import subprocess
+                if os.name == 'nt':  # Windows
+                    os.startfile(str(file_path))
+                elif os.name == 'posix':  # macOS/Linux
+                    subprocess.call(['open' if sys.platform == 'darwin' else 'xdg-open', str(file_path)])
+                logger.info(f"Opened file: {file_path}")
+            except Exception as e:
+                logger.error(f"Failed to open file: {e}")
+                QMessageBox.warning(self, "Error", f"Could not open file:\n{str(e)}")
+        
+        elif action == open_folder_action:
+            # Open folder containing the file
+            try:
+                import subprocess
+                folder = file_path.parent
+                if os.name == 'nt':  # Windows
+                    subprocess.run(['explorer', '/select,', str(file_path)])
+                elif sys.platform == 'darwin':  # macOS
+                    subprocess.run(['open', '-R', str(file_path)])
+                else:  # Linux
+                    subprocess.run(['xdg-open', str(folder)])
+                logger.info(f"Opened folder: {folder}")
+            except Exception as e:
+                logger.error(f"Failed to open folder: {e}")
+                QMessageBox.warning(self, "Error", f"Could not open folder:\n{str(e)}")
+        
+        elif action == copy_path_action:
+            # Copy full path to clipboard
+            clipboard = QApplication.clipboard()
+            clipboard.setText(str(file_path))
+            self.statusBar().showMessage(f"📋 Copied: {file_path}", 3000)
+            logger.info(f"Copied path to clipboard: {file_path}")
+        
+        elif action == copy_name_action:
+            # Copy file name to clipboard
+            clipboard = QApplication.clipboard()
+            clipboard.setText(file_path.name)
+            self.statusBar().showMessage(f"📋 Copied: {file_path.name}", 3000)
+            logger.info(f"Copied name to clipboard: {file_path.name}")
 
     def closeEvent(self, event):
         """Handle window close."""
         logger.info("Application closing")
         event.accept()
+    
+    def dragEnterEvent(self, event):
+        """Handle drag enter event - accept folders dropped on window."""
+        if event.mimeData().hasUrls():
+            # Check if any URL is a directory
+            for url in event.mimeData().urls():
+                path = Path(url.toLocalFile())
+                if path.is_dir():
+                    event.acceptProposedAction()
+                    logger.info(f"Drag enter: Folder detected - {path}")
+                    return
+        event.ignore()
+    
+    def dropEvent(self, event):
+        """Handle drop event - analyze dropped folder."""
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                path = Path(url.toLocalFile())
+                if path.is_dir():
+                    logger.info(f"Folder dropped: {path}")
+                    # Set the folder and start analysis
+                    self.current_folder = path
+                    self.folder_label.setText(f"📁 {path}")
+                    self._browse_and_analyze()
+                    event.acceptProposedAction()
+                    return
+        event.ignore()

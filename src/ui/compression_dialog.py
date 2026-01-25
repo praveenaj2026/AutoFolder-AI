@@ -615,6 +615,10 @@ class CompressionDialog(QDialog):
     
     def _on_compress_finished(self, result: Dict):
         """Handle compression completion."""
+        # Reset progress bar to 0 (not stuck at 100%)
+        self.progress_bar.setValue(0)
+        self.progress_label.setText("Ready")
+        
         self.compress_btn.setEnabled(True)
         self.scan_btn.setEnabled(True)
         

@@ -8,6 +8,14 @@ import sys
 import logging
 from pathlib import Path
 
+# Fix Windows taskbar icon (must be BEFORE QApplication import)
+import os
+if os.name == 'nt':  # Windows only
+    import ctypes
+    # Tell Windows this is a unique app (not Python)
+    myappid = 'autofolder.ai.organizer.1.0'
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Qt
 
