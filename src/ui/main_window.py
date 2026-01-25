@@ -382,8 +382,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.info_label)
         
         self.preview_table = QTableWidget()
-        self.preview_table.setColumnCount(6)
-        self.preview_table.setHorizontalHeaderLabels(["📦 Type", "📄 Original Name", "✏️ New Name", "🏷️ Category", "📦 Size", "📁 Destination"])
+        self.preview_table.setColumnCount(5)
+        self.preview_table.setHorizontalHeaderLabels(["📦 Type", "📄 Original Name", "🏷️ Category", "📦 Size", "📁 Destination"])
         
         # Blueish theme table styling
         self.preview_table.setStyleSheet("""
@@ -425,7 +425,6 @@ class MainWindow(QMainWindow):
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
         
         # Configure selection behavior - DISABLE selection for cleaner look
         self.preview_table.setSelectionMode(QTableWidget.NoSelection)
@@ -705,11 +704,12 @@ class MainWindow(QMainWindow):
             error_msg.setStandardButtons(QMessageBox.Ok)
             error_msg.setStyleSheet("""
                 QMessageBox {
-                    background-color: white;
+                    background-color: #F0F9FF;
                 }
                 QLabel {
                     font-size: 14px;
                     min-width: 400px;
+                    color: #1E3A8A;
                 }
                 QPushButton {
                     background-color: #3B82F6;
@@ -754,7 +754,7 @@ class MainWindow(QMainWindow):
             progress.setValue(0)
             progress.setStyleSheet("""
                 QProgressDialog {
-                    background-color: white;
+                    background-color: #F0F9FF;
                     min-width: 400px;
                 }
                 QLabel {
@@ -902,12 +902,13 @@ class MainWindow(QMainWindow):
             msg_box.setStandardButtons(QMessageBox.Ok)
             msg_box.setStyleSheet("""
                 QMessageBox {
-                    background-color: white;
+                    background-color: #F0F9FF;
                 }
                 QLabel {
                     font-size: 12px;
                     min-width: 350px;
                     max-width: 400px;
+                    color: #1E3A8A;
                 }
                 QPushButton {
                     background-color: #10B981;
@@ -1001,38 +1002,21 @@ class MainWindow(QMainWindow):
             name_item.setForeground(QColor("#1E3A8A"))
             self.preview_table.setItem(i, 1, name_item)
             
-            # Suggested new name (if different from original source)
-            suggested_name = op.get('suggested_name', op['source'].name)
-            source_name = op['source'].name
-            
-            if suggested_name != source_name:
-                # Show suggested name in green (rename happening)
-                suggested_item = QTableWidgetItem(suggested_name)
-                suggested_item.setForeground(QColor("#059669"))
-                suggested_item.setFont(QFont("Segoe UI", 9, QFont.Bold))
-                suggested_item.setToolTip(f"Will be renamed from: {source_name}")
-            else:
-                # Show "No change" in gray
-                suggested_item = QTableWidgetItem("(no change)")
-                suggested_item.setForeground(QColor("#9CA3AF"))
-            
-            self.preview_table.setItem(i, 2, suggested_item)
-            
             # Category
             category_item = QTableWidgetItem(op['category'].title())
             category_item.setForeground(QColor("#2563EB"))
-            self.preview_table.setItem(i, 3, category_item)
+            self.preview_table.setItem(i, 2, category_item)
             
             # Size
             size_item = QTableWidgetItem(self._format_size(op['size']))
             size_item.setForeground(QColor("#7C3AED"))
-            self.preview_table.setItem(i, 4, size_item)
+            self.preview_table.setItem(i, 3, size_item)
             
             # Target folder (showing nested structure)
             target_path = str(op['target'].relative_to(self.current_folder))
             target_item = QTableWidgetItem(target_path)
             target_item.setForeground(QColor("#059669"))
-            self.preview_table.setItem(i, 5, target_item)
+            self.preview_table.setItem(i, 4, target_item)
         
         # Resize icon column to fit content
         self.preview_table.setColumnWidth(0, 60)
@@ -1158,7 +1142,7 @@ class MainWindow(QMainWindow):
         error_box.setInformativeText(f"<p style='color:#000000; font-size:13px;'><b>Error:</b> {error}</p>")
         error_box.setStyleSheet("""
             QMessageBox {
-                background-color: white;
+                background-color: #FEF2F2;
             }
             QLabel {
                 color: #000000;

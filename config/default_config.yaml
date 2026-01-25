@@ -29,25 +29,8 @@ duplicates:
   hash_algorithm: "sha256"  # sha256 or md5
 
 smart_rename:
-  enabled: true
-  auto_suggest: true
-  include_ai_group: true
-  include_date: true
-  name_format: "{ai_group}_{date}_{original}"  # Customizable: {ai_group}, {date}, {original}, {category}
-  max_original_length: 30
-  max_filename_length: 100
-  remove_patterns:
-    - "^IMG_"
-    - "^DSC_"
-    - "^DCIM_"
-    - "^Scan_"
-    - "^Screenshot_"
-    - "^WhatsApp Image "
-    - "^Copy of "
-    - "^Copy \\(\\d+\\) of "
-    - "\\(\\d+\\)$"
-    - "_\\d{8}_\\d{6}$"
-    - " - Copy$"
+  enabled: false  # Feature disabled - manual rename script available
+  auto_suggest: false
     - "Untitled"
   
 ai:

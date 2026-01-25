@@ -61,7 +61,10 @@ class SmartRenamer:
         Returns:
             Cleaned filename with extension
         """
+        logger.debug(f"suggest_filename called for: {file_path.name}, enabled: {self.enabled}")
+        
         if not self.enabled:
+            logger.debug(f"Smart rename is disabled, returning original name")
             return file_path.name
         
         try:
@@ -69,8 +72,12 @@ class SmartRenamer:
             original_name = file_path.stem
             extension = file_path.suffix
             
+            logger.debug(f"Cleaning filename stem: '{original_name}'")
+            
             # Clean the original name (remove junk patterns like (1) (2) etc)
             cleaned_name = self._clean_filename(original_name)
+            
+            logger.debug(f"After cleaning: '{cleaned_name}'")
             
             # If cleaning removed everything, keep original
             if not cleaned_name or len(cleaned_name) < 2:

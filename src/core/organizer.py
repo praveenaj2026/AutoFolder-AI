@@ -88,7 +88,7 @@ class FileOrganizer:
         # Skip common organized folder names to avoid recursive moves
         organized_folder_names = {
             'Documents', 'Images', 'Videos', 'Audio', 'Archives', 
-            'Code', 'Installers', 'Gaming', 'Other', 'Compressed'
+            'Code', 'Installers', 'Gaming', 'Other', 'Compressed', 'AutoFolder_Logs'
         }
         
         # Skip common system/app/game folders that should not be organized
@@ -464,24 +464,8 @@ class FileOrganizer:
                 category = self._get_category_from_path(target_folder, folder_path)
                 ai_group = self._get_ai_group_for_file(file_path)
                 
-                # Generate smart rename suggestion
-                suggested_name = file_path.name  # Default to original
-                if self.smart_renamer.enabled:
-                    try:
-                        file_metadata = {
-                            'date': datetime.fromtimestamp(file_path.stat().st_mtime),
-                            'size': file_path.stat().st_size
-                        }
-                        suggested_name = self.smart_renamer.suggest_filename(
-                            file_path,
-                            ai_group=ai_group,
-                            category=category,
-                            file_metadata=file_metadata
-                        )
-                        logger.debug(f"  -> Rename suggestion: {file_path.name} → {suggested_name}")
-                    except Exception as e:
-                        logger.error(f"Error generating rename suggestion: {e}")
-                        suggested_name = file_path.name
+                # Smart rename disabled - keep original filename
+                suggested_name = file_path.name
                 
                 target_path = target_folder / suggested_name
                 
@@ -540,6 +524,9 @@ class FileOrganizer:
                         conflict_resolution = self.config.get('organization', {}).get('handle_conflicts', 'rename')
                         if conflict_resolution == 'rename':
                             target_path = self._get_unique_path_folder(target_path)
+                            if target_path is None:  # Conflict detected - skip this folder
+                                logger.info(f"Skipping folder {folder_path_item.name} due to conflict")
+                                continue
                         elif conflict_resolution == 'skip':
                             continue
                     
@@ -598,6 +585,9 @@ class FileOrganizer:
                     conflict_resolution = self.config.get('organization', {}).get('handle_conflicts', 'rename')
                     if conflict_resolution == 'rename':
                         target_path = self._get_unique_path(target_path)
+                        if target_path is None:  # Conflict detected - skip this file
+                            logger.info(f"Skipping {subfolder_file.name} due to conflict")
+                            continue
                     elif conflict_resolution == 'skip':
                         continue
                 
@@ -851,39 +841,29 @@ class FileOrganizer:
         return final_folder
     
     def _get_unique_path(self, path: Path) -> Path:
-        """Generate unique path if file exists."""
+        """Generate unique path if file exists - NO LONGER ADDS (1) AUTOMATICALLY.
+        Returns the original path and logs a warning. User must handle conflicts."""
         
         if not path.exists():
             return path
         
-        counter = 1
-        stem = path.stem
-        suffix = path.suffix
-        parent = path.parent
-        
-        while True:
-            new_name = f"{stem} ({counter}){suffix}"
-            new_path = parent / new_name
-            if not new_path.exists():
-                return new_path
-            counter += 1
+        # CHANGED: Do NOT auto-rename. Return original path and warn.
+        logger.warning(f"⚠️ CONFLICT: Target already exists: {path.name}")
+        logger.warning(f"   This file will be SKIPPED to avoid adding (1) (2) (3) numbers")
+        logger.warning(f"   Please manually rename or delete the existing file first")
+        return None  # Return None to signal conflict - caller should skip this file
     
     def _get_unique_path_folder(self, path: Path) -> Path:
-        """Generate unique path if folder exists."""
+        """Generate unique path if folder exists - NO LONGER ADDS (1) AUTOMATICALLY.
+        Returns None if folder exists to avoid (1) (2) (3) suffixes."""
         
         if not path.exists():
             return path
         
-        counter = 1
-        name = path.name
-        parent = path.parent
-        
-        while True:
-            new_name = f"{name} ({counter})"
-            new_path = parent / new_name
-            if not new_path.exists():
-                return new_path
-            counter += 1
+        # CHANGED: Do NOT auto-rename folders. Return None and warn.
+        logger.warning(f"⚠️ CONFLICT: Target folder already exists: {path.name}")
+        logger.warning(f"   This folder will be SKIPPED to avoid adding (1) (2) (3) numbers")
+        return None  # Return None to signal conflict - caller should skip
     
     def _get_category_from_path(self, target_folder: Path, base_folder: Path) -> str:
         """Extract category name from nested path."""

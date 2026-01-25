@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QProgressDialog
 )
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QColor
 from pathlib import Path
 from typing import Dict, List
 import logging
@@ -63,8 +63,9 @@ class DuplicateDialog(QDialog):
             QTreeWidget {
                 border: 2px solid #3B82F6;
                 border-radius: 5px;
-                background-color: white;
+                background-color: #F0F9FF;
                 font-size: 12px;
+                color: #1E3A8A;
             }
             QTreeWidget::item {
                 padding: 5px;
@@ -234,8 +235,10 @@ class DuplicateDialog(QDialog):
             group_item = QTreeWidgetItem(self.tree)
             group_item.setText(0, f"Group {group_idx} ({len(files)} copies)")
             group_item.setText(1, f"Wasting: {(len(files)-1) * size_mb:.2f} MB")
-            group_item.setBackground(0, Qt.lightGray)
-            group_item.setBackground(1, Qt.lightGray)
+            group_item.setBackground(0, Qt.cyan)  # Colored background for visibility
+            group_item.setBackground(1, Qt.cyan)  # Colored background for visibility
+            group_item.setForeground(0, Qt.black)  # Black text on colored background
+            group_item.setForeground(1, Qt.black)  # Black text on colored background
             
             font = QFont()
             font.setBold(True)

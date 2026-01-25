@@ -126,7 +126,7 @@ class StatsDialog(QDialog):
                 border: 2px solid #93C5FD;
                 border-radius: 10px;
                 padding: 15px;
-                background-color: white;
+                background-color: #F0F9FF;
             }
         """)
         
@@ -199,7 +199,7 @@ class StatsDialog(QDialog):
                 border: 2px solid #93C5FD;
                 border-radius: 10px;
                 padding: 15px;
-                background-color: white;
+                background-color: #F0F9FF;
             }
         """)
         
@@ -238,7 +238,7 @@ class StatsDialog(QDialog):
                 border: 2px solid #93C5FD;
                 border-radius: 10px;
                 padding: 15px;
-                background-color: white;
+                background-color: #F0F9FF;
             }
         """)
         
@@ -283,7 +283,7 @@ class StatsDialog(QDialog):
                 border: 2px solid #93C5FD;
                 border-radius: 10px;
                 padding: 15px;
-                background-color: white;
+                background-color: #F0F9FF;
             }
         """)
         
@@ -326,7 +326,7 @@ class StatsDialog(QDialog):
                 border: 2px solid #93C5FD;
                 border-radius: 10px;
                 padding: 15px;
-                background-color: white;
+                background-color: #F0F9FF;
             }
         """)
         
