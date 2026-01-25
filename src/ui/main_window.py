@@ -1716,12 +1716,18 @@ class MainWindow(QMainWindow):
             return
         
         try:
-            # Show progress dialog IMMEDIATELY before any processing (like browse does)
+            undo_manager = self.organizer.undo_manager
+            if not undo_manager.can_undo():
+                return
+            
+            last_operation = undo_manager.get_last_operation()
+            file_count = len(last_operation.get('operations', []))
+            
+            # Show progress dialog IMMEDIATELY BEFORE undo starts
             progress = QProgressDialog(
-                "⏳ Undoing organization...\n\n"
-                "Moving files back to original locations...\n"
-                "Removing empty folders...\n\n"
-                "⏳ Please wait, this may take a moment.",
+                f"⏳ Undoing organization...\n\n"
+                f"Restoring {file_count} files to original locations...\n\n"
+                f"⏳ Please wait...",
                 None,  # No cancel button
                 0, 0,  # Indeterminate progress
                 self
@@ -1756,54 +1762,34 @@ class MainWindow(QMainWindow):
             
             self.statusBar().showMessage("⏲️ Undoing organization...")
             
-            undo_manager = self.organizer.undo_manager
-            if undo_manager.can_undo():
-                last_operation = undo_manager.get_last_operation()
-                file_count = len(last_operation.get('operations', []))
+            # Perform undo NOW (after dialog is shown)
+            success = self.organizer.undo_last_operation()
+            
+            # Close progress dialog
+            progress.close()
+            
+            if success and self.current_folder:
+                # PROPERLY clean up empty folders
+                deleted_count = self._cleanup_empty_folders_recursive(self.current_folder)
                 
-                # Update progress message with file count
-                progress.setLabelText(
-                    f"⏳ Undoing organization...\n\n"
-                    f"Restoring {file_count} files to original locations...\n\n"
-                    f"⏳ Please wait..."
-                )
-                QApplication.processEvents()
-                
-                # Perform undo
-                success = self.organizer.undo_last_operation()
-                
-                # Close progress dialog
-                progress.close()
-                
-                if success and self.current_folder:
-                    # PROPERLY clean up empty folders
-                    deleted_count = self._cleanup_empty_folders_recursive(self.current_folder)
-                    
-                    msg = QMessageBox(self)
-                    msg.setWindowTitle("✅ Undo Complete")
-                    ThemeHelper.style_message_box(msg, 'success')
-                    msg.setText(
-                        f"<h3 style='color:#059669;'>Successfully undone!</h3>"
-                        f"<p style='color:#1E3A8A;'>• Moved {file_count} items back</p>"
-                        f"<p style='color:#1E3A8A;'>• Removed {deleted_count} empty folders</p>"
-                    )
-                    ThemeHelper.style_message_box(msg)
-                    msg.exec_()
-                    self.undo_btn.setEnabled(False)
-                    self.statusBar().showMessage(f"✅ Undo complete: {file_count} items restored")
-                else:
-                    progress.close()
-                    msg = QMessageBox(self)
-                    msg.setWindowTitle("⚠️ Warning")
-                    ThemeHelper.style_message_box(msg, 'warning')
-                    msg.setText("Undo partially completed.")
-                    ThemeHelper.style_message_box(msg)
-                    msg.exec_()
-            else:
                 msg = QMessageBox(self)
-                msg.setIcon(QMessageBox.Information)
-                msg.setWindowTitle("ℹ️ Info")
-                msg.setText("Nothing to undo.")
+                msg.setWindowTitle("✅ Undo Complete")
+                ThemeHelper.style_message_box(msg, 'success')
+                msg.setText(
+                    f"<h3 style='color:#059669;'>Successfully undone!</h3>"
+                    f"<p style='color:#1E3A8A;'>• Moved {file_count} items back</p>"
+                    f"<p style='color:#1E3A8A;'>• Removed {deleted_count} empty folders</p>"
+                )
+                ThemeHelper.style_message_box(msg)
+                msg.exec_()
+                self.undo_btn.setEnabled(False)
+                self.statusBar().showMessage(f"✅ Undo complete: {file_count} items restored")
+            else:
+                progress.close()
+                msg = QMessageBox(self)
+                msg.setWindowTitle("⚠️ Warning")
+                ThemeHelper.style_message_box(msg, 'warning')
+                msg.setText("Undo partially completed.")
                 ThemeHelper.style_message_box(msg)
                 msg.exec_()
                 
@@ -2113,7 +2099,12 @@ class MainWindow(QMainWindow):
             return
         
         file_info = self.current_preview[row]
-        file_path = file_info['path']
+        # Use 'source' key (Path object) from operation dict
+        file_path = file_info.get('source')
+        
+        if not file_path or not isinstance(file_path, Path):
+            logger.warning(f"Invalid file_info in context menu: {file_info}")
+            return
         
         # Create context menu
         menu = QMenu(self)
@@ -2256,16 +2247,18 @@ class MainWindow(QMainWindow):
                     self.loading_dialog.forceShow()
                     QApplication.processEvents()
                     
-                    # Create and start analyze thread
-                    self.analyze_thread = AnalyzeThread(
+                    # Create and start organize thread for analysis
+                    self.organize_thread = OrganizeThread(
                         organizer=self.organizer,
                         ai_classifier=self.ai_classifier,
-                        folder=self.current_folder
+                        folder=self.current_folder,
+                        profile='downloads',
+                        preview_only=True
                     )
-                    self.analyze_thread.progress.connect(self._on_analyze_progress)
-                    self.analyze_thread.finished.connect(self._on_analyze_finished)
-                    self.analyze_thread.error.connect(self._on_analyze_error)
-                    self.analyze_thread.start()
+                    self.organize_thread.progress.connect(self._on_analyze_progress)
+                    self.organize_thread.finished.connect(self._on_analyze_finished)
+                    self.organize_thread.error.connect(self._on_analyze_error)
+                    self.organize_thread.start()
                     
                     event.acceptProposedAction()
                     return

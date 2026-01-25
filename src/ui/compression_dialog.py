@@ -26,9 +26,10 @@ from PySide6.QtGui import QFont
 
 try:
     from ..core.compressor import SmartCompressor
-    from .theme_helper import ThemeHelper
+    from ..ui.main_window import ThemeHelper
 except ImportError:
     from core.compressor import SmartCompressor
+    from ui.main_window import ThemeHelper
 
 logger = logging.getLogger(__name__)
 

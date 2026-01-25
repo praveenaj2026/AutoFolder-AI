@@ -726,6 +726,14 @@ class FileOrganizer:
         
         for op in operations:
             try:
+                # Safety check: Skip if target is None or invalid
+                if not op.get('target') or op['target'] is None:
+                    logger.warning(f"Skipping {op['source'].name}: No valid target path")
+                    op['status'] = 'skipped'
+                    op['error'] = 'No valid target path'
+                    failed.append(op)
+                    continue
+                
                 # Create target folder if needed
                 op['target'].parent.mkdir(parents=True, exist_ok=True)
                 
