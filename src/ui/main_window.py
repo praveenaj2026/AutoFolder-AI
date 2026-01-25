@@ -15,8 +15,8 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QProgressBar,
     QMessageBox, QGroupBox, QHeaderView, QCheckBox, QProgressDialog
 )
-from PySide6.QtCore import Qt, QThread, Signal, QTimer
-from PySide6.QtGui import QFont, QColor
+from PySide6.QtCore import Qt, QThread, Signal, QTimer, QFileInfo
+from PySide6.QtGui import QFont, QColor, QIcon, QFileIconProvider, QPixmap
 
 try:
     from ..core import FileOrganizer
@@ -159,6 +159,9 @@ class MainWindow(QMainWindow):
         self.current_stats = None
         self.organize_thread: Optional[OrganizeThread] = None
         # AI semantic grouping is ALWAYS enabled - no toggle needed
+        
+        # File icon provider for thumbnails
+        self.icon_provider = QFileIconProvider()
         
         self._init_ui()
         self._apply_blue_theme()
@@ -1009,11 +1012,31 @@ class MainWindow(QMainWindow):
                 logger.error(f"Operation at index {i} must be a dict, got {type(op)}")
                 continue
             
-            # File type icon
-            ext = op['source'].suffix.lower().lstrip('.')
-            icon = self.FILE_TYPE_ICONS.get(ext, self.FILE_TYPE_ICONS['default'])
-            icon_item = QTableWidgetItem(icon)
-            icon_item.setFont(QFont("Segoe UI Emoji", 16))
+            # File thumbnail/icon using system icons
+            file_path = op['source']
+            icon_item = QTableWidgetItem()
+            
+            try:
+                # Get system file icon
+                file_info = QFileInfo(str(file_path))
+                system_icon = self.icon_provider.icon(file_info)
+                
+                if not system_icon.isNull():
+                    icon_item.setIcon(system_icon)
+                else:
+                    # Fallback to emoji if system icon fails
+                    ext = file_path.suffix.lower().lstrip('.')
+                    emoji = self.FILE_TYPE_ICONS.get(ext, self.FILE_TYPE_ICONS['default'])
+                    icon_item.setText(emoji)
+                    icon_item.setFont(QFont("Segoe UI Emoji", 16))
+            except Exception as e:
+                logger.debug(f"Failed to load icon for {file_path.name}: {e}")
+                # Fallback to emoji
+                ext = file_path.suffix.lower().lstrip('.')
+                emoji = self.FILE_TYPE_ICONS.get(ext, self.FILE_TYPE_ICONS['default'])
+                icon_item.setText(emoji)
+                icon_item.setFont(QFont("Segoe UI Emoji", 16))
+            
             icon_item.setTextAlignment(Qt.AlignCenter)
             self.preview_table.setItem(i, 0, icon_item)
             

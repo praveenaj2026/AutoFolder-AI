@@ -9,8 +9,8 @@ from PySide6.QtWidgets import (
     QGroupBox, QRadioButton, QButtonGroup, QMessageBox,
     QProgressDialog
 )
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont, QColor
+from PySide6.QtCore import Qt, Signal, QFileInfo
+from PySide6.QtGui import QFont, QColor, QIcon, QFileIconProvider
 from pathlib import Path
 from typing import Dict, List
 import logging
@@ -37,6 +37,9 @@ class DuplicateDialog(QDialog):
         self.duplicates = duplicates
         self.stats = stats
         self.selected_action = 'keep_newest'
+        
+        # File icon provider for thumbnails
+        self.icon_provider = QFileIconProvider()
         
         self.setWindowTitle("🔍 Duplicate Files Found")
         self.setMinimumSize(800, 600)
@@ -248,6 +251,16 @@ class DuplicateDialog(QDialog):
             # Add child items for each file
             for file_path in files:
                 file_item = QTreeWidgetItem(group_item)
+                
+                # Add system file icon
+                try:
+                    file_info = QFileInfo(str(file_path))
+                    system_icon = self.icon_provider.icon(file_info)
+                    if not system_icon.isNull():
+                        file_item.setIcon(0, system_icon)
+                except Exception as e:
+                    logger.debug(f"Failed to load icon for {file_path.name}: {e}")
+                
                 file_item.setText(0, file_path.name)
                 file_item.setText(1, str(file_path.parent))
                 file_item.setText(2, f"{size_mb:.2f} MB")
