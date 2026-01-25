@@ -787,12 +787,34 @@ class MainWindow(QMainWindow):
             progress.close()
             
             if not duplicates:
-                QMessageBox.information(
-                    self,
-                    "No Duplicates Found",
-                    f"No duplicate files found in {self.current_folder.name}.\n\n"
-                    f"All files are unique!"
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Information)
+                msg.setWindowTitle("✅ No Duplicates Found")
+                msg.setText(f"<h3 style='color:#10B981;'>No duplicate files found!</h3>")
+                msg.setInformativeText(
+                    f"<p style='color:#1E3A8A;'>All files in <b>{self.current_folder.name}</b> are unique.</p>"
                 )
+                msg.setStyleSheet("""
+                    QMessageBox {
+                        background-color: #F0F9FF;
+                    }
+                    QLabel {
+                        color: #1E3A8A;
+                        font-size: 13px;
+                    }
+                    QPushButton {
+                        background-color: #10B981;
+                        color: white;
+                        padding: 8px 20px;
+                        border-radius: 6px;
+                        font-size: 13px;
+                        min-width: 80px;
+                    }
+                    QPushButton:hover {
+                        background-color: #059669;
+                    }
+                """)
+                msg.exec_()
                 return
             
             # Show duplicate management dialog
@@ -804,17 +826,27 @@ class MainWindow(QMainWindow):
             logger.error(f"Duplicate scan error: {e}", exc_info=True)
             error_box = QMessageBox(self)
             error_box.setIcon(QMessageBox.Critical)
-            error_box.setWindowTitle("Scan Error")
-            error_box.setText("<b>Failed to Scan Duplicates</b>")
-            error_box.setInformativeText(f"Error: {str(e)}")
+            error_box.setWindowTitle("❌ Scan Error")
+            error_box.setText("<h3 style='color:#EF4444;'>Failed to Scan Duplicates</h3>")
+            error_box.setInformativeText(f"<p style='color:#1E3A8A;'><b>Error:</b> {str(e)}</p>")
             error_box.setStyleSheet("""
                 QMessageBox {
-                    background-color: white;
-                    max-width: 350px;
+                    background-color: #FEF2F2;
                 }
                 QLabel {
-                    color: #000000;
-                    font-size: 12px;
+                    color: #1E3A8A;
+                    font-size: 13px;
+                }
+                QPushButton {
+                    background-color: #EF4444;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    min-width: 80px;
+                }
+                QPushButton:hover {
+                    background-color: #DC2626;
                 }
             """)
             error_box.exec_()
