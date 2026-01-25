@@ -41,6 +41,16 @@ ai:
   confidence_threshold: 0.7
   max_suggestions: 5
 
+# Phase 3.7: Content Analysis for improved AI accuracy
+content_analysis:
+  enabled: true
+  analyze_pdfs: true  # Extract text from PDF files
+  ocr_images: true    # Use OCR on scanned documents/images
+  detect_document_types: true  # Detect Resume, Invoice, Contract, etc.
+  ocr_language: "eng"  # Tesseract language code
+  max_file_size_mb: 50  # Skip files larger than this
+  cache_results: true   # Cache extracted content
+
 ui:
   theme: "light"  # light or dark
   show_preview: true

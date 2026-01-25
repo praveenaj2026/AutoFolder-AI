@@ -681,20 +681,79 @@ class MainWindow(QMainWindow):
         """)
         layout.addWidget(ai_status_label)
         
-        # Info label - more concise
-        ai_info_label = QLabel("⚡ Groups similar files")
-        ai_info_label.setStyleSheet("""
+        # Phase 3.7: Content Analysis status
+        self.content_analysis_label = QLabel("📄 Content Analysis: Checking...")
+        self.content_analysis_label.setStyleSheet("""
             QLabel {
-                color: #F59E0B;
+                color: #6B7280;
                 font-size: 10px;
-                font-style: italic;
-                padding-left: 8px;
+                padding: 4px 8px;
+                background-color: #F3F4F6;
+                border-radius: 4px;
+                margin-left: 8px;
             }
         """)
-        layout.addWidget(ai_info_label)
+        layout.addWidget(self.content_analysis_label)
+        
+        # Update content analysis status after initialization
+        self._update_content_analysis_status()
+        
         layout.addStretch()
         
         return widget
+    
+    def _update_content_analysis_status(self):
+        """Update the content analysis status label based on AI classifier status."""
+        try:
+            if hasattr(self, 'organizer') and hasattr(self.organizer, 'ai_classifier'):
+                status = self.organizer.ai_classifier.get_status()
+                content_status = status.get('content_analysis', {})
+                
+                pdf_ok = content_status.get('pdf_available', False)
+                ocr_ok = content_status.get('ocr_available', False)
+                
+                if pdf_ok and ocr_ok:
+                    self.content_analysis_label.setText("📄 Content Analysis: PDF ✓ OCR ✓")
+                    self.content_analysis_label.setStyleSheet("""
+                        QLabel {
+                            color: #059669;
+                            font-size: 10px;
+                            font-weight: bold;
+                            padding: 4px 8px;
+                            background-color: #D1FAE5;
+                            border-radius: 4px;
+                            margin-left: 8px;
+                        }
+                    """)
+                elif pdf_ok:
+                    self.content_analysis_label.setText("📄 Content Analysis: PDF ✓ (OCR not installed)")
+                    self.content_analysis_label.setStyleSheet("""
+                        QLabel {
+                            color: #D97706;
+                            font-size: 10px;
+                            padding: 4px 8px;
+                            background-color: #FEF3C7;
+                            border-radius: 4px;
+                            margin-left: 8px;
+                        }
+                    """)
+                else:
+                    self.content_analysis_label.setText("📄 Content Analysis: Install PyMuPDF for better accuracy")
+                    self.content_analysis_label.setStyleSheet("""
+                        QLabel {
+                            color: #6B7280;
+                            font-size: 10px;
+                            padding: 4px 8px;
+                            background-color: #F3F4F6;
+                            border-radius: 4px;
+                            margin-left: 8px;
+                        }
+                    """)
+            else:
+                self.content_analysis_label.setText("📄 Content Analysis: Initializing...")
+        except Exception as e:
+            logger.debug(f"Content analysis status check failed: {e}")
+            self.content_analysis_label.setText("📄 Content Analysis: N/A")
     
     def _create_menu_bar(self):
         """Create menu bar with Tools menu for secondary features."""

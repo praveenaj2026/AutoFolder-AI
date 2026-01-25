@@ -24,6 +24,15 @@ try:
 except ImportError:
     from core.file_analyzer import FileAnalyzer
 
+# Import content analyzer for Phase 3.7
+try:
+    from ..core.content_analyzer import ContentAnalyzer
+except ImportError:
+    try:
+        from core.content_analyzer import ContentAnalyzer
+    except ImportError:
+        ContentAnalyzer = None
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +53,15 @@ class AIClassifier:
         
         self.model = None
         self.file_analyzer = FileAnalyzer()
+        
+        # Phase 3.7: Content analyzer for PDF/OCR analysis
+        self.content_analyzer = None
+        if ContentAnalyzer:
+            try:
+                self.content_analyzer = ContentAnalyzer(config)
+                logger.info(f"Content analyzer initialized: {self.content_analyzer.get_status()}")
+            except Exception as e:
+                logger.warning(f"Content analyzer not available: {e}")
         
         # Predefined categories with semantic descriptions
         self.categories = {
@@ -278,12 +296,38 @@ class AIClassifier:
         if category != 'other':
             parts.append(f"{category} file")
         
-        # Extract text content if possible
-        text_preview = self.file_analyzer.extract_text_preview(file_path, max_chars=200)
-        if text_preview:
-            # Clean and truncate
-            text_preview = ' '.join(text_preview.split())[:200]
-            parts.append(text_preview)
+        # Phase 3.7: Use content analyzer for PDFs and images
+        if self.content_analyzer and self.content_analyzer.is_available():
+            try:
+                analysis = self.content_analyzer.analyze_file(file_path)
+                if analysis.get('analyzed'):
+                    # Add detected document type
+                    doc_type = analysis.get('document_type')
+                    if doc_type and doc_type != 'Unknown':
+                        parts.append(doc_type.lower().replace('_', ' '))
+                        parts.append(f"type {doc_type}")
+                    
+                    # Add keywords found
+                    keywords = analysis.get('keywords_found', [])
+                    if keywords:
+                        parts.extend(keywords[:5])
+                    
+                    # Add text preview (high value for AI grouping)
+                    text_preview = analysis.get('text_preview', '')
+                    if text_preview:
+                        parts.append(text_preview)
+                    
+                    logger.debug(f"Content analysis enhanced: {file_path.name} -> {doc_type}")
+            except Exception as e:
+                logger.debug(f"Content analysis skipped for {file_path.name}: {e}")
+        
+        # Fallback: Extract text content if content analyzer didn't work
+        if len(parts) <= 2:
+            text_preview = self.file_analyzer.extract_text_preview(file_path, max_chars=200)
+            if text_preview:
+                # Clean and truncate
+                text_preview = ' '.join(text_preview.split())[:200]
+                parts.append(text_preview)
         
         # Check for special patterns
         if self.file_analyzer.is_likely_screenshot(file_path):
@@ -419,9 +463,18 @@ class AIClassifier:
     
     def get_status(self) -> Dict:
         """Get AI system status."""
-        return {
+        status = {
             'enabled': self.enabled,
             'transformers_available': TRANSFORMERS_AVAILABLE,
             'model_loaded': self.model is not None,
             'model_name': self.ai_config.get('embedding_model', 'all-MiniLM-L6-v2') if self.enabled else None
         }
+        
+        # Phase 3.7: Add content analyzer status
+        if self.content_analyzer:
+            content_status = self.content_analyzer.get_status()
+            status['content_analysis'] = content_status
+        else:
+            status['content_analysis'] = {'enabled': False, 'pdf_available': False, 'ocr_available': False}
+        
+        return status
