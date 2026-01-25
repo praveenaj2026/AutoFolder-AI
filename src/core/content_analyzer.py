@@ -154,16 +154,38 @@ class ContentAnalyzer:
         try:
             import pytesseract
             from PIL import Image
+            
+            # Try common Tesseract installation paths on Windows
+            import os
+            username = os.getenv('USERNAME', '')
+            common_paths = [
+                r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+                r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+                f"C:\\Users\\{username}\\AppData\\Local\\Tesseract-OCR\\tesseract.exe",
+                r"C:\Tesseract-OCR\tesseract.exe",
+            ]
+            
+            tesseract_found = False
+            for path in common_paths:
+                if os.path.exists(path):
+                    pytesseract.pytesseract.tesseract_cmd = path
+                    tesseract_found = True
+                    logger.info(f"Found Tesseract at: {path}")
+                    break
+            
             # Quick test to see if tesseract is installed
             try:
                 pytesseract.get_tesseract_version()
                 self._ocr_available = True
-                logger.info("OCR analysis available (pytesseract)")
-            except Exception:
-                logger.warning("pytesseract installed but Tesseract OCR not found. "
-                             "Install from: https://github.com/UB-Mannheim/tesseract/wiki")
+                logger.info("OCR analysis available (pytesseract + Tesseract-OCR)")
+            except Exception as e:
+                logger.warning(f"pytesseract installed but Tesseract-OCR software not found: {e}")
+                logger.warning("To enable OCR, download and install Tesseract from:")
+                logger.warning("https://github.com/UB-Mannheim/tesseract/wiki")
+                logger.warning("After installing, restart the application.")
         except ImportError:
             logger.warning("OCR not available. Install: pip install pytesseract Pillow")
+            logger.warning("Then install Tesseract-OCR from: https://github.com/UB-Mannheim/tesseract/wiki")
     
     def is_available(self) -> bool:
         """Check if any content analysis is available."""

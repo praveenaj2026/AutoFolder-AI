@@ -6,7 +6,10 @@ AutoFolder AI is a powerful, AI-assisted file organizer that helps you automatic
 
 ## ✨ Key Features
 
-### Phase 3.6 - Current Version
+### Phase 3.7 - Current Version
+- ✅ **Content-Based AI**: Analyze PDF contents to detect document types (Resume, Invoice, Contract, etc.)
+- ✅ **Smart Compression**: Compress old/large files to save storage space
+- ✅ **AI Learning**: Track corrections to improve accuracy over time
 - ✅ **21 File Categories**: Extended support for Spreadsheets, Databases, Ebooks, Fonts, CAD, 3D Models, and more
 - ✅ **Smart Preview Table**: Organized by filename first with intelligent column sizing
 - ✅ **Duplicate Scanner**: Find and handle duplicate files with OneDrive error reporting
@@ -16,7 +19,7 @@ AutoFolder AI is a powerful, AI-assisted file organizer that helps you automatic
 - ✅ **Profiles**: Pre-built templates (Downloads, Media, Work Files, etc.)
 - ✅ **100% Offline**: No data leaves your PC
 
-### Removed Features (Simplified in Phase 3.6)
+### Removed Features (Simplified)
 - ❌ Edit AI Groups - Removed for simplicity (complex UI, rarely used)
 - ❌ Auto Schedule - Removed due to Windows Task Scheduler complexity
 

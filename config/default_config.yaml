@@ -51,6 +51,29 @@ content_analysis:
   max_file_size_mb: 50  # Skip files larger than this
   cache_results: true   # Cache extracted content
 
+# Phase 3.7: AI Learning System - Track corrections to improve accuracy
+ai_learning:
+  enabled: true
+  collect_corrections: true  # Track user corrections to AI groups
+  auto_export: false         # Auto-export training data
+  data_folder: null          # Null = use default logs folder
+
+# Phase 3.7: Smart Compression - Compress old/large files
+compression:
+  enabled: true
+  default_method: "zip"      # zip, zip_max, 7z, 7z_max
+  days_old_threshold: 90     # Suggest files older than this
+  min_size_mb: 1             # Only suggest files larger than this
+  skip_extensions:           # Never compress these
+    - ".zip"
+    - ".7z"
+    - ".rar"
+    - ".gz"
+    - ".mp4"
+    - ".mkv"
+    - ".mp3"
+  delete_originals: false    # Delete files after compression
+
 ui:
   theme: "light"  # light or dark
   show_preview: true

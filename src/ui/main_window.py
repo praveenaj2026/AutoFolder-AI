@@ -27,6 +27,7 @@ try:
     from .duplicate_dialog import DuplicateDialog
     from .stats_dialog import StatsDialog
     from .search_dialog import SearchDialog
+    from .compression_dialog import CompressionDialog
 except ImportError:
     from core import FileOrganizer
     from ai import AIClassifier
@@ -35,6 +36,7 @@ except ImportError:
     from ui.duplicate_dialog import DuplicateDialog
     from ui.stats_dialog import StatsDialog
     from ui.search_dialog import SearchDialog
+    from ui.compression_dialog import CompressionDialog
 
 
 logger = logging.getLogger(__name__)
@@ -461,8 +463,57 @@ class MainWindow(QMainWindow):
         col2.addWidget(self.search_files_btn_tools)
         col2.addStretch()
         
+        # Column 3: Storage Tools
+        col3 = QVBoxLayout()
+        col3_header = QLabel("💾 Storage Tools")
+        col3_header.setStyleSheet("font-size: 16px; font-weight: bold; color: #3B82F6; margin-bottom: 10px;")
+        col3.addWidget(col3_header)
+        
+        self.compress_btn_tools = QPushButton("📦 Compress Old Files")
+        self.compress_btn_tools.clicked.connect(self._open_compression_dialog)
+        self.compress_btn_tools.setEnabled(False)
+        self.compress_btn_tools.setMinimumHeight(50)
+        self.compress_btn_tools.setStyleSheet("""
+            QPushButton {
+                background-color: #10B981;
+                color: #F0F9FF;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #059669;
+            }
+            QPushButton:disabled {
+                background-color: #DBEAFE;
+                color: #9CA3AF;
+            }
+        """)
+        col3.addWidget(self.compress_btn_tools)
+        
+        self.ai_stats_btn = QPushButton("🧠 AI Learning Stats")
+        self.ai_stats_btn.clicked.connect(self._show_ai_learning_stats)
+        self.ai_stats_btn.setMinimumHeight(50)
+        self.ai_stats_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #EC4899;
+                color: #F0F9FF;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #DB2777;
+            }
+        """)
+        col3.addWidget(self.ai_stats_btn)
+        col3.addStretch()
+        
         tools_grid.addLayout(col1)
         tools_grid.addLayout(col2)
+        tools_grid.addLayout(col3)
         layout.addLayout(tools_grid)
         
         # Info text
@@ -585,7 +636,7 @@ class MainWindow(QMainWindow):
         
         self.preview_table = QTableWidget()
         self.preview_table.setColumnCount(5)
-        self.preview_table.setHorizontalHeaderLabels(["� Original Name", "📦 Type", "🏷️ Category", "📦 Size", "📁 Destination"])
+        self.preview_table.setHorizontalHeaderLabels(["Original Name", "Type", "Category", "Size", "Destination"])
         
         # Blueish theme table styling
         self.preview_table.setStyleSheet("""
@@ -949,18 +1000,69 @@ class MainWindow(QMainWindow):
             """)
             logger.info(f"Folder selected: {self.current_folder}")
             
-            self._analyze_folder()
+            # Show loading dialog IMMEDIATELY before any processing
+            self.loading_dialog = QProgressDialog(
+                "⏳ Preparing to analyze folder...\n\nScanning files and folders...\n\nPlease wait, this may take a moment for large folders.",
+                None,
+                0,
+                0,
+                self
+            )
+            self.loading_dialog.setWindowTitle("🔍 Analyzing Folder")
+            self.loading_dialog.setWindowModality(Qt.WindowModal)
+            self.loading_dialog.setMinimumDuration(0)
+            self.loading_dialog.setMinimumSize(500, 200)
+            self.loading_dialog.setStyleSheet("""
+                QProgressDialog {
+                    background-color: #EFF6FF;
+                    border: 2px solid #3B82F6;
+                    border-radius: 8px;
+                }
+                QLabel {
+                    color: #1E3A8A;
+                    font-size: 14px;
+                    padding: 10px;
+                }
+            """)
+            self.loading_dialog.setValue(0)
+            self.loading_dialog.show()
+            self.loading_dialog.forceShow()
+            QApplication.processEvents()  # Force immediate display
+            
+            # Start analysis after dialog is shown
+            QTimer.singleShot(50, self._analyze_folder)
     
     def _analyze_folder(self):
         """Analyze the selected folder with AI."""
         if not self.current_folder:
+            if hasattr(self, 'loading_dialog'):
+                self.loading_dialog.close()
             return
         
         try:
+            # Update loading dialog
+            if hasattr(self, 'loading_dialog'):
+                self.loading_dialog.setLabelText(
+                    f"📊 Scanning folder: {self.current_folder.name}\n\n"
+                    "Counting files and analyzing folder structure...\n\n"
+                    "⏳ Please wait, this process is working..."
+                )
+                QApplication.processEvents()
+            
             self.statusBar().showMessage("🤖 AI analyzing folder and subfolders...")
             self.browse_btn.setEnabled(False)
             
             analysis = self.organizer.analyze_folder(self.current_folder)
+            
+            # Update loading dialog with file count
+            if hasattr(self, 'loading_dialog'):
+                self.loading_dialog.setLabelText(
+                    f"✅ Found {analysis['total_files']:,} files ({self._format_size(analysis['total_size'])})\n\n"
+                    "🤖 Creating AI organization preview...\n\n"
+                    "Processing semantic groups and file categorization...\n\n"
+                    "⏳ This may take a few moments for large folders."
+                )
+                QApplication.processEvents()
             
             self.info_label.setText(
                 f"✅ Found {analysis['total_files']} files "
@@ -979,26 +1081,23 @@ class MainWindow(QMainWindow):
                 }
             """)
             
-            # Show progress dialog for large folders or AI processing
-            if analysis['total_files'] > 100:
-                progress = QProgressDialog(
-                    "Analyzing files and creating organization preview...\n\n🤖 AI Semantic Grouping: Generating embeddings and clustering files",
-                    None,
-                    0,
-                    0,
-                    self
-                )
-                progress.setWindowTitle("Processing...")
-                progress.setWindowModality(Qt.WindowModal)
-                progress.setMinimumDuration(0)
-                progress.setValue(0)
-                progress.show()
-                QTimer.singleShot(100, lambda: self._run_preview_analysis(progress))
-            else:
-                self._run_preview_analysis(None)
+            # Continue to preview analysis
+            QTimer.singleShot(100, lambda: self._run_preview_analysis(None))
             
         except Exception as e:
             logger.error(f"Analysis error: {e}", exc_info=True)
+            if hasattr(self, 'loading_dialog'):
+                self.loading_dialog.close()
+            
+            error_msg = QMessageBox(self)
+            error_msg.setWindowTitle("❌ Analysis Error")
+            error_msg.setText(f"<h2 style='color:#DC2626;'>Failed to analyze folder</h2>")
+            error_msg.setInformativeText(
+                f"<p style='font-size:14px; color:#1E3A8A;'><b>Error:</b> {str(e)}</p>"
+            )
+            ThemeHelper.style_message_box(error_msg, 'error')
+            error_msg.setStandardButtons(QMessageBox.Ok)
+            error_msg.exec()
     
     def _run_preview_analysis(self, progress_dialog):
         """Run preview analysis and update UI."""
@@ -1008,6 +1107,9 @@ class MainWindow(QMainWindow):
                 profile='downloads'
             )
             
+            # Close loading dialog
+            if hasattr(self, 'loading_dialog'):
+                self.loading_dialog.close()
             if progress_dialog:
                 progress_dialog.close()
             
@@ -1022,6 +1124,7 @@ class MainWindow(QMainWindow):
             
             # Enable Tools tab buttons
             self.search_files_btn_tools.setEnabled(len(self.current_preview) > 0)
+            self.compress_btn_tools.setEnabled(len(self.current_preview) > 0)
             
             # Update status message - AI is always active
             self.statusBar().showMessage(
@@ -1029,14 +1132,14 @@ class MainWindow(QMainWindow):
             )
             
         except Exception as e:
+            # Close loading dialog on error
+            if hasattr(self, 'loading_dialog'):
+                self.loading_dialog.close()
             if progress_dialog:
                 progress_dialog.close()
+                
             logger.error(f"Preview generation error: {e}", exc_info=True)
-            QMessageBox.critical(
-                self,
-                "Preview Error",
-                f"Failed to generate preview: {str(e)}"
-            )
+            
             error_msg = QMessageBox(self)
             error_msg.setWindowTitle("❌ Analysis Error")
             error_msg.setText(f"<h2 style='color:#DC2626;'>Failed to analyze folder</h2>")
@@ -1589,12 +1692,60 @@ class MainWindow(QMainWindow):
             return
         
         try:
-            # Show progress message BEFORE starting
+            # Show progress dialog IMMEDIATELY before any processing (like browse does)
             progress = QProgressDialog(
-                "⟲ Undoing organization...\n\n"
-                "This may take a few seconds.\n"
-                "Please wait while files are being moved back.",
+                "⏳ Undoing organization...\n\n"
+                "Moving files back to original locations...\n"
+                "Removing empty folders...\n\n"
+                "⏳ Please wait, this may take a moment.",
                 None,  # No cancel button
+                0, 0,  # Indeterminate progress
+                self
+            )
+            progress.setWindowTitle("⏲️ Processing Undo")
+            progress.setWindowModality(Qt.WindowModal)
+            progress.setMinimumDuration(0)  # Show immediately
+            progress.setMinimumSize(500, 200)  # Larger size for visibility
+            progress.setStyleSheet("""
+                QProgressDialog {
+                    background-color: #EFF6FF;
+                    border: 2px solid #3B82F6;
+                    border-radius: 8px;
+                }
+                QLabel {
+                    color: #1E3A8A;
+                    font-size: 14px;
+                    padding: 15px;
+                }
+                QProgressBar {
+                    background-color: #DBEAFE;
+                    border: 1px solid #3B82F6;
+                    border-radius: 4px;
+                    text-align: center;
+                }
+            """)
+            progress.setValue(0)
+            progress.show()
+            progress.forceShow()  # Force immediate display
+            QApplication.processEvents()  # Force UI update
+            
+            self.statusBar().showMessage("⏲️ Undoing organization...")
+            
+            undo_manager = self.organizer.undo_manager
+            if undo_manager.can_undo():
+                last_operation = undo_manager.get_last_operation()
+                file_count = len(last_operation.get('operations', []))
+                
+                # Update progress message with file count
+                progress.setLabelText(
+                    f"⏳ Undoing organization...\n\n"
+                    f"Restoring {file_count} files to original locations...\n\n"
+                    f"⏳ Please wait..."
+                )
+                QApplication.processEvents()
+                
+                # Perform undo
+                success = self.organizer.undo_last_operation()
                 0, 0,  # Indeterminate progress
                 self
             )
@@ -1863,6 +2014,88 @@ class MainWindow(QMainWindow):
             ThemeHelper.style_message_box(error_msg, 'error')
             error_msg.exec_()
     
+    def _open_compression_dialog(self):
+        """Open smart compression dialog."""
+        if not self.current_folder:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("No Folder Selected")
+            msg.setText("Please select a folder first to enable compression.")
+            ThemeHelper.style_message_box(msg)
+            msg.exec_()
+            return
+        
+        try:
+            dialog = CompressionDialog(
+                parent=self,
+                config=self.config.config,
+                target_folder=self.current_folder
+            )
+            dialog.exec_()
+        except Exception as e:
+            logger.error(f"Error opening compression dialog: {e}", exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"<p style='color:#DC2626;'>Failed to open compression:</p>"
+                f"<p style='color:#1E3A8A;'>{str(e)}</p>"
+            )
+    
+    def _show_ai_learning_stats(self):
+        """Show AI learning statistics."""
+        try:
+            from ..core.ai_learning import AILearningSystem
+        except ImportError:
+            from core.ai_learning import AILearningSystem
+        
+        try:
+            learner = AILearningSystem(self.config.config)
+            stats = learner.get_accuracy_estimate()
+            suggestions = learner.get_learning_suggestions()
+            common = learner.get_common_corrections(5)
+            
+            # Build message
+            msg_text = f"""
+            <h3 style='color:#1E3A8A;'>🧠 AI Learning Statistics</h3>
+            
+            <p style='color:#1E3A8A;'>
+            <b>Accuracy:</b> {stats['accuracy_percent']}%<br>
+            <b>Total Organized:</b> {stats['total_organized']} files<br>
+            <b>Corrections Made:</b> {stats['total_corrections']}<br>
+            <b>Status:</b> {stats['message']}
+            </p>
+            
+            <h4 style='color:#3B82F6;'>💡 Suggestions:</h4>
+            <ul style='color:#1E3A8A;'>
+            """
+            
+            for suggestion in suggestions[:3]:
+                msg_text += f"<li>{suggestion}</li>"
+            
+            msg_text += "</ul>"
+            
+            if common:
+                msg_text += "<h4 style='color:#3B82F6;'>📊 Common Corrections:</h4><ul style='color:#1E3A8A;'>"
+                for item in common[:3]:
+                    msg_text += f"<li>{item['pattern']}: {item['count']}x</li>"
+                msg_text += "</ul>"
+            
+            msg = QMessageBox(self)
+            msg.setWindowTitle("AI Learning Stats")
+            msg.setText(msg_text)
+            msg.setIcon(QMessageBox.Information)
+            ThemeHelper.style_message_box(msg)
+            msg.exec_()
+            
+        except Exception as e:
+            logger.error(f"Error showing AI stats: {e}", exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"<p style='color:#DC2626;'>Failed to load AI stats:</p>"
+                f"<p style='color:#1E3A8A;'>{str(e)}</p>"
+            )
+
     def closeEvent(self, event):
         """Handle window close."""
         logger.info("Application closing")

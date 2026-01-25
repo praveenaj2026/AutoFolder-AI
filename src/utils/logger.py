@@ -89,22 +89,35 @@ def setup_logger(
         if log_path.exists():
             try:
                 # Keep old log as backup with timestamp
-                import time
-                backup_name = f"autofolder_old_{int(time.time())}.log"
+                from datetime import datetime
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                backup_name = f"autofolder_{timestamp}.log"
                 backup_path = log_path.parent / backup_name
                 
-                # Only keep last 3 old logs
-                old_logs = sorted(log_path.parent.glob('autofolder_old_*.log'))
+                # Only keep last 3 old session logs (delete older ones)
+                old_logs = sorted(log_path.parent.glob('autofolder_*.log'))
+                # Exclude the main log file from deletion
+                old_logs = [log for log in old_logs if log.name != 'autofolder.log']
+                
                 if len(old_logs) >= 3:
-                    for old_log in old_logs[:-2]:  # Delete all but last 2
-                        old_log.unlink()
+                    # Keep only the 2 most recent old logs
+                    for old_log in old_logs[:-2]:
+                        try:
+                            old_log.unlink()
+                            logger.debug(f"Deleted old log: {old_log.name}")
+                        except Exception:
+                            pass
                 
                 # Backup current log if it exists and has content
                 if log_path.stat().st_size > 0:
                     log_path.rename(backup_path)
-            except Exception:
-                # If backup fails, just delete old log
-                log_path.unlink()
+                    logger.info(f"Previous session backed up to: {backup_name}")
+            except Exception as e:
+                # If backup fails, just clear the log
+                try:
+                    log_path.unlink()
+                except Exception:
+                    pass
         
         documents_handler = RotatingFileHandler(
             str(log_file),

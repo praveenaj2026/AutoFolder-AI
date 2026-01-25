@@ -16,6 +16,7 @@ from .file_analyzer import FileAnalyzer
 from .undo_manager import UndoManager
 from .duplicate_detector import DuplicateDetector
 from .smart_renamer import SmartRenamer
+from .ai_learning import AILearningSystem
 
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,9 @@ class FileOrganizer:
         # AI classifier for semantic grouping (REQUIRED - always enabled)
         self.ai_classifier = None
         self.semantic_groups = {}  # Cache for semantic groups
+        
+        # AI learning system to track corrections
+        self.ai_learning = AILearningSystem(config)
         
         # Duplicate detector for finding duplicate files
         self.duplicate_detector = DuplicateDetector()
@@ -757,6 +761,11 @@ class FileOrganizer:
             'completed_items': [Path(op['source']).name if isinstance(op['source'], str) else op['source'].name for op in completed],
             'failed_items': [(Path(op['source']).name if isinstance(op['source'], str) else op['source'].name, op.get('error', 'Unknown error')) for op in failed]
         }
+        
+        # Track in AI learning system
+        ai_group_count = len(self.semantic_groups) if self.semantic_groups else 0
+        self.ai_learning.record_organization(len(completed), ai_group_count)
+        logger.info(f"AI Learning: Recorded {len(completed)} files organized, {ai_group_count} AI groups")
         
         logger.info(f"Organization complete: {len(completed)} files organized, {len(failed)} failed")
         return result
