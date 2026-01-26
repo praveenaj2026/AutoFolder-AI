@@ -26,7 +26,7 @@ class RuleEngine:
                 {
                     'name': 'Documents',
                     'type': 'extension',
-                    'patterns': ['.pdf', '.doc', '.docx', '.txt', '.rtf', '.odt', '.xls', '.xlsx', '.ppt', '.pptx', '.csv', '.url', '.lnk'],
+                    'patterns': ['.pdf', '.doc', '.docx', '.txt', '.rtf', '.odt', '.xls', '.xlsx', '.ppt', '.pptx', '.csv', '.url', '.lnk', '.md', '.log', '.ini', '.srt', '.ics', '.winmd', '.pcapng'],
                     'target_folder': 'Documents'
                 },
                 {
@@ -62,7 +62,7 @@ class RuleEngine:
                 {
                     'name': 'Code',
                     'type': 'extension',
-                    'patterns': ['.py', '.js', '.java', '.cpp', '.c', '.cs', '.html', '.css', '.php', '.json', '.xml', '.yaml', '.yml', '.jsx', '.tsx', '.ts', '.go', '.rust', '.rs', '.rb', '.swift', '.kt'],
+                    'patterns': ['.py', '.js', '.java', '.cpp', '.c', '.cs', '.html', '.css', '.php', '.json', '.xml', '.yaml', '.yml', '.jsx', '.tsx', '.ts', '.go', '.rust', '.rs', '.rb', '.swift', '.kt', '.sh', '.ps1', '.bash', '.zsh', '.bat', '.cmd'],
                     'target_folder': 'Code'
                 },
                 {
