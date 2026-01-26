@@ -20,6 +20,8 @@ organization:
   handle_conflicts: "rename"  # rename, skip, or overwrite
   preserve_timestamps: true
   ignore_hidden_files: true
+  max_depth: 10  # Maximum folder depth to organize (0=no limit, helps with deep folders)
+  progress_chunk_size: 100  # Update progress every N files (for large operations)
 
 duplicates:
   enabled: true

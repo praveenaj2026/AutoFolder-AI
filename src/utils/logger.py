@@ -53,25 +53,25 @@ def setup_logger(
     console_handler.setFormatter(simple_formatter)
     logger.addHandler(console_handler)
     
-    # File handler 1 - Project logs/ directory
-    try:
-        # Save to project logs/ directory
-        project_log_path = Path(__file__).parent.parent.parent / 'logs' / 'autofolder.log'
-        project_log_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        project_handler = RotatingFileHandler(
-            str(project_log_path),
-            maxBytes=max_bytes,
-            backupCount=backup_count,
-            encoding='utf-8'
-        )
-        project_handler.setLevel(logging.DEBUG)
-        project_handler.setFormatter(detailed_formatter)
-        logger.addHandler(project_handler)
-        
-        logger.info(f"Project log file: {project_log_path}")
-    except Exception as e:
-        logger.warning(f"Could not create project log file: {e}")
+    # File handler 1 - Project logs/ directory (dev-only; can be blocked in Program Files)
+    if not getattr(sys, 'frozen', False):
+        try:
+            project_log_path = Path(__file__).parent.parent.parent / 'logs' / 'autofolder.log'
+            project_log_path.parent.mkdir(parents=True, exist_ok=True)
+
+            project_handler = RotatingFileHandler(
+                str(project_log_path),
+                maxBytes=max_bytes,
+                backupCount=backup_count,
+                encoding='utf-8'
+            )
+            project_handler.setLevel(logging.DEBUG)
+            project_handler.setFormatter(detailed_formatter)
+            logger.addHandler(project_handler)
+
+            logger.info(f"Project log file: {project_log_path}")
+        except Exception as e:
+            logger.warning(f"Could not create project log file: {e}")
     
     # File handler 2 - Documents/AutoFolder_Logs for easy access
     try:

@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 class OrganizeThread(QThread):
     """Background thread for organization operations."""
     
-    progress = Signal(int, int)  # current, total
+    progress = Signal(int, int, str)  # current, total, status
     finished = Signal(dict)  # result
     error = Signal(str)  # error message
     
@@ -60,10 +60,10 @@ class OrganizeThread(QThread):
         self.folder_path = folder_path
         self.dry_run = dry_run
     
-    def _progress_callback(self, current, total):
+    def _progress_callback(self, current, total, status=""):
         """Progress callback that emits signal."""
-        logger.debug(f"🔔 THREAD: _progress_callback({current}, {total})")
-        self.progress.emit(current, total)
+        logger.debug(f"🔔 THREAD: _progress_callback({current}, {total}, '{status}')")
+        self.progress.emit(current, total, status)
         logger.debug(f"✅ THREAD: Signal emitted")
     
     def run(self):
@@ -203,6 +203,23 @@ class MainWindow(QMainWindow):
         
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
+        
+        # Create prominent status overlay (initially hidden)
+        self.status_overlay = QLabel(central_widget)
+        self.status_overlay.setAlignment(Qt.AlignCenter)
+        self.status_overlay.setStyleSheet("""
+            QLabel {
+                background-color: rgba(59, 130, 246, 0.95);
+                color: white;
+                font-size: 20px;
+                font-weight: bold;
+                padding: 30px;
+                border-radius: 15px;
+                border: 3px solid #1E40AF;
+            }
+        """)
+        self.status_overlay.setVisible(False)
+        self.status_overlay.raise_()  # Bring to front
         
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(25, 25, 25, 25)
@@ -979,7 +996,7 @@ class MainWindow(QMainWindow):
                 "⏳ Preparing to analyze folder...\n\nScanning files and folders...\n\nPlease wait, this may take a moment for large folders.",
                 None,
                 0,
-                0,
+                0,  # Indeterminate mode (0-0 = animated)
                 self
             )
             self.loading_dialog.setWindowTitle("🔍 Analyzing Folder")
@@ -997,10 +1014,30 @@ class MainWindow(QMainWindow):
                     font-size: 14px;
                     padding: 10px;
                 }
+                QProgressBar {
+                    text-align: center;
+                    border: 2px solid #3B82F6;
+                    border-radius: 5px;
+                    background-color: #DBEAFE;
+                }
+                QProgressBar::chunk {
+                    background-color: #3B82F6;
+                }
             """)
+            # Set range to 0,0 for indeterminate (animated) progress bar
+            self.loading_dialog.setRange(0, 0)
             self.loading_dialog.setValue(0)
+            self.loading_dialog.setAutoReset(False)
+            self.loading_dialog.setAutoClose(False)
+            
+            # Center on screen
+            screen_geo = self.screen().geometry()
+            dialog_geo = self.loading_dialog.geometry()
+            x = (screen_geo.width() - dialog_geo.width()) // 2
+            y = (screen_geo.height() - dialog_geo.height()) // 2
+            self.loading_dialog.move(x, y)
+            
             self.loading_dialog.show()
-            self.loading_dialog.forceShow()
             QApplication.processEvents()  # Force immediate display
             
             # Start analysis after dialog is shown
@@ -1076,9 +1113,19 @@ class MainWindow(QMainWindow):
     def _run_preview_analysis(self, progress_dialog):
         """Run preview analysis and update UI."""
         try:
+            # Define progress callback for preview phase
+            def preview_progress(current, total, status=""):
+                if hasattr(self, 'loading_dialog') and self.loading_dialog.isVisible():
+                    self.loading_dialog.setLabelText(f"{status}\n\n⏳ Please wait...")
+                    QApplication.processEvents()
+                # Also show in status overlay
+                if "Indexing" in status or "AI" in status:
+                    self._show_status_overlay(status)
+            
             self.current_preview, self.current_stats = self.organizer.preview_organization(
                 self.current_folder,
-                profile='downloads'
+                profile='downloads',
+                progress_callback=preview_progress
             )
             
             # Close loading dialog
@@ -1547,7 +1594,7 @@ class MainWindow(QMainWindow):
             self,
             "✨ Confirm Smart Organization",
             f"<b style='color:#1E3A8A;'>Smart Organize {len(self.current_preview)} items?</b><br><br>"
-            f"<span style='color:#3B82F6;'>Multi-level organization: Category → Type → Date</span><br>"
+            f"<span style='color:#3B82F6;'>Multi-level organization: Category → AI Group → Type</span><br>"
             f"<span style='color:#059669;'><i>You can undo this anytime.</i></span>",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
@@ -1572,23 +1619,75 @@ class MainWindow(QMainWindow):
         self.organize_thread.error.connect(self._on_organize_error)
         self.organize_thread.start()
     
-    def _on_organize_progress(self, current, total):
-        """Update progress bar during organization."""
-        logger.debug(f"🎯 UI: _on_organize_progress({current}, {total})")
+    def _on_organize_progress(self, current, total, status=""):
+        """Update progress bar during organization with prominent status display."""
+        logger.debug(f"🎯 UI: _on_organize_progress({current}, {total}, '{status}')")
         percentage = int((current / total) * 100) if total > 0 else 0
         logger.debug(f"📊 UI: Setting progress bar to {current}, percentage={percentage}%")
         self.progress_bar.setValue(current)
-        self.statusBar().showMessage(
-            f"🚀 Organizing... {current}/{total} files ({percentage}%)"
-        )
+        
+        # Use custom status if provided (prominent display)
+        if status:
+            # Show in status bar
+            self.statusBar().showMessage(f"⚡ {status}")
+            self.statusBar().setStyleSheet("""
+                QStatusBar {
+                    background-color: #DBEAFE;
+                    color: #1E40AF;
+                    font-size: 14px;
+                    font-weight: bold;
+                    padding: 5px;
+                }
+            """)
+            
+            # Show prominent overlay for major steps — also briefly for per-file moves
+            if any(keyword in status for keyword in ["Indexing", "AI", "Starting", "Saving", "Customizing"]):
+                self._show_status_overlay(status)
+            elif status.startswith("📁 Moving"):
+                # Show brief overlay for moving messages (avoids invisible feedback)
+                self._show_status_overlay(status)
+            
+            logger.info(f"📢 STATUS: {status}")
+        else:
+            # Default progress message
+            self.statusBar().showMessage(
+                f"🚀 Organizing... {current}/{total} files ({percentage}%)"
+            )
+        
         logger.debug(f"✅ UI: Progress bar and status updated")
         # Force immediate UI repaint
         self.progress_bar.repaint()
+        self.statusBar().repaint()
         QApplication.processEvents()
         logger.debug(f"✅ UI: Forced repaint and event processing")
     
+    def _show_status_overlay(self, message: str):
+        """Show prominent status overlay message."""
+        try:
+            # Position overlay in center of window
+            overlay_width = 600
+            overlay_height = 150
+            x = (self.width() - overlay_width) // 2
+            y = (self.height() - overlay_height) // 2
+            
+            self.status_overlay.setGeometry(x, y, overlay_width, overlay_height)
+            self.status_overlay.setText(message)
+            self.status_overlay.setVisible(True)
+            self.status_overlay.raise_()  # Bring to front
+            self.status_overlay.repaint()
+            QApplication.processEvents()
+            
+            # Auto-hide after 1.5 seconds for moving messages, keep longer for major steps
+            if "Moving:" in message:
+                QTimer.singleShot(800, lambda: self.status_overlay.setVisible(False))
+            else:
+                QTimer.singleShot(2000, lambda: self.status_overlay.setVisible(False))
+        except Exception as e:
+            logger.debug(f"Status overlay error: {e}")
+    
     def _on_organize_finished(self, result):
         """Handle organization completion with popup."""
+        self.status_overlay.setVisible(False)  # Hide overlay
         self.progress_bar.setVisible(False)
         self._set_controls_enabled(True)
         
@@ -1654,6 +1753,14 @@ class MainWindow(QMainWindow):
                 f"{error_details}"
             )
             ThemeHelper.style_message_box(msg)
+            
+            # Center the dialog on screen
+            msg.adjustSize()
+            screen_geo = self.screen().geometry()
+            x = (screen_geo.width() - msg.width()) // 2
+            y = (screen_geo.height() - msg.height()) // 2
+            msg.move(x, y)
+            
             msg.exec_()
     
     def _on_organize_error(self, error):

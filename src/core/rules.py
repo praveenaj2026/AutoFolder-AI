@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, List
 import re
 from datetime import datetime, timedelta
+from utils.safe_file_ops import safe_stat, safe_get_size, safe_get_mtime, safe_exists
 
 
 class RuleEngine:
@@ -61,7 +62,7 @@ class RuleEngine:
                 {
                     'name': 'Code',
                     'type': 'extension',
-                    'patterns': ['.py', '.js', '.java', '.cpp', '.c', '.cs', '.html', '.css', '.php', '.json', '.xml', '.ini', '.cfg', '.conf', '.yaml', '.yml'],
+                    'patterns': ['.py', '.js', '.java', '.cpp', '.c', '.cs', '.html', '.css', '.php', '.json', '.xml', '.yaml', '.yml', '.jsx', '.tsx', '.ts', '.go', '.rust', '.rs', '.rb', '.swift', '.kt'],
                     'target_folder': 'Code'
                 },
                 {
@@ -286,7 +287,7 @@ class RuleEngine:
         try:
             days_ago = rule.get('days_ago', 0)
             cutoff_date = datetime.now() - timedelta(days=days_ago)
-            file_mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
+            file_mtime = datetime.fromtimestamp(safe_get_mtime(file_path))
             return file_mtime >= cutoff_date
         except:
             return False
@@ -296,7 +297,7 @@ class RuleEngine:
         try:
             min_size = rule.get('min_size_bytes', 0)
             max_size = rule.get('max_size_bytes', float('inf'))
-            file_size = file_path.stat().st_size
+            file_size = safe_get_size(file_path)
             return min_size <= file_size <= max_size
         except:
             return False

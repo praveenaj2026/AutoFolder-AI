@@ -29,10 +29,9 @@ class UndoManager:
         self.history_file = Path(history_file)
         self.history: List[Dict] = []
         
-        # Create directory if needed
-        self.history_file.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Load existing history
+        # Do not create history directory here to avoid empty folders.
+        # Directory will be created lazily when saving the first history file.
+        # Load existing history if present
         self._load_history()
     
     @property
@@ -131,6 +130,8 @@ class UndoManager:
     def _save_history(self):
         """Save history to disk."""
         try:
+            # Ensure parent directory exists before writing (lazy-create)
+            self.history_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.history_file, 'w') as f:
                 json.dump(self.history, f, indent=2)
             logger.debug("Undo history saved to disk")

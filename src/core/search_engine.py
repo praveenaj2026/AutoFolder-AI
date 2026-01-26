@@ -8,6 +8,7 @@ from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 import re
 import logging
+from utils.safe_file_ops import safe_stat, safe_get_size, safe_get_mtime, safe_exists
 
 logger = logging.getLogger(__name__)
 
@@ -35,60 +36,82 @@ class SearchEngine:
         logger.info(f"Building search index for: {self.root}")
         self.index.clear()
         
-        if not self.root.exists():
+        if not self.safe_exists(root):
             logger.warning(f"Root directory does not exist: {self.root}")
             return 0
         
-        # Index all files recursively
-        for file_path in self.root.rglob('*'):
-            if file_path.is_file():
-                try:
-                    stat = file_path.stat()
-                    
-                    # Extract metadata from path structure (flexible)
-                    # Works with any folder structure - extracts what we can
-                    parts = file_path.relative_to(self.root).parts
-                    
-                    # Smart detection of folder structure
-                    category = parts[0] if len(parts) > 0 else 'Root'
-                    ai_group = None
-                    file_type = None
-                    
-                    # Try to detect organized structure intelligently
-                    # Common patterns: Documents/Praveen/PDF, Images/Photos/2024, etc.
-                    if len(parts) >= 2:
-                        # First folder is usually category (Documents, Images, Code, etc.)
-                        category = parts[0]
-                        
-                        # Second folder might be AI group (if not a standard category)
-                        if len(parts) >= 3 and parts[1] not in ['Audio', 'Video', 'Images', 'Code', 'Archives', 'Installers', 'Documents', 'PDF', 'DOCX', 'JPG', 'PNG', 'MP3', 'MP4', 'ZIP']:
-                            ai_group = parts[1]
-                            file_type = parts[2] if len(parts) > 2 else None
-                        else:
-                            # Second folder is file type
-                            file_type = parts[1] if len(parts) >= 2 else None
-                    
-                    self.index[file_path] = {
-                        'name': file_path.name,
-                        'stem': file_path.stem,
-                        'extension': file_path.suffix.lower(),
-                        'size': stat.st_size,
-                        'size_mb': stat.st_size / (1024 * 1024),
-                        'modified': datetime.fromtimestamp(stat.st_mtime),
-                        'category': category,
-                        'ai_group': ai_group,
-                        'file_type': file_type,
-                        'date_folder': parts[3] if len(parts) > 3 else None,
-                        'path': file_path,
-                        'full_path_text': str(file_path).lower()
-                    }
-                    
-                    logger.debug(f"Indexed: {file_path.name}")
-                except Exception as e:
-                    logger.error(f"Error indexing {file_path}: {e}")
+        # Collect all files first for progress tracking
+        logger.info("📊 Scanning files for search index...")
+        all_files = [f for f in self.root.rglob('*') if f.is_file()]
+        total_files = len(all_files)
         
-        logger.info(f"Indexed {len(self.index)} files")
-        return len(self.index)
+        logger.info(f"📊 Indexing {total_files:,} files for search...")
+        
+        # Progress feedback for large indexing operations
+        if total_files > 10000:
+            logger.info(f"⚡ Large folder detected - Building search index in chunks...")
+        
+        chunk_size = 1000
+        indexed_count = 0
+        
+        # Index all files recursively with progress tracking
+        for i, file_path in enumerate(all_files, 1):
+            # Progress updates
+            if i == 1 or i == total_files or i % chunk_size == 0:
+                percent = int(i/total_files*100)
+                logger.info(f"📊 Indexing progress: {i:,}/{total_files:,} ({percent}%)")
+            
+            try:
+                stat = safe_stat(file_path)
+                if not stat:
+                    logger.debug(f"Skipping inaccessible file: {file_path}")
+                    continue
+                
+                # Extract metadata from path structure (flexible)
+                # Works with any folder structure - extracts what we can
+                parts = file_path.relative_to(self.root).parts
+                
+                # Smart detection of folder structure
+                category = parts[0] if len(parts) > 0 else 'Root'
+                ai_group = None
+                file_type = None
+                
+                # Try to detect organized structure intelligently
+                # Common patterns: Documents/Praveen/PDF, Images/Photos/2024, etc.
+                if len(parts) >= 2:
+                    # First folder is usually category (Documents, Images, Code, etc.)
+                    category = parts[0]
+                    
+                    # Second folder might be AI group (if not a standard category)
+                    if len(parts) >= 3 and parts[1] not in ['Audio', 'Video', 'Images', 'Code', 'Archives', 'Installers', 'Documents', 'PDF', 'DOCX', 'JPG', 'PNG', 'MP3', 'MP4', 'ZIP']:
+                        ai_group = parts[1]
+                        file_type = parts[2] if len(parts) > 2 else None
+                    else:
+                        # Second folder is file type
+                        file_type = parts[1] if len(parts) >= 2 else None
+                
+                self.index[file_path] = {
+                    'name': file_path.name,
+                    'stem': file_path.stem,
+                    'extension': file_path.suffix.lower(),
+                    'size': stat.st_size,
+                    'size_mb': stat.st_size / (1024 * 1024),
+                    'modified': datetime.fromtimestamp(stat.st_mtime),
+                    'category': category,
+                    'ai_group': ai_group,
+                    'file_type': file_type,
+                    'date_folder': parts[3] if len(parts) > 3 else None,
+                    'path': file_path,
+                    'full_path_text': str(file_path).lower()
+                }
+                
+                indexed_count += 1
+                logger.debug(f"Indexed: {file_path.name}")
+            except Exception as e:
+                logger.error(f"Error indexing {file_path}: {e}")
+        
+        logger.info(f"✅ Indexed {indexed_count:,} files for search")
+        return indexed_count
     
     def search(
         self,

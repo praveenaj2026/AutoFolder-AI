@@ -1,0 +1,49 @@
+﻿Analysis generated: Monday, 26 January, 2026 3.33.15 PM
+Top-level folder counts and issues:
+- $RECYCLE.BIN: 0 files, 0 folders
+- Archives: 81 files, 24 folders
+- Audio: 99 files, 30 folders
+- Backups: 4 files, 4 folders
+- Code: 904 files, 73 folders
+- Config files: 310 files, 62 folders
+- Documents: 487 files, 58 folders
+- ffmpeg: 6 files, 3 folders
+- Fonts: 99 files, 3 folders
+- GTA San Andreas v1.0 [Build 459558] Repack Team-LiL: 0 files, 0 folders
+- GUI_Scripts_V2: 2 files, 0 folders
+- https%3a%2f%2fcygwin.mirror.constant.com%2f: 23 files, 102 folders
+- Images: 164 files, 11 folders
+- Installers: 132 files, 36 folders
+- MobaXterm_Portable_v25.3: 3 files, 0 folders
+- perplexity_upload: 1 files, 0 folders
+- Python Scripts: 33209 files, 6217 folders
+- Sipinspector Scripts: 50 files, 4 folders
+- sipinspector-code-r288: 255 files, 152 folders
+- snapBubble_extension-main: 2 files, 5 folders
+- Softwares: 1983 files, 319 folders
+- Steam Games - Hack: 2609 files, 37 folders
+- System Volume Information: 0 files, 0 folders
+- Torrents: 8 files, 12 folders
+- Videos: 20 files, 4 folders
+- VirtualBox VMs: 39 files, 12 folders
+- VScode WSL: 8 files, 0 folders
+- Windows: 1 files, 1 folders
+- windsurf-reh-linux-x64-1.12.12: 1368 files, 506 folders
+
+Detected extension mismatches (common ext present in unexpected top folders):
+
+Recommendations:
+Archives contains very large files; consider offloading to external backup or separate storage if not frequently used.
+Consider moving large binaries from Code into 'Archives' or 'Libraries' (see largest_files) for cleaner repo structure.
+
+Root file summary:
+Root contains 10 files of type .md
+Root contains 6 files of type .sh
+Root contains 4 files of type .log
+Root contains 4 files of type .ini
+Root contains 2 files of type .ps1
+Root contains 1 files of type .pcapng
+Root contains 1 files of type .spec
+Root contains 1 files of type .winmd
+Root contains 1 files of type .ics
+Root contains 1 files of type .srt

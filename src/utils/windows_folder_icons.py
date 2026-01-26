@@ -13,6 +13,7 @@ Works by:
 import logging
 import os
 import ctypes
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -208,11 +209,16 @@ class WindowsFolderIconCustomizer:
             icon_folder: Where to store .ico files (default: resources/folder_icons/)
         """
         if icon_folder is None:
-            icon_folder = Path(__file__).parent.parent.parent / 'resources' / 'folder_icons'
+            if getattr(sys, 'frozen', False):
+                base_dir = Path(getattr(sys, '_MEIPASS', Path(sys.executable).resolve().parent))
+                icon_folder = base_dir / 'resources' / 'folder_icons'
+            else:
+                icon_folder = Path(__file__).parent.parent.parent / 'resources' / 'folder_icons'
         
         self.icon_folder = icon_folder
-        self.icon_folder.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Folder icon customizer initialized: {self.icon_folder}")
+        # Do not create icon folder at init to avoid empty folders.
+        # The folder will be created lazily when an icon is actually generated.
+        logger.info(f"Folder icon customizer initialized (icon folder: {self.icon_folder})")
     
     def create_folder_icon(self, category: str) -> Optional[Path]:
         """
@@ -278,6 +284,12 @@ class WindowsFolderIconCustomizer:
             text_y = body_y + (body_height - text_height) // 2
             draw.text((text_x, text_y), text, fill=(255, 255, 255, 255), font=font)
             
+            # Ensure icon folder exists (lazy-create)
+            try:
+                self.icon_folder.mkdir(parents=True, exist_ok=True)
+            except Exception:
+                pass
+
             # Save as .ico (multiple sizes for compatibility)
             ico_path = self.icon_folder / f"{category.lower()}_folder.ico"
             img.save(ico_path, format='ICO', sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)])

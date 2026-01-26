@@ -4,6 +4,8 @@ Configuration Manager
 Handles loading and managing application configuration.
 """
 
+import os
+import sys
 import yaml
 from pathlib import Path
 from typing import Any, Dict
@@ -24,10 +26,24 @@ class ConfigManager:
             config_file: Path to config file (optional)
         """
         if config_file is None:
-            # Default config file location
-            config_file = Path(__file__).parent.parent.parent / 'config' / 'default_config.yaml'
-        
-        self.config_file = Path(config_file)
+            if getattr(sys, 'frozen', False):
+                # In a frozen build, keep user config in a writable location.
+                appdata = os.getenv('APPDATA')
+                user_dir = Path(appdata) / 'AutoFolder AI' if appdata else (Path.home() / 'AutoFolder AI')
+                user_dir.mkdir(parents=True, exist_ok=True)
+
+                self.config_file = user_dir / 'user_config.yaml'
+
+                # Default config ships inside _internal/config
+                base_dir = Path(getattr(sys, '_MEIPASS', Path(sys.executable).resolve().parent))
+                self._default_config_file = base_dir / 'config' / 'default_config.yaml'
+            else:
+                # Default config file location (dev)
+                self.config_file = Path(__file__).parent.parent.parent / 'config' / 'default_config.yaml'
+                self._default_config_file = self.config_file
+        else:
+            self.config_file = Path(config_file)
+            self._default_config_file = self.config_file
         self.config: Dict = {}
         
         self._load_config()
@@ -40,8 +56,14 @@ class ConfigManager:
                     self.config = yaml.safe_load(f) or {}
                 logger.info(f"Configuration loaded from {self.config_file}")
             else:
-                logger.warning(f"Config file not found: {self.config_file}, using defaults")
-                self.config = self._get_default_config()
+                # Fall back to bundled default config if available
+                if getattr(self, '_default_config_file', None) and self._default_config_file.exists():
+                    with open(self._default_config_file, 'r') as f:
+                        self.config = yaml.safe_load(f) or {}
+                    logger.info(f"Default configuration loaded from {self._default_config_file}")
+                else:
+                    logger.warning(f"Config file not found: {self.config_file}, using defaults")
+                    self.config = self._get_default_config()
         except Exception as e:
             logger.error(f"Failed to load config: {e}")
             self.config = self._get_default_config()

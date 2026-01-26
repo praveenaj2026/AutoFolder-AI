@@ -1,0 +1,19 @@
+﻿Folder PATH listing for volume APPS & Games
+Volume serial number is 5CF3-F54B
+D:\
+|   backup_of_SSD_copy.log
+|   backup_of_SSD_verify.log
+|   
++---GTA San Andreas v1.0 [Build 459558] Repack Team-LiL
+|   |   setup-1a.bin
+|   |   setup-1b.bin
+|   |   setup.exe
+|   |   TEAM-LIL DISCORD.URL
+|   |   
+|   \---Redist
+|           dxwebsetup.exe
+|           
+\---LDPlayer
+    \---LDPlayer9
+            LDPlayer.exe.tmp
+            

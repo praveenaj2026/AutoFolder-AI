@@ -1,0 +1,379 @@
+
+AutoFolder AI — Organizer Core Issues & Fix Roadmap
+==================================================
+
+Purpose
+-------
+This document explains the REAL technical issues inside the current organizer core,
+why folders/files are misplaced or missed, and the exact architectural fixes needed
+to make the organizer correct, predictable, and commercial‑grade.
+
+This is NOT UI or feature review.
+This is ONLY the organizing engine – the core IP of the product.
+
+
+--------------------------------
+SECTION 1 — ROOT CAUSE SUMMARY
+--------------------------------
+
+Current problems observed:
+• Some folders are missed completely
+• Some files land in wrong categories
+• Nested structures are broken / flattened
+• AI grouping sometimes looks random
+• Folder trees lose original meaning
+
+These problems are NOT caused by AI quality.
+
+They are caused by 5 architectural mistakes:
+1. Shallow + multi‑pass scanning
+2. Context‑blind AI input
+3. No protected root detection
+4. Wrong processing order
+5. Aggressive folder creation rules
+
+
+--------------------------------
+SECTION 2 — ISSUE #1 : SHALLOW + MULTI‑PASS SCANNING (CRITICAL)
+--------------------------------
+
+Current behavior:
+• First scan only root files and folders
+• Later a second rglob pass scans subfolders
+• Classification & preview already started before full context exists
+
+Effects:
+• AI sees partial file list
+• Context is lost
+• Some files processed twice
+• Some skipped due to parent movement
+• Folder boundaries are broken
+
+Diagnosis:
+This is the single biggest structural bug in the organizer.
+
+Correct design:
+• ONE deep recursive scan
+• ONE unified file list
+• ONE classification pipeline
+• NO second pass
+• NO folder peek hacks
+
+Fix:
+
+Replace current scan logic with:
+
+- Full os.walk / scandir recursion
+- For every file collect:
+    • full path
+    • depth
+    • parent folder name
+    • root folder name
+    • extension
+    • size
+    • modified time
+
+All later logic must use ONLY this unified list.
+
+
+--------------------------------
+SECTION 3 — ISSUE #2 : CONTEXT‑BLIND AI GROUPING (MAJOR ACCURACY LOSS)
+--------------------------------
+
+Current AI input:
+• Only file paths
+• No parent info
+• No project info
+• No folder structure
+
+AI does NOT know:
+• Which project file belongs to
+• Which collection it is part of
+• Whether it is media, archive, backup
+• Whether it should stay grouped
+
+Result:
+• Project files grouped with random docs
+• Media trees flattened
+• Nested collections destroyed
+
+Correct design:
+
+AI input MUST include context:
+
+For each file pass:
+• filename
+• extension
+• parent folder name
+• root folder name
+• depth
+• top sibling names (optional)
+
+This improves semantic grouping accuracy by 3–5x.
+
+AI must never be blind to structure.
+
+
+--------------------------------
+SECTION 4 — ISSUE #3 : NO ROOT DETECTION / NO PROTECTED BOUNDARIES (MOST DANGEROUS)
+--------------------------------
+
+Current behavior:
+• Only dev projects are skipped
+• All other folders are free to be flattened
+• Files always moved to category base
+
+This breaks:
+• Photo archives
+• Media libraries
+• Backup trees
+• Date‑based collections
+• Structured datasets
+
+Correct design:
+
+Before classification, detect logical ROOTS:
+
+Rules:
+
+PROJECT ROOT if folder contains:
+• .git / .svn / .hg
+• pyproject.toml
+• package.json
+• pom.xml
+
+MEDIA ROOT if:
+• Many image/video files
+• Repeating subfolders by date/event
+
+ARCHIVE ROOT if:
+• Subfolders named like YYYY / YYYY‑MM / YYYY‑MM‑DD
+
+BACKUP ROOT if:
+• Contains .bak / .old / snapshots / incremental dirs
+
+Once detected:
+• Mark root as PROTECTED
+• Files under this root must NEVER leave this root
+• Organizer may rearrange INSIDE root only
+
+This rule alone prevents 70% of destructive bugs.
+
+
+--------------------------------
+SECTION 5 — ISSUE #4 : WRONG PIPELINE ORDER
+--------------------------------
+
+Current order (broken):
+1. Root files classified
+2. Folders scanned
+3. Subfiles added later
+4. AI groups mixed
+5. Placement already decided
+
+Correct order (mandatory):
+
+1. Deep scan (all files first)
+2. Root detection
+3. Rule classification
+4. Context inheritance
+5. AI grouping
+6. Placement resolver
+7. Preview builder
+
+Never mix scanning + classification + preview in same loop.
+
+
+--------------------------------
+SECTION 6 — ISSUE #5 : AGGRESSIVE TYPE FOLDER CREATION
+--------------------------------
+
+Current behavior:
+• Every extension creates a folder
+• Even for 1–2 files
+
+Effects:
+• Folder explosion
+• Ugly deep nesting
+• Hard to navigate output
+
+Correct rule:
+
+Create EXT folder ONLY if:
+• ≥ 5 files of same extension in category
+
+Otherwise:
+• Place file directly in category
+
+This preserves clean structure.
+
+
+--------------------------------
+SECTION 7 — ISSUE #6 : AI GROUP FOLDERS CREATED FOR SINGLE FILES
+--------------------------------
+
+Current behavior:
+• AI group folder created even for 1 file
+• Weak clusters still produce folders
+
+Effects:
+• Noise folders
+• Empty directories
+• Confusing structure
+
+Correct rule:
+
+Create AI group folder ONLY if:
+• group size ≥ 3
+• AND confidence ≥ threshold (0.70–0.80)
+
+Else:
+• Skip AI layer
+• Place directly in category
+
+
+--------------------------------
+SECTION 8 — ISSUE #7 : PREVIEW DOUBLE COUNTS & SKIP HACKS
+--------------------------------
+
+Current behavior:
+• Root pass
+• Folder peek
+• Second rglob pass
+• Skip logic to avoid duplicates
+
+This is a symptom of broken scan architecture.
+
+Correct design:
+• ONE scan
+• ONE list
+• ONE preview build
+• ZERO skip hacks
+
+
+--------------------------------
+SECTION 9 — WHAT IS ALREADY VERY GOOD (KEEP AS‑IS)
+--------------------------------
+
+These parts are strong and production‑grade:
+
+• System folder protection
+• Dev project detection
+• Duplicate handling
+• Conflict prevention (no auto overwrite)
+• Undo journaling
+• Icon manager separation
+• Safety defaults
+
+Do NOT rewrite these. They are correct.
+
+
+--------------------------------
+SECTION 10 — FINAL DIAGNOSIS
+--------------------------------
+
+This is NOT an AI problem.
+
+This is an ORGANIZER ENGINE DESIGN PROBLEM.
+
+Root causes:
+
+| Symptom                 | Cause                          |
+|-------------------------|--------------------------------|
+| Missed folders          | Shallow + multi‑pass scan      |
+| Wrong placement         | No root protection             |
+| Flattened trees         | Always moving to base category |
+| Bad AI grouping         | Context‑blind input            |
+| Folder explosion        | Aggressive ext & AI folders    |
+
+
+--------------------------------
+SECTION 11 — EXACT NEXT STEPS (DO IN THIS ORDER)
+--------------------------------
+
+STEP 1 — Replace scanning (MANDATORY)
+-------------------------------------
+• Implement full recursive scan using os.walk / scandir
+• Build unified FileNode list
+• Remove:
+    - root‑only scan
+    - folder peek logic
+    - second rglob pass
+    - skip hacks
+
+
+STEP 2 — Add ROOT DETECTION (MOST IMPORTANT)
+--------------------------------------------
+• Detect PROJECT, MEDIA, ARCHIVE, BACKUP roots
+• Build protected_roots map
+• Enforce:
+    - Files under protected root never leave that root
+
+
+STEP 3 — Change pipeline order
+------------------------------
+New order must be:
+
+1. deep_scan
+2. detect_roots
+3. rule_classify
+4. context_inherit
+5. ai_group
+6. placement_resolve
+7. preview_build
+
+
+STEP 4 — Make AI context‑aware
+------------------------------
+Pass to AI:
+• filename
+• extension
+• parent folder name
+• root name
+• depth
+
+Do NOT pass only Path.
+
+
+STEP 5 — Add placement resolver gates
+-------------------------------------
+Rules:
+• Never move across protected roots
+• Create EXT folder only if ≥ 5 files
+• Create AI group only if ≥ 3 files
+• Never flatten structured trees
+
+
+--------------------------------
+FINAL VERDICT
+--------------------------------
+
+Your product is already strong in:
+• UI
+• Undo
+• Safety
+• Icons
+• Compression
+• Packaging
+
+The ONLY blocker to shipping quality is:
+→ Organizer core architecture
+
+Once you implement:
+• Unified deep scan
+• Root detection
+• Rule‑first pipeline
+• Context‑aware AI
+• Placement gating
+
+You will get:
+• Predictable behavior
+• Near‑zero destructive bugs
+• Very high user trust
+• Commercial‑grade organizer
+• Strong product differentiation
+
+
+--------------------------------
+END OF DOCUMENT
+--------------------------------

@@ -118,7 +118,9 @@ class AIClassifier:
             # - In dev: relative to project root
             # - In frozen EXE: relative to the EXE folder
             if getattr(sys, 'frozen', False):
-                app_root = Path(sys.executable).resolve().parent
+                # In onedir builds, sys._MEIPASS points at the bundled _internal directory
+                # where our data files (models/config/resources) are collected.
+                app_root = Path(getattr(sys, '_MEIPASS', Path(sys.executable).resolve().parent))
             else:
                 app_root = Path(__file__).resolve().parents[2]
 

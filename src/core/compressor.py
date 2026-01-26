@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 import os
+from utils.safe_file_ops import safe_stat, safe_get_size, safe_get_mtime, safe_exists
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +108,10 @@ class SmartCompressor:
                     continue
                 
                 try:
-                    stat = file_path.stat()
+                    stat = safe_stat(file_path)
+                    if not stat:
+                        continue  # Skip inaccessible files
+                    
                     modified_time = datetime.fromtimestamp(stat.st_mtime)
                     size_bytes = stat.st_size
                     
@@ -237,8 +241,7 @@ class SmartCompressor:
         if not files:
             return {'success': False, 'error': 'No files to compress'}
         
-        # Create output folder
-        output_folder.mkdir(parents=True, exist_ok=True)
+        # Do not create output folder here; create lazily when writing archive
         
         # Generate readable archive name with date/time
         # Format: AutoFolder_AI_Archive_25Jan_9_42PM (with minutes)
@@ -255,8 +258,14 @@ class SmartCompressor:
         else:
             archive_path = output_folder / f"{readable_name}.zip"
         
+        # Ensure output folder exists before creating archive (lazy-create)
+        try:
+            output_folder.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+
         # Handle existing archive - add seconds if duplicate
-        if archive_path.exists():
+        if safe_exists(archive_path):
             seconds = now.strftime('%S')
             if self.method == '7z' and self._7z_available:
                 archive_path = output_folder / f"{readable_name}_{seconds}s.7z"
@@ -278,7 +287,7 @@ class SmartCompressor:
                             progress_callback(i + 1, len(files), file_path.name)
                         
                         try:
-                            original_size += file_path.stat().st_size
+                            original_size += safe_get_size(file_path)
                             archive.write(file_path, file_path.name)
                             compressed_count += 1
                             
@@ -304,7 +313,7 @@ class SmartCompressor:
                             progress_callback(i + 1, len(files), file_path.name)
                         
                         try:
-                            original_size += file_path.stat().st_size
+                            original_size += safe_get_size(file_path)
                             archive.write(file_path, file_path.name)
                             compressed_count += 1
                             
@@ -316,7 +325,7 @@ class SmartCompressor:
                             failed.append((str(file_path), str(e)))
             
             # Get compressed size
-            compressed_size = archive_path.stat().st_size
+            compressed_size = safe_get_size(archive_path)
             
             result = {
                 'success': True,
@@ -464,7 +473,7 @@ if __name__ == "__main__":
     
     # Test finding compressible files
     test_folder = Path(r"C:\Users\Praveen\OneDrive\Documents")
-    if test_folder.exists():
+    if safe_exists(test_folder):
         files = compressor.find_compressible_files(test_folder, days_old=365, min_size_mb=1)
         print(f"\nFound {len(files)} compressible files")
         

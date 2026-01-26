@@ -56,13 +56,70 @@ class FileOrganizer:
         
         # Smart renamer for AI-based filename suggestions
         self.smart_renamer = SmartRenamer(config)
-        self.rename_suggestions = {}  # Cache for rename suggestions        
-    def analyze_folder(self, folder_path: Path) -> Dict:
+        self.rename_suggestions = {}  # Cache for rename suggestions
+    
+    @staticmethod
+    def safe_stat(file_path: Path, default_size: int = 0, default_mtime: float = None):
+        """
+        Safely get file stats, handling inaccessible files.
+        
+        Args:
+            file_path: Path to file
+            default_size: Default size if stat fails
+            default_mtime: Default modification time if stat fails
+            
+        Returns:
+            os.stat_result or None if inaccessible
+        """
+        try:
+            return file_path.stat()
+        except (FileNotFoundError, PermissionError, OSError) as e:
+            logger.debug(f"Cannot access file stats: {file_path} - {e}")
+            return None
+    
+    @staticmethod
+    def safe_get_size(file_path: Path, default: int = 0) -> int:
+        """
+        Safely get file size, handling inaccessible files.
+        
+        Args:
+            file_path: Path to file
+            default: Default size if stat fails
+            
+        Returns:
+            File size in bytes or default
+        """
+        try:
+            return file_path.stat().st_size
+        except (FileNotFoundError, PermissionError, OSError) as e:
+            logger.debug(f"Cannot get file size: {file_path} - {e}")
+            return default
+    
+    @staticmethod
+    def safe_get_mtime(file_path: Path, default: float = None) -> Optional[float]:
+        """
+        Safely get file modification time, handling inaccessible files.
+        
+        Args:
+            file_path: Path to file
+            default: Default mtime if stat fails
+            
+        Returns:
+            Modification timestamp or default
+        """
+        try:
+            return file_path.stat().st_mtime
+        except (FileNotFoundError, PermissionError, OSError) as e:
+            logger.debug(f"Cannot get file mtime: {file_path} - {e}")
+            return default or datetime.now().timestamp()
+        
+    def analyze_folder(self, folder_path: Path, max_depth: int = None) -> Dict:
         """
         Analyze a folder and return statistics.
         
         Args:
             folder_path: Path to folder to analyze
+            max_depth: Maximum depth to scan (0=no limit, 1=root only, etc.)
             
         Returns:
             Dictionary with analysis results
@@ -80,10 +137,31 @@ class FileOrganizer:
         files = [f for f in all_items if f.is_file()]
         folders = [f for f in all_items if f.is_dir()]
         
-        # Also collect files from subfolders for total count
-        all_files_recursive = [f for f in folder_path.rglob('*') if f.is_file()]
+        # Also collect files from subfolders for total count (with depth limit)
+        if max_depth is None:
+            max_depth = self.config.get('organization', {}).get('max_depth', 0)
         
-        logger.debug(f"Found {len(files)} root files, {len(folders)} folders, {len(all_files_recursive)} total files (recursive)")
+        if max_depth == 0:
+            # No limit - collect all files
+            all_files_recursive = [f for f in folder_path.rglob('*') if f.is_file()]
+        else:
+            # Limit depth
+            all_files_recursive = []
+            for f in folder_path.rglob('*'):
+                if f.is_file():
+                    try:
+                        depth = len(f.relative_to(folder_path).parts)
+                        if depth <= max_depth:
+                            all_files_recursive.append(f)
+                    except:
+                        pass
+        
+        file_count = len(all_files_recursive)
+        logger.info(f"📊 Found {len(files)} root files, {len(folders)} folders, {file_count} total files (recursive)")
+        
+        # Progress feedback for large scans
+        if file_count > 10000:
+            logger.info(f"⚡ Large folder detected: {file_count:,} files - Processing in chunks for better performance")
         
         # Ignore hidden files if configured
         if self.config.get('organization', {}).get('ignore_hidden_files', True):
@@ -96,13 +174,60 @@ class FileOrganizer:
             'Code', 'Installers', 'Gaming', 'Other', 'Compressed', 'AutoFolder_Logs'
         }
         
-        # Skip common system/app/game folders that should not be organized
-        system_folder_patterns = [
-            'WindowsPowerShell', 'KingsoftData', 'WPS Cloud Files',
-            'Custom Office Templates', 'Rockstar Games', 'My Games',
-            'FIFA', 'FC ', 'WWE', 'GTA', 'Gameloft',  # Games
-            'pyinstaller', 'venv', 'node_modules', '.git', '__pycache__'  # Dev folders
+        # CRITICAL: Define system folders that should NEVER be organized
+        CRITICAL_SYSTEM_FOLDERS = [
+            # User Profile Folders (CRITICAL - DO NOT ORGANIZE)
+            'Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Videos',
+            'AppData', 'Application Data', 'Local Settings',
+            'Contacts', 'Favorites', 'Links', 'Saved Games', 'Searches',
+            
+            # Windows System Folders (CRITICAL - DO NOT ORGANIZE)
+            'Windows', 'Program Files', 'Program Files (x86)', 'ProgramData',
+            'System32', 'SysWOW64', '$Recycle.Bin', 'Recovery',
         ]
+        
+        # Skip common system/app/game folders that should not be organized
+        system_folder_patterns = CRITICAL_SYSTEM_FOLDERS + [
+            
+            # Cloud Storage Folders
+            'OneDrive', 'Google Drive', 'Dropbox', 'iCloud Drive',
+            'WPS Cloud Files', 'KingsoftData',
+            
+            # Development Project Folders (CRITICAL - WILL BREAK PROJECTS)
+            'node_modules', 'venv', 'env', '.venv', '.env',  # Package folders
+            '__pycache__', '.pytest_cache', '.mypy_cache',  # Python cache
+            '.git', '.svn', '.hg', '.bzr',  # Version control
+            'dist', 'build', '.gradle', '.idea', '.vscode',  # Build outputs & IDE
+            'vendor', 'composer', 'bower_components',  # PHP/Web dependencies
+            
+            # Development Project Indicators (if folder contains these, skip entire folder)
+            'pyinstaller', '.gitignore', 'requirements.txt', 'package.json',
+            'setup.py', 'pyproject.toml', 'Cargo.toml', 'go.mod',
+            
+            # Microsoft Office & Apps
+            'WindowsPowerShell', 'Custom Office Templates',
+            
+            # Games (large, complex folder structures)
+            'Rockstar Games', 'My Games', 'Steam', 'Epic Games',
+            'FIFA', 'FC ', 'WWE', 'GTA', 'Gameloft', 'EA Games',
+            'Ubisoft', 'Battle.net', 'Origin Games'
+        ]
+        
+        # AUTOMATIC RESCUE: Check for misplaced system folders and move them back to root
+        # This fixes any previous organizations that happened before the protection was added
+        rescued = self._rescue_misplaced_system_folders(folder_path, system_folder_patterns[:16])
+        if rescued:
+            logger.info(f"🛡️ Auto-rescued {len(rescued)} misplaced system folders back to root")
+            for folder_name in rescued:
+                logger.info(f"   ✓ Rescued: {folder_name}")
+        
+        # AUTOMATIC RESCUE: Check for misplaced system folders and move them back to root
+        # This fixes any previous organizations that happened before the protection was added
+        rescued = self._rescue_misplaced_system_folders(folder_path, CRITICAL_SYSTEM_FOLDERS)
+        if rescued:
+            logger.info(f"🛡️ Auto-rescued {len(rescued)} misplaced system folders back to root")
+            for folder_name in rescued:
+                logger.info(f"   ✓ Rescued: {folder_name}")
         
         # Peek inside folders and treat them as files for organization
         folder_items = []
@@ -115,6 +240,11 @@ class FileOrganizer:
             # Skip system/app/game folders
             if any(pattern in folder.name for pattern in system_folder_patterns):
                 logger.debug(f"Skipping system/app folder: {folder.name}")
+                continue
+            
+            # Skip development projects (CRITICAL - will break projects if organized)
+            if self._is_development_project(folder):
+                logger.info(f"🛡️ Skipping development project: {folder.name}")
                 continue
                 
             try:
@@ -138,8 +268,8 @@ class FileOrganizer:
                 logger.debug(f"Peeked into '{folder.name}': found {len(folder_files)} sample files")
                 
                 if folder_files:
-                    # Calculate folder size
-                    folder_size = sum(f.stat().st_size for f in folder_files)
+                    # Calculate folder size (safely handle inaccessible files)
+                    folder_size = sum(self.safe_get_size(f) for f in folder_files)
                     # Use first file's extension as representative
                     folder_items.append({
                         'path': folder,
@@ -157,7 +287,7 @@ class FileOrganizer:
             'total_files': len(all_files_recursive),  # Count all files recursively
             'root_files': len(files),
             'total_folders': len(folder_items),
-            'total_size': sum(f.stat().st_size for f in all_files_recursive),  # Size of all files
+            'total_size': self._calculate_safe_total_size(all_files_recursive),  # Safe size calculation
             'by_extension': {},
             'by_date': {},
             'by_size_range': {
@@ -177,16 +307,18 @@ class FileOrganizer:
             ext = file_path.suffix.lower()
             analysis['by_extension'][ext] = analysis['by_extension'].get(ext, 0) + 1
             
-            # By date (month)
+            # By date (month) - safely
             try:
-                mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
-                month_key = mtime.strftime('%Y-%m')
-                analysis['by_date'][month_key] = analysis['by_date'].get(month_key, 0) + 1
-            except:
-                pass
+                mtime_timestamp = self.safe_get_mtime(file_path)
+                if mtime_timestamp:
+                    mtime = datetime.fromtimestamp(mtime_timestamp)
+                    month_key = mtime.strftime('%Y-%m')
+                    analysis['by_date'][month_key] = analysis['by_date'].get(month_key, 0) + 1
+            except Exception as e:
+                logger.debug(f"Could not get date for {file_path}: {e}")
             
-            # By size
-            size = file_path.stat().st_size
+            # By size - safely
+            size = self.safe_get_size(file_path)
             size_mb = size / (1024 * 1024)
             if size_mb < 1:
                 analysis['by_size_range']['tiny'] += 1
@@ -288,7 +420,8 @@ class FileOrganizer:
                     'move_duplicates_to', 'Duplicates'
                 ))
             
-            target_folder.mkdir(parents=True, exist_ok=True)
+            # Do not pre-create the target folder here; create when moving to avoid empty folders.
+            # target_folder.mkdir(parents=True, exist_ok=True)
             
             for hash_val, file_list in duplicates.items():
                 # Keep the first one, move the rest
@@ -308,6 +441,8 @@ class FileOrganizer:
                             dest = target_folder / f"{stem}_{counter}{suffix}"
                             counter += 1
                         
+                        # Ensure parent exists only when actually moving a file
+                        dest.parent.mkdir(parents=True, exist_ok=True)
                         shutil.move(str(file_path), str(dest))
                         files_moved += 1
                         moved_files.append((str(file_path), str(dest)))
@@ -331,7 +466,7 @@ class FileOrganizer:
                 
                 for file_path in remove:
                     try:
-                        file_size = file_path.stat().st_size
+                        file_size = self.safe_get_size(file_path)
                         file_path.unlink()
                         files_deleted += 1
                         space_freed += file_size
@@ -371,7 +506,9 @@ class FileOrganizer:
         self, 
         folder_path: Path, 
         profile: str = None,
-        custom_rules: List[Dict] = None
+        custom_rules: List[Dict] = None,
+        max_depth: int = None,
+        progress_callback = None
     ) -> List[Dict]:
         """
         Preview what organization will do without making changes.
@@ -381,13 +518,22 @@ class FileOrganizer:
             folder_path: Folder to organize
             profile: Profile name to use (e.g., 'downloads', 'media')
             custom_rules: Custom rule list
+            max_depth: Maximum folder depth to organize (0=no limit)
+            progress_callback: Optional callback for progress updates
             
         Returns:
             List of planned operations
         """
         logger.info(f"Generating preview for: {folder_path}")
         
-        analysis = self.analyze_folder(folder_path)
+        # Notify user we're indexing
+        if progress_callback:
+            try:
+                progress_callback(0, 1, status="🔍 Indexing files in folder...")
+            except:
+                pass
+        
+        analysis = self.analyze_folder(folder_path, max_depth=max_depth)
         files = analysis['files']
         folders = analysis.get('folders', [])
         
@@ -402,6 +548,14 @@ class FileOrganizer:
         # AI Semantic Grouping - ALWAYS ENABLED
         if self.ai_classifier:
             logger.info("Creating AI semantic groups...")
+            
+            # Notify user about AI grouping phase
+            if progress_callback:
+                try:
+                    progress_callback(0, 1, status="🤖 AI is creating semantic groups...")
+                except:
+                    pass
+            
             try:
                 # Collect all files for AI analysis (root + subfolders)
                 all_files_for_ai = list(files)  # Start with root files
@@ -507,7 +661,7 @@ class FileOrganizer:
                     'ai_group': ai_group,
                     'original_name': file_path.name,
                     'suggested_name': suggested_name,
-                    'size': file_path.stat().st_size,
+                    'size': self.safe_get_size(file_path),
                     'status': 'pending'
                 })
                 logger.debug(f"  -> Added to operations")
@@ -570,10 +724,36 @@ class FileOrganizer:
             'Code', 'Installers', 'Gaming', 'Other', 'Compressed'
         }
         system_folder_patterns = [
-            'WindowsPowerShell', 'KingsoftData', 'WPS Cloud Files',
-            'Custom Office Templates', 'Rockstar Games', 'My Games',
-            'FIFA', 'FC ', 'WWE', 'GTA', 'Gameloft',
-            'pyinstaller', 'venv', 'node_modules', '.git', '__pycache__'
+            # Windows System Folders (CRITICAL - DO NOT ORGANIZE)
+            'Windows', 'Program Files', 'Program Files (x86)', 'ProgramData',
+            'System32', 'SysWOW64', '$Recycle.Bin', 'Recovery',
+            
+            # User Profile Folders (CRITICAL - DO NOT ORGANIZE)
+            'Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Videos',
+            'AppData', 'Application Data', 'Local Settings',
+            'Contacts', 'Favorites', 'Links', 'Saved Games', 'Searches',
+            
+            # Cloud Storage Folders
+            'OneDrive', 'Google Drive', 'Dropbox', 'iCloud Drive',
+            'WPS Cloud Files', 'KingsoftData',
+            
+            # Development Project Folders (CRITICAL - WILL BREAK PROJECTS)
+            'node_modules', 'venv', 'env', '.venv', '.env',
+            '__pycache__', '.pytest_cache', '.mypy_cache',
+            '.git', '.svn', '.hg', '.bzr',
+            'dist', 'build', '.gradle', '.idea', '.vscode',
+            'vendor', 'composer', 'bower_components',
+            
+            # Microsoft Office & Apps
+            'WindowsPowerShell', 'Custom Office Templates',
+            
+            # Games (large, complex folder structures)
+            'Rockstar Games', 'My Games', 'Steam', 'Epic Games',
+            'FIFA', 'FC ', 'WWE', 'GTA', 'Gameloft', 'EA Games',
+            'Ubisoft', 'Battle.net', 'Origin Games',
+            
+            # Development markers
+            'pyinstaller', '.gitignore', 'requirements.txt', 'package.json'
         ]
         
         # Find subfolder files to include in preview
@@ -585,23 +765,25 @@ class FileOrganizer:
             if subfolder_file.parent == folder_path:
                 continue
             
-            # Skip if this file is inside a folder that will be moved (avoid double-move)
-            skip_this_file = False
+            # ✅ CRITICAL FIX: Skip files inside folders that are being moved as a whole unit
+            # If the parent folder is in folders_being_moved, the file will be moved with it
+            skip_due_to_parent_move = False
             for moving_folder in folders_being_moved:
                 try:
                     subfolder_file.relative_to(moving_folder)
-                    # File is inside a folder that will be moved - skip it
-                    logger.debug(f"Skipping {subfolder_file.name} (inside folder being moved: {moving_folder.name})")
-                    skip_this_file = True
+                    # If we get here, subfolder_file is inside moving_folder
+                    skip_due_to_parent_move = True
+                    logger.debug(f"Skipping {subfolder_file.name} - parent folder {moving_folder.name} is being moved")
                     break
                 except ValueError:
-                    # File is not inside this folder - continue checking
+                    # subfolder_file is not inside moving_folder, continue checking
                     continue
             
-            if skip_this_file:
+            if skip_due_to_parent_move:
                 continue
             
-            # Skip if in system/app folder (but NOT organized folders - we want to reorganize those)
+            # Skip if in system/app folder or development project
+            skip_this_file = False  # Initialize the variable
             try:
                 rel_path = subfolder_file.relative_to(folder_path)
                 for part in rel_path.parts:
@@ -635,7 +817,7 @@ class FileOrganizer:
                     'target': target_path,
                     'action': 'move',
                     'category': self._get_category_from_path(target_folder, folder_path),
-                    'size': subfolder_file.stat().st_size,
+                    'size': self.safe_get_size(subfolder_file),
                     'status': 'pending',
                     'from_subfolder': True
                 })
@@ -703,6 +885,7 @@ class FileOrganizer:
         custom_rules: List[Dict] = None,
         dry_run: bool = None,
         recursive: bool = True,
+        max_depth: int = None,
         progress_callback=None
     ) -> Dict:
         """
@@ -714,6 +897,7 @@ class FileOrganizer:
             custom_rules: Custom rule list
             dry_run: If True, don't actually move files
             recursive: If True, also organize subfolders
+            max_depth: Maximum folder depth to organize (0=no limit)
             progress_callback: Optional callback(current, total) for progress updates
             
         Returns:
@@ -722,10 +906,11 @@ class FileOrganizer:
         if dry_run is None:
             dry_run = self.dry_run
         
-        logger.info(f"{'[DRY RUN] ' if dry_run else ''}Organizing folder: {folder_path} {'(recursive)' if recursive else ''}")
+        depth_info = f" (max depth: {max_depth})" if max_depth and max_depth > 0 else ""
+        logger.info(f"{'[DRY RUN] ' if dry_run else ''}Organizing folder: {folder_path} {'(recursive)' if recursive else ''}{depth_info}")
         
         # Get preview of operations (returns tuple: operations, stats)
-        result = self.preview_organization(folder_path, profile, custom_rules)
+        result = self.preview_organization(folder_path, profile, custom_rules, max_depth=max_depth)
         
         # Handle tuple return from preview_organization
         if isinstance(result, tuple) and len(result) == 2:
@@ -748,10 +933,35 @@ class FileOrganizer:
         completed = []
         failed = []
         total = len(operations)
-        logger.debug(f"🚀 PROGRESS: Starting to process {total} operations")
+        chunk_size = self.config.get('organization', {}).get('progress_chunk_size', 10)  # Update every 10 files
+        
+        logger.info(f"🚀 Starting organization: {total:,} operations to process")
+        
+        # Emit initial status
+        if progress_callback:
+            try:
+                progress_callback(0, total, status="📦 Starting file organization...")
+            except:
+                pass
         
         for i, op in enumerate(operations, 1):
-            logger.debug(f"📊 PROGRESS: Processing operation {i}/{total} ({int(i/total*100)}%)")
+            # Emit detailed progress status messages
+            if progress_callback:
+                try:
+                    # Show which file is being processed
+                    file_name = op['source'].name[:30]  # Truncate long names
+                    if len(op['source'].name) > 30:
+                        file_name += "..."
+                    
+                    category = op.get('category', 'Other')
+                    progress_callback(i, total, status=f"📁 Moving: {file_name} → {category}")
+                except Exception as e:
+                    logger.debug(f"Progress callback error: {e}")
+            
+            # Log progress at chunks for performance
+            if i == 1 or i == total or i % chunk_size == 0:
+                percent = int(i/total*100)
+                logger.info(f"📊 Progress: {i:,}/{total:,} ({percent}%) - {len(completed)} completed, {len(failed)} failed")
             try:
                 # Safety check: Skip if target is None or invalid
                 if not op.get('target') or op['target'] is None:
@@ -771,30 +981,20 @@ class FileOrganizer:
                 completed.append(op)
                 logger.debug(f"Moved: {op['source'].name} -> {op['target']}")
                 
-                # Emit progress update
-                if progress_callback:
-                    try:
-                        logger.debug(f"🔔 PROGRESS: Calling progress_callback({i}, {total})")
-                        progress_callback(i, total)
-                        logger.debug(f"✅ PROGRESS: Callback completed successfully")
-                    except Exception as e:
-                        logger.error(f"❌ PROGRESS: Callback error: {e}", exc_info=True)
-                
             except Exception as e:
                 op['status'] = 'failed'
                 op['error'] = str(e)
                 failed.append(op)
                 logger.error(f"Failed to move {op['source'].name}: {e}")
-                
-                # Emit progress even on failure
-                if progress_callback:
-                    try:
-                        progress_callback(i, total)
-                    except Exception as e:
-                        logger.debug(f"Progress callback error: {e}")
         
         # Save to undo history
         if completed:
+            if progress_callback:
+                try:
+                    progress_callback(total, total, status="💾 Saving undo history...")
+                except:
+                    pass
+            
             self.undo_manager.save_operation({
                 'timestamp': datetime.now(),
                 'folder': str(folder_path),
@@ -826,6 +1026,14 @@ class FileOrganizer:
         
         if completed and os.name == 'nt':
             logger.info("🎨 FOLDER ICONS: Attempting to create Windows folder icons...")
+            
+            # Notify UI that we're customizing folder icons
+            if progress_callback:
+                try:
+                    progress_callback(total, total, status="🎨 Customizing folder icons...")
+                except Exception as e:
+                    logger.debug(f"Progress callback error: {e}")
+            
             try:
                 # Fix import - use absolute import instead of relative
                 logger.debug("   - Importing WindowsFolderIconCustomizer...")
@@ -949,8 +1157,9 @@ class FileOrganizer:
         base_folder: Path, 
         rules: List[Dict]
     ) -> Optional[Path]:
-        """Determine target folder with multi-level sorting (Category → AI Group → Type → Date).
-        AI semantic grouping is ALWAYS applied when available."""
+        """Determine target folder with multi-level sorting (Category → AI Group → Type).
+        AI semantic grouping is ALWAYS applied when available.
+        Date subfolders REMOVED for simpler navigation."""
         
         # First level: Category (Documents, Images, etc.)
         category_folder = None
@@ -987,15 +1196,8 @@ class FileOrganizer:
         else:
             type_folder = category_folder / "No Extension"
         
-        # Third level: Date (Jan-26, Dec-25, etc.)
-        try:
-            mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
-            date_folder_name = mtime.strftime('%b-%y')  # e.g., "Jan-26"
-            final_folder = type_folder / date_folder_name
-        except:
-            final_folder = type_folder / "Unknown Date"
-        
-        return final_folder
+        # Return type folder directly (NO DATE SUBFOLDER for simpler navigation)
+        return type_folder
     
     def _get_unique_path(self, path: Path) -> Path:
         """Generate unique path if file exists - NO LONGER ADDS (1) AUTOMATICALLY.
@@ -1042,6 +1244,122 @@ class FileOrganizer:
                 return group_name
         
         return None
+    
+    def _calculate_safe_total_size(self, files: list) -> int:
+        """
+        Safely calculate total size of files, skipping inaccessible ones.
+        
+        Args:
+            files: List of Path objects
+            
+        Returns:
+            Total size in bytes
+        """
+        return sum(self.safe_get_size(f) for f in files)
+    
+    def _rescue_misplaced_system_folders(self, root_path: Path, system_folders: list) -> list:
+        """
+        Automatically rescue system folders that were incorrectly moved into category folders.
+        This fixes organizations that happened before system folder protection was added.
+        
+        Args:
+            root_path: Root folder being organized (e.g., D:\\)
+            system_folders: List of critical system folder names
+            
+        Returns:
+            List of folder names that were rescued
+        """
+        rescued = []
+        category_folders = ['Code', 'Documents', 'Images', 'Videos', 'Audio', 'Archives', 
+                           'Installers', 'Gaming', 'Other', 'Compressed', 'Databases']
+        
+        try:
+            for category in category_folders:
+                category_path = root_path / category
+                if not category_path.exists() or not category_path.is_dir():
+                    continue
+                
+                # Check all subdirectories in this category folder
+                for item in category_path.iterdir():
+                    if not item.is_dir():
+                        continue
+                    
+                    # Check if this is a misplaced system folder
+                    if item.name in system_folders:
+                        target = root_path / item.name
+                        
+                        # If target already exists at root, skip (avoid conflicts)
+                        if target.exists():
+                            logger.warning(f"Cannot rescue {item.name}: already exists at root")
+                            continue
+                        
+                        try:
+                            # Move the entire folder back to root
+                            logger.info(f"🚨 Rescuing misplaced system folder: {item.name} from {category}/")
+                            shutil.move(str(item), str(target))
+                            rescued.append(item.name)
+                        except Exception as e:
+                            logger.error(f"Failed to rescue {item.name}: {e}")
+                            
+        except Exception as e:
+            logger.error(f"Error during system folder rescue: {e}")
+        
+        return rescued
+    
+    def _is_development_project(self, folder_path: Path) -> bool:
+        """
+        Check if a folder is a development project.
+        Returns True if folder contains project marker files/folders.
+        """
+        # Project marker files that indicate a development project
+        project_markers = [
+            # Python
+            'requirements.txt', 'setup.py', 'pyproject.toml', 'Pipfile', 'poetry.lock',
+            'setup.cfg', 'tox.ini', 'pytest.ini', 'manage.py',
+            
+            # JavaScript/Node.js
+            'package.json', 'package-lock.json', 'yarn.lock', 'npm-shrinkwrap.json',
+            'webpack.config.js', 'gulpfile.js', 'gruntfile.js',
+            
+            # Other languages
+            'Cargo.toml', 'Cargo.lock',  # Rust
+            'go.mod', 'go.sum',  # Go
+            'composer.json', 'composer.lock',  # PHP
+            'Gemfile', 'Gemfile.lock',  # Ruby
+            'build.gradle', 'pom.xml',  # Java
+            'CMakeLists.txt', 'Makefile',  # C/C++
+            
+            # Version control
+            '.gitignore', '.gitattributes',
+            
+            # IDE/Editor configs
+            '.editorconfig', 'tsconfig.json', 'jsconfig.json'
+        ]
+        
+        # Project marker folders
+        project_folders = [
+            'venv', 'env', '.venv', '.env', 'virtualenv',
+            'node_modules', '__pycache__', '.git', '.svn',
+            'dist', 'build', 'target', 'out',
+            '.idea', '.vscode', '.vs'
+        ]
+        
+        # Check for marker files in root of folder
+        try:
+            for marker in project_markers:
+                if (folder_path / marker).exists():
+                    logger.info(f"🛡️ Protected: '{folder_path.name}' is a development project (found {marker})")
+                    return True
+            
+            # Check for marker folders
+            for marker_folder in project_folders:
+                if (folder_path / marker_folder).exists():
+                    logger.info(f"🛡️ Protected: '{folder_path.name}' is a development project (found {marker_folder}/)")
+                    return True
+        except Exception as e:
+            logger.debug(f"Error checking if {folder_path} is dev project: {e}")
+        
+        return False
     
     def _should_skip_file(self, file_path: Path) -> bool:
         """Check if a file should be skipped during processing."""

@@ -13,6 +13,7 @@ import ctypes
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import re
+from utils.safe_file_ops import safe_stat, safe_get_size, safe_get_mtime, safe_exists
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +215,7 @@ class ContentAnalyzer:
 
     def _get_app_root(self) -> Path:
         if getattr(sys, 'frozen', False):
-            return Path(sys.executable).resolve().parent
+            return Path(getattr(sys, '_MEIPASS', Path(sys.executable).resolve().parent))
         return Path(__file__).resolve().parents[2]
 
     def _find_bundled_tesseract_installer(self) -> Optional[Path]:
@@ -232,7 +233,7 @@ class ContentAnalyzer:
         for root in roots:
             third_party = root / 'third_party'
             for pattern in patterns:
-                if third_party.exists():
+                if safe_exists(third_party):
                     for candidate in third_party.glob(pattern):
                         if candidate.is_file():
                             return candidate
@@ -308,7 +309,7 @@ class ContentAnalyzer:
         
         # Check file size
         try:
-            file_size_mb = file_path.stat().st_size / (1024 * 1024)
+            file_size_mb = safe_get_size(file_path) / (1024 * 1024)
             if file_size_mb > self.max_file_size_mb:
                 logger.debug(f"Skipping {file_path.name}: too large ({file_size_mb:.1f} MB)")
                 return None
@@ -620,7 +621,7 @@ if __name__ == "__main__":
     
     # Test with a sample PDF if available
     test_path = Path(r"C:\Users\Praveen\OneDrive\Documents")
-    if test_path.exists():
+    if safe_exists(test_path):
         pdfs = list(test_path.glob("**/*.pdf"))[:3]
         for pdf in pdfs:
             print(f"\nAnalyzing: {pdf.name}")

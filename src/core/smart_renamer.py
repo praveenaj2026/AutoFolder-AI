@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional, Dict, List
 from datetime import datetime
 import logging
+from utils.safe_file_ops import safe_stat, safe_get_size, safe_get_mtime, safe_exists
 
 logger = logging.getLogger(__name__)
 
@@ -152,7 +153,7 @@ class SmartRenamer:
         # Try file modification time
         if not date_obj:
             try:
-                timestamp = file_path.stat().st_mtime
+                timestamp = safe_get_mtime(file_path)
                 date_obj = datetime.fromtimestamp(timestamp)
             except Exception:
                 pass

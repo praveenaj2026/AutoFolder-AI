@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Dict, Optional
 import logging
 
+from utils.safe_file_ops import safe_stat, safe_get_size, safe_get_mtime, safe_exists
+
 try:
     import filetype
 except ImportError:
@@ -61,19 +63,21 @@ class FileAnalyzer:
         Returns:
             Dictionary with file metadata
         """
-        if not file_path.exists():
+        if not safe_exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
         
-        stat = file_path.stat()
+        stat = safe_stat(file_path)
+        size = safe_get_size(file_path)
+        mtime = safe_get_mtime(file_path)
         
         info = {
             'name': file_path.name,
             'stem': file_path.stem,
             'extension': file_path.suffix.lower(),
-            'size': stat.st_size,
-            'size_mb': stat.st_size / (1024 * 1024),
-            'created': stat.st_ctime,
-            'modified': stat.st_mtime,
+            'size': size,
+            'size_mb': size / (1024 * 1024),
+            'created': stat.st_ctime if stat else mtime,
+            'modified': mtime,
             'category': self.get_category(file_path),
             'mime_type': self.get_mime_type(file_path)
         }

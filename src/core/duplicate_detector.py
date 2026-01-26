@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 from collections import defaultdict
 import logging
+from utils.safe_file_ops import safe_stat, safe_get_size, safe_get_mtime, safe_exists
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,7 @@ class DuplicateDetector:
             return self.size_cache[file_path]
         
         try:
-            size = file_path.stat().st_size
+            size = safe_get_size(file_path)
             self.size_cache[file_path] = size
             return size
         except Exception as e:
@@ -98,7 +99,7 @@ class DuplicateDetector:
         # Step 1: Group by file size (fast pre-filter)
         size_groups: Dict[int, List[Path]] = defaultdict(list)
         for file_path in files:
-            if not file_path.exists() or not file_path.is_file():
+            if not safe_exists(file_path) or not file_path.is_file():
                 continue
             size = self.get_file_size(file_path)
             if size > 0:  # Skip empty files
@@ -217,14 +218,14 @@ class DuplicateDetector:
                 # Keep most recently modified
                 sorted_files = sorted(
                     duplicate_group, 
-                    key=lambda p: p.stat().st_mtime,
+                    key=lambda p: safe_get_mtime(p),
                     reverse=True
                 )
             elif strategy == 'oldest':
                 # Keep oldest file
                 sorted_files = sorted(
                     duplicate_group, 
-                    key=lambda p: p.stat().st_mtime
+                    key=lambda p: safe_get_mtime(p)
                 )
             elif strategy == 'shortest_path':
                 # Keep file with shortest path

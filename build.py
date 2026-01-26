@@ -21,6 +21,10 @@ def _pip_install_requirements():
     print("\n📦 Installing/updating requirements...")
     _run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt", "--upgrade"], check=True)
 
+    # PyInstaller is incompatible with the obsolete pathlib backport.
+    # If it was installed previously, remove it to avoid build failure.
+    _run([sys.executable, "-m", "pip", "uninstall", "-y", "pathlib"], check=False)
+
 
 def _ensure_local_model_cache() -> Path:
     """Download/copy the AI model into ./models so PyInstaller can bundle it."""

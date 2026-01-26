@@ -1,7 +1,7 @@
 # Core dependencies
 PySide6>=6.6.0           # Qt6 for modern UI
 watchdog>=3.0.0          # File system monitoring
-pathlib>=1.0.1           # Path manipulation (built-in but listed for clarity)
+
 
 # AI/ML (Local models only)
 sentence-transformers>=2.2.2  # Local embeddings

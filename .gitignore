@@ -25,7 +25,7 @@ wheels/
 
 # PyInstaller
 *.manifest
-*.spec
+# Keep autofolder.spec for builds
 
 # Unit test / coverage
 htmlcov/
@@ -75,3 +75,18 @@ models/
 AutoFolder_AI.exe
 AutoFolder_AI_Pro.exe
 release/
+*.exe
+!tesseract-ocr-w64-setup-5.5.0.20241111.exe
+*.zip
+!release/*.zip
+
+# Test folders
+test_ai_grouping/
+test_duplicates/
+test_organize/
+test_validation/
+test_external_hdd/
+
+# Temporary files
+code_files_for_reference/
+review_package.zip

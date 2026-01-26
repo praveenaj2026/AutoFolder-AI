@@ -1,0 +1,1752 @@
+﻿{
+    "root":  "D:\\",
+    "root_files":  [
+                       {
+                           "path":  "D:\\Amaran (2024)  english Subtitle.srt",
+                           "size":  149940
+                       },
+                       {
+                           "path":  "D:\\AUTHENTICATION_SERVER_OPERATIONS_REFERENCE.md",
+                           "size":  46054
+                       },
+                       {
+                           "path":  "D:\\backup_of_SSD_copy.log",
+                           "size":  25051716
+                       },
+                       {
+                           "path":  "D:\\backup_of_SSD_verify.log",
+                           "size":  6267
+                       },
+                       {
+                           "path":  "D:\\BOARD_SN252006746447183 physical setupdated.ini",
+                           "size":  28155
+                       },
+                       {
+                           "path":  "D:\\BOARD_SN252006746447183_ALES.ini",
+                           "size":  25676
+                       },
+                       {
+                           "path":  "D:\\BOARD_SN27971371535754.ini",
+                           "size":  24867
+                       },
+                       {
+                           "path":  "D:\\build.log",
+                           "size":  9936
+                       },
+                       {
+                           "path":  "D:\\Complete Enhanced Node Backup Manager - Production.md",
+                           "size":  5334
+                       },
+                       {
+                           "path":  "D:\\copilot-instructions.md",
+                           "size":  47759
+                       },
+                       {
+                           "path":  "D:\\create_sipinspector_files_CORRECTED.ps1",
+                           "size":  33781
+                       },
+                       {
+                           "path":  "D:\\create_sipinspector_files_FINAL.ps1",
+                           "size":  33962
+                       },
+                       {
+                           "path":  "D:\\DEPLOYMENT_GUIDE_v1.2A.md",
+                           "size":  5262
+                       },
+                       {
+                           "path":  "D:\\DEVELOPMENT_WORKFLOW.md",
+                           "size":  5987
+                       },
+                       {
+                           "path":  "D:\\docker_setup.sh",
+                           "size":  869
+                       },
+                       {
+                           "path":  "D:\\ENTERPRISE_DEPLOYMENT_REFERENCE.md",
+                           "size":  73007
+                       },
+                       {
+                           "path":  "D:\\EU-General-Data-Protection-Regulation--GDPR--Awareness.ics",
+                           "size":  692
+                       },
+                       {
+                           "path":  "D:\\FROM centos_7 AS builder__# Fix base repos to use.md",
+                           "size":  242955
+                       },
+                       {
+                           "path":  "D:\\INSTALL_CSHRC.sh",
+                           "size":  576
+                       },
+                       {
+                           "path":  "D:\\install_global_alias.sh",
+                           "size":  2662
+                       },
+                       {
+                           "path":  "D:\\is it full script beacuse the script i have provid.md",
+                           "size":  1593
+                       },
+                       {
+                           "path":  "D:\\logs.1761400156314.log",
+                           "size":  1429
+                       },
+                       {
+                           "path":  "D:\\Microsoft.Management.Deployment.winmd",
+                           "size":  31648
+                       },
+                       {
+                           "path":  "D:\\my_SBC.ini",
+                           "size":  25567
+                       },
+                       {
+                           "path":  "D:\\NodeAutomationLauncher.spec",
+                           "size":  1330
+                       },
+                       {
+                           "path":  "D:\\README.md",
+                           "size":  6836
+                       },
+                       {
+                           "path":  "D:\\ROADMAP.md",
+                           "size":  16623
+                       },
+                       {
+                           "path":  "D:\\SBC_ALES_test.pcapng",
+                           "size":  6033532
+                       },
+                       {
+                           "path":  "D:\\setup_local_ai_agent.sh",
+                           "size":  3526
+                       },
+                       {
+                           "path":  "D:\\test_installation.sh",
+                           "size":  1134
+                       },
+                       {
+                           "path":  "D:\\wsl_setup.sh",
+                           "size":  1163
+                       }
+                   ],
+    "maxDepth":  6,
+    "generated":  {
+                      "value":  "\/Date(1769421795404)\/",
+                      "DisplayHint":  2,
+                      "DateTime":  "Monday, 26 January, 2026 3.33.15 PM"
+                  },
+    "report":  [
+                   {
+                       "top":  "$RECYCLE.BIN",
+                       "files":  0,
+                       "folders":  0,
+                       "top_extensions":  {
+
+                                          },
+                       "largest_files":  {
+
+                                         }
+                   },
+                   {
+                       "top":  "Archives",
+                       "files":  81,
+                       "folders":  24,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".xz",
+                                                  "count":  55
+                                              },
+                                              {
+                                                  "ext":  ".zip",
+                                                  "count":  21
+                                              },
+                                              {
+                                                  "ext":  ".gz",
+                                                  "count":  3
+                                              },
+                                              {
+                                                  "ext":  ".rar",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".bz2",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Archives\\RAR\\N2.534.7 OVF (1).rar",
+                                                 "size":  5877223850
+                                             },
+                                             {
+                                                 "path":  "D:\\Archives\\Winlibs\\ZIP\\winlibs-x86_64-posix-seh-gcc-13.2.0-llvm-18.1.5-mingw-w64ucrt-11.0.1-r8 (1).zip",
+                                                 "size":  335286982
+                                             },
+                                             {
+                                                 "path":  "D:\\Archives\\Winlibs\\ZIP\\winlibs-x86_64-posix-seh-gcc-13.2.0-llvm-17.0.5-mingw-w64ucrt-11.0.1-r3.zip",
+                                                 "size":  309424631
+                                             },
+                                             {
+                                                 "path":  "D:\\Archives\\GZ Collection\\GZ\\windsurf-reh-linux-x64-1.12.12.tar.gz",
+                                                 "size":  106286967
+                                             },
+                                             {
+                                                 "path":  "D:\\Archives\\ZIP\\ffmpeg.zip",
+                                                 "size":  92234348
+                                             },
+                                             {
+                                                 "path":  "D:\\Archives\\ZIP\\node_automation_deployment_windows_20250919_203231.zip",
+                                                 "size":  78134854
+                                             },
+                                             {
+                                                 "path":  "D:\\Archives\\GZ\\NodeAutomationSuite_RockyLinux_COMPLETE.tar.gz",
+                                                 "size":  49346816
+                                             },
+                                             {
+                                                 "path":  "D:\\Archives\\ZIP\\SIP_Simulator_v2.0_Portable.zip",
+                                                 "size":  43716335
+                                             },
+                                             {
+                                                 "path":  "D:\\Archives\\Mobaxterm\\ZIP\\MobaXterm_Portable_v25.3.zip",
+                                                 "size":  43269295
+                                             },
+                                             {
+                                                 "path":  "D:\\Archives\\ZIP\\GUI.zip",
+                                                 "size":  35170478
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Audio",
+                       "files":  99,
+                       "folders":  30,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".mp3",
+                                                  "count":  88
+                                              },
+                                              {
+                                                  "ext":  ".wav",
+                                                  "count":  11
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Audio\\MP3\\all_songs_2024.mp3",
+                                                 "size":  103900668
+                                             },
+                                             {
+                                                 "path":  "D:\\Audio\\Roja\\MP3\\22 - Inneram Indha Neram.mp3",
+                                                 "size":  13393930
+                                             },
+                                             {
+                                                 "path":  "D:\\Audio\\MP3\\16 - Thozhi.mp3",
+                                                 "size":  12269578
+                                             },
+                                             {
+                                                 "path":  "D:\\Audio\\Masstamilan\\MP3\\Kutti-Story-MassTamilan.io.mp3",
+                                                 "size":  12107082
+                                             },
+                                             {
+                                                 "path":  "D:\\Audio\\MP3 Collection\\MP3\\25 - Madhubala (Tamil).mp3",
+                                                 "size":  12054538
+                                             },
+                                             {
+                                                 "path":  "D:\\Audio\\MP3\\10 - Adheeraa.mp3",
+                                                 "size":  10739722
+                                             },
+                                             {
+                                                 "path":  "D:\\Audio\\Roja\\MP3\\Roja-Roja.mp3",
+                                                 "size":  10294996
+                                             },
+                                             {
+                                                 "path":  "D:\\Audio\\MP3\\Mersalayitten.mp3",
+                                                 "size":  10279278
+                                             },
+                                             {
+                                                 "path":  "D:\\Audio\\MP3\\18 - Hey Sita Hey Rama.mp3",
+                                                 "size":  10229770
+                                             },
+                                             {
+                                                 "path":  "D:\\Audio\\MP3\\07 - Naan Pizhai.mp3",
+                                                 "size":  10117130
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Backups",
+                       "files":  4,
+                       "folders":  4,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".bak",
+                                                  "count":  3
+                                              },
+                                              {
+                                                  "ext":  ".old",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Backups\\BAK\\SIPInspectorMainFrame.java.bak",
+                                                 "size":  74111
+                                             },
+                                             {
+                                                 "path":  "D:\\Backups\\Incoming\\BAK\\Incoming_basic_call_generic_20251117_170541.bak",
+                                                 "size":  1679
+                                             },
+                                             {
+                                                 "path":  "D:\\Backups\\OLD\\known_hosts.old",
+                                                 "size":  1432
+                                             },
+                                             {
+                                                 "path":  "D:\\Backups\\Incoming\\BAK\\incoming_basic_call_values_20251117_170541.bak",
+                                                 "size":  229
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Code",
+                       "files":  904,
+                       "folders":  73,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".py",
+                                                  "count":  270
+                                              },
+                                              {
+                                                  "ext":  ".java",
+                                                  "count":  200
+                                              },
+                                              {
+                                                  "ext":  ".js",
+                                                  "count":  96
+                                              },
+                                              {
+                                                  "ext":  ".json",
+                                                  "count":  82
+                                              },
+                                              {
+                                                  "ext":  ".yaml",
+                                                  "count":  71
+                                              },
+                                              {
+                                                  "ext":  ".html",
+                                                  "count":  57
+                                              },
+                                              {
+                                                  "ext":  ".css",
+                                                  "count":  39
+                                              },
+                                              {
+                                                  "ext":  ".xml",
+                                                  "count":  16
+                                              },
+                                              {
+                                                  "ext":  ".c",
+                                                  "count":  15
+                                              },
+                                              {
+                                                  "ext":  ".ts",
+                                                  "count":  14
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Code\\HTML\\Oracle_VirtualBox_Extension_Pack-7.2.2\\solaris.amd64\\VBoxPuelMain.so",
+                                                 "size":  60552840
+                                             },
+                                             {
+                                                 "path":  "D:\\Code\\HTML\\Oracle_VirtualBox_Extension_Pack-7.2.2\\linux.amd64\\VBoxPuelMain.so",
+                                                 "size":  9255328
+                                             },
+                                             {
+                                                 "path":  "D:\\Code\\JS\\chat.js",
+                                                 "size":  9229377
+                                             },
+                                             {
+                                                 "path":  "D:\\Code\\HTML\\Oracle_VirtualBox_Extension_Pack-7.2.2\\darwin.amd64\\VBoxPuelMain.dylib",
+                                                 "size":  6696400
+                                             },
+                                             {
+                                                 "path":  "D:\\Code\\HTML\\Oracle_VirtualBox_Extension_Pack-7.2.2\\darwin.arm64\\VBoxPuelMain.dylib",
+                                                 "size":  6429600
+                                             },
+                                             {
+                                                 "path":  "D:\\Code\\HTML\\Oracle_VirtualBox_Extension_Pack-7.2.2\\solaris.amd64\\VBoxVRDP.so",
+                                                 "size":  3223744
+                                             },
+                                             {
+                                                 "path":  "D:\\Code\\HTML\\ffmpeg-all.html",
+                                                 "size":  2982909
+                                             },
+                                             {
+                                                 "path":  "D:\\Code\\Ffmpeg\\HTML\\ffprobe-all.html",
+                                                 "size":  2331747
+                                             },
+                                             {
+                                                 "path":  "D:\\Code\\Ffmpeg\\HTML\\ffplay-all.html",
+                                                 "size":  2315695
+                                             },
+                                             {
+                                                 "path":  "D:\\Code\\JS\\extensionHostProcess.js",
+                                                 "size":  1870329
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Config files",
+                       "files":  310,
+                       "folders":  62,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".json",
+                                                  "count":  109
+                                              },
+                                              {
+                                                  "ext":  "",
+                                                  "count":  45
+                                              },
+                                              {
+                                                  "ext":  ".md",
+                                                  "count":  38
+                                              },
+                                              {
+                                                  "ext":  ".dll",
+                                                  "count":  13
+                                              },
+                                              {
+                                                  "ext":  ".png",
+                                                  "count":  12
+                                              },
+                                              {
+                                                  "ext":  ".js",
+                                                  "count":  11
+                                              },
+                                              {
+                                                  "ext":  ".svg",
+                                                  "count":  10
+                                              },
+                                              {
+                                                  "ext":  ".txt",
+                                                  "count":  10
+                                              },
+                                              {
+                                                  "ext":  ".ts",
+                                                  "count":  6
+                                              },
+                                              {
+                                                  "ext":  ".vsixmanifest",
+                                                  "count":  4
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Config files\\.docker\\bin\\inference\\ggml-vulkan.dll",
+                                                 "size":  46126320
+                                             },
+                                             {
+                                                 "path":  "D:\\Config files\\.vscode\\extensions\\alefragnani.bookmarks-13.5.0\\images\\bookmarks-list-from-all-files.gif",
+                                                 "size":  2487127
+                                             },
+                                             {
+                                                 "path":  "D:\\Config files\\.docker\\bin\\inference\\llama.dll",
+                                                 "size":  1978608
+                                             },
+                                             {
+                                                 "path":  "D:\\Config files\\.vscode\\extensions\\alefragnani.bookmarks-13.5.0\\images\\bookmarks-list-from-all-files-multi-root.gif",
+                                                 "size":  1870060
+                                             },
+                                             {
+                                                 "path":  "D:\\Config files\\.docker\\bin\\inference\\ggml-cpu-sapphirerapids.dll",
+                                                 "size":  1405680
+                                             },
+                                             {
+                                                 "path":  "D:\\Config files\\.vscode\\extensions\\alefragnani.bookmarks-13.5.0\\images\\bookmarks-select-lines.gif",
+                                                 "size":  1333853
+                                             },
+                                             {
+                                                 "path":  "D:\\Config files\\.docker\\bin\\inference\\ggml-cpu-icelake.dll",
+                                                 "size":  1140464
+                                             },
+                                             {
+                                                 "path":  "D:\\Config files\\.docker\\bin\\inference\\ggml-cpu-skylakex.dll",
+                                                 "size":  1138928
+                                             },
+                                             {
+                                                 "path":  "D:\\Config files\\.vscode\\extensions\\ms-vscode-remote.remote-ssh-0.120.0\\out\\extension.js",
+                                                 "size":  1117892
+                                             },
+                                             {
+                                                 "path":  "D:\\Config files\\.docker\\bin\\inference\\ggml-cpu-haswell.dll",
+                                                 "size":  917744
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Documents",
+                       "files":  487,
+                       "folders":  58,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".txt",
+                                                  "count":  438
+                                              },
+                                              {
+                                                  "ext":  ".docx",
+                                                  "count":  19
+                                              },
+                                              {
+                                                  "ext":  ".pdf",
+                                                  "count":  17
+                                              },
+                                              {
+                                                  "ext":  ".pptx",
+                                                  "count":  4
+                                              },
+                                              {
+                                                  "ext":  ".py",
+                                                  "count":  3
+                                              },
+                                              {
+                                                  "ext":  ".xlsx",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".rtf",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".lnk",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".csv",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".ppt",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Documents\\June27\\TXT\\JUne19_N3_scoket_HF_pmegent_down.txt",
+                                                 "size":  38359061
+                                             },
+                                             {
+                                                 "path":  "D:\\Documents\\PPTX\\Unified Edge Node Automation.pptx",
+                                                 "size":  18259070
+                                             },
+                                             {
+                                                 "path":  "D:\\Documents\\PPTX\\Streamlined Node \u0026 Patch Automation (1).pptx",
+                                                 "size":  18243946
+                                             },
+                                             {
+                                                 "path":  "D:\\Documents\\PPTX\\Streamlined Node \u0026 Patch Automation.pptx",
+                                                 "size":  18243946
+                                             },
+                                             {
+                                                 "path":  "D:\\Documents\\Interview\\PDF\\Interview Mastery Guide_ 80 Essential Q\u0026As with Vi.pdf",
+                                                 "size":  12992965
+                                             },
+                                             {
+                                                 "path":  "D:\\Documents\\DOCX\\External Spec_new\\RQOXE-796 - ALES Same Login between Several Devices Archi Recommend_draft_v3.docx",
+                                                 "size":  5515956
+                                             },
+                                             {
+                                                 "path":  "D:\\Documents\\DOCX\\RQOXE-796 - ALES Same Login between Several Devices Archi Recommend_draft_v3.docx",
+                                                 "size":  5515956
+                                             },
+                                             {
+                                                 "path":  "D:\\Documents\\PPTX\\Python script presentation.pptx",
+                                                 "size":  5181073
+                                             },
+                                             {
+                                                 "path":  "D:\\Documents\\PDF\\Draft Modification Plan for SI.pdf",
+                                                 "size":  4196337
+                                             },
+                                             {
+                                                 "path":  "D:\\Documents\\June27\\TXT\\June27_test_final3.txt",
+                                                 "size":  4169728
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "ffmpeg",
+                       "files":  6,
+                       "folders":  3,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".ffpreset",
+                                                  "count":  5
+                                              },
+                                              {
+                                                  "ext":  "",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\ffmpeg\\LICENSE",
+                                                 "size":  35147
+                                             },
+                                             {
+                                                 "path":  "D:\\ffmpeg\\presets\\libvpx-720p.ffpreset",
+                                                 "size":  227
+                                             },
+                                             {
+                                                 "path":  "D:\\ffmpeg\\presets\\libvpx-720p50_60.ffpreset",
+                                                 "size":  227
+                                             },
+                                             {
+                                                 "path":  "D:\\ffmpeg\\presets\\libvpx-1080p.ffpreset",
+                                                 "size":  227
+                                             },
+                                             {
+                                                 "path":  "D:\\ffmpeg\\presets\\libvpx-1080p50_60.ffpreset",
+                                                 "size":  227
+                                             },
+                                             {
+                                                 "path":  "D:\\ffmpeg\\presets\\libvpx-360p.ffpreset",
+                                                 "size":  219
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Fonts",
+                       "files":  99,
+                       "folders":  3,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".woff2",
+                                                  "count":  38
+                                              },
+                                              {
+                                                  "ext":  ".woff",
+                                                  "count":  38
+                                              },
+                                              {
+                                                  "ext":  ".ttf",
+                                                  "count":  23
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Fonts\\TTF\\Inter-Italic-VariableFont_opsz,wght.ttf",
+                                                 "size":  904532
+                                             },
+                                             {
+                                                 "path":  "D:\\Fonts\\TTF\\Inter-VariableFont_opsz,wght.ttf",
+                                                 "size":  874708
+                                             },
+                                             {
+                                                 "path":  "D:\\Fonts\\TTF\\NotoEmoji-Regular.ttf",
+                                                 "size":  418804
+                                             },
+                                             {
+                                                 "path":  "D:\\Fonts\\WOFF\\NotoSans-ExtraBold.woff",
+                                                 "size":  286060
+                                             },
+                                             {
+                                                 "path":  "D:\\Fonts\\WOFF\\NotoSans-ExtraLight.woff",
+                                                 "size":  283504
+                                             },
+                                             {
+                                                 "path":  "D:\\Fonts\\WOFF\\NotoSans-SemiBold.woff",
+                                                 "size":  282860
+                                             },
+                                             {
+                                                 "path":  "D:\\Fonts\\WOFF\\NotoSans-Medium.woff",
+                                                 "size":  282680
+                                             },
+                                             {
+                                                 "path":  "D:\\Fonts\\WOFF\\NotoSans-Black.woff",
+                                                 "size":  282548
+                                             },
+                                             {
+                                                 "path":  "D:\\Fonts\\WOFF\\NotoSans-Light.woff",
+                                                 "size":  281916
+                                             },
+                                             {
+                                                 "path":  "D:\\Fonts\\WOFF\\NotoSans-Regular.woff",
+                                                 "size":  278044
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "GTA San Andreas v1.0 [Build 459558] Repack Team-LiL",
+                       "files":  0,
+                       "folders":  0,
+                       "top_extensions":  {
+
+                                          },
+                       "largest_files":  {
+
+                                         }
+                   },
+                   {
+                       "top":  "GUI_Scripts_V2",
+                       "files":  2,
+                       "folders":  0,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".sh",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".cshrc",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\GUI_Scripts_V2\\.cshrc",
+                                                 "size":  4026
+                                             },
+                                             {
+                                                 "path":  "D:\\GUI_Scripts_V2\\oxe_connect.sh",
+                                                 "size":  1788
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "https%3a%2f%2fcygwin.mirror.constant.com%2f",
+                       "files":  23,
+                       "folders":  102,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".zst",
+                                                  "count":  22
+                                              },
+                                              {
+                                                  "ext":  ".ini",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\https%3a%2f%2fcygwin.mirror.constant.com%2f\\x86_64\\setup.ini",
+                                                 "size":  18785501
+                                             },
+                                             {
+                                                 "path":  "D:\\https%3a%2f%2fcygwin.mirror.constant.com%2f\\x86_64\\release\\groff\\groff-1.23.0-1.tar.zst",
+                                                 "size":  8178324
+                                             },
+                                             {
+                                                 "path":  "D:\\https%3a%2f%2fcygwin.mirror.constant.com%2f\\x86_64\\release\\openssl\\libssl3\\libssl3-3.0.18-1-x86_64.tar.zst",
+                                                 "size":  1687898
+                                             },
+                                             {
+                                                 "path":  "D:\\https%3a%2f%2fcygwin.mirror.constant.com%2f\\x86_64\\release\\man-db\\man-db-2.13.1-1-x86_64.tar.zst",
+                                                 "size":  1301518
+                                             },
+                                             {
+                                                 "path":  "D:\\https%3a%2f%2fcygwin.mirror.constant.com%2f\\x86_64\\release\\openssl\\libssl1.1\\libssl1.1-1.1.1w-1.tar.zst",
+                                                 "size":  1255182
+                                             },
+                                             {
+                                                 "path":  "D:\\https%3a%2f%2fcygwin.mirror.constant.com%2f\\x86_64\\release\\openssl\\openssl-3.0.18-1-x86_64.tar.zst",
+                                                 "size":  1152649
+                                             },
+                                             {
+                                                 "path":  "D:\\https%3a%2f%2fcygwin.mirror.constant.com%2f\\x86_64\\release\\tar\\tar-1.35-2.tar.zst",
+                                                 "size":  997616
+                                             },
+                                             {
+                                                 "path":  "D:\\https%3a%2f%2fcygwin.mirror.constant.com%2f\\noarch\\release\\ca-certificates\\ca-certificates-2025.2.80_v9.0.304-1-noarch.tar.zst",
+                                                 "size":  902180
+                                             },
+                                             {
+                                                 "path":  "D:\\https%3a%2f%2fcygwin.mirror.constant.com%2f\\x86_64\\release\\xz\\xz-5.8.1-1-x86_64.tar.zst",
+                                                 "size":  683031
+                                             },
+                                             {
+                                                 "path":  "D:\\https%3a%2f%2fcygwin.mirror.constant.com%2f\\x86_64\\release\\gcc\\libstdc++6\\libstdc++6-13.4.0-1-x86_64.tar.zst",
+                                                 "size":  625959
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Images",
+                       "files":  164,
+                       "folders":  11,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".png",
+                                                  "count":  93
+                                              },
+                                              {
+                                                  "ext":  ".svg",
+                                                  "count":  35
+                                              },
+                                              {
+                                                  "ext":  ".gif",
+                                                  "count":  12
+                                              },
+                                              {
+                                                  "ext":  ".jpg",
+                                                  "count":  8
+                                              },
+                                              {
+                                                  "ext":  ".ico",
+                                                  "count":  8
+                                              },
+                                              {
+                                                  "ext":  ".py",
+                                                  "count":  5
+                                              },
+                                              {
+                                                  "ext":  ".bmp",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".json",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".sh",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Images\\PNG\\Script 4 - Patch Creation.png",
+                                                 "size":  5310903
+                                             },
+                                             {
+                                                 "path":  "D:\\Images\\PNG\\Script 1 - List node version.png",
+                                                 "size":  3984296
+                                             },
+                                             {
+                                                 "path":  "D:\\Images\\PNG\\Script 2 - Node Backup.png",
+                                                 "size":  3961355
+                                             },
+                                             {
+                                                 "path":  "D:\\Images\\PNG\\Script 4 - Patch Creation_enhanced.png",
+                                                 "size":  3379811
+                                             },
+                                             {
+                                                 "path":  "D:\\Images\\PNG\\Script 3 - Node upgrade_downgrade.png",
+                                                 "size":  2879663
+                                             },
+                                             {
+                                                 "path":  "D:\\Images\\PNG\\Main Launcher.png",
+                                                 "size":  908852
+                                             },
+                                             {
+                                                 "path":  "D:\\Images\\PNG\\SnapBubble-01.png",
+                                                 "size":  511842
+                                             },
+                                             {
+                                                 "path":  "D:\\Images\\PNG\\demo.png",
+                                                 "size":  412116
+                                             },
+                                             {
+                                                 "path":  "D:\\Images\\Checked\\PNG\\0 - GUI2\\professional_multitheme_launcher_v2.py",
+                                                 "size":  356087
+                                             },
+                                             {
+                                                 "path":  "D:\\Images\\PNG\\patch_create_others_bin.png",
+                                                 "size":  253445
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Installers",
+                       "files":  132,
+                       "folders":  36,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".exe",
+                                                  "count":  120
+                                              },
+                                              {
+                                                  "ext":  ".msi",
+                                                  "count":  9
+                                              },
+                                              {
+                                                  "ext":  ".cfg",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".chm",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".txt",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Installers\\EXE\\pycharm-professional-2024.3.4.exe",
+                                                 "size":  877367272
+                                             },
+                                             {
+                                                 "path":  "D:\\Installers\\EXE\\pycharm-community-2024.3.4.exe",
+                                                 "size":  598273504
+                                             },
+                                             {
+                                                 "path":  "D:\\Installers\\EXE\\pycharm-community-2024.3.exe",
+                                                 "size":  542747312
+                                             },
+                                             {
+                                                 "path":  "D:\\Installers\\EXE\\LM-Studio-0.3.22-2-x64.exe",
+                                                 "size":  539625936
+                                             },
+                                             {
+                                                 "path":  "D:\\Installers\\MSI\\LibreOffice_24.8.4_Win_x86-64.msi",
+                                                 "size":  363819008
+                                             },
+                                             {
+                                                 "path":  "D:\\Installers\\EXE\\2bbf0d71eec412cc1ab1d5f9969c87d3-15_setup_XA_mui_Free.exe.500.2042.exe",
+                                                 "size":  252335112
+                                             },
+                                             {
+                                                 "path":  "D:\\Installers\\EXE\\GenshinImpact_install_ua_dc021cdf0697.exe",
+                                                 "size":  192029744
+                                             },
+                                             {
+                                                 "path":  "D:\\Installers\\Githubdesktopsetup\\EXE\\Apps\\GitHubDesktopSetup-x64.exe",
+                                                 "size":  181592536
+                                             },
+                                             {
+                                                 "path":  "D:\\Installers\\Githubdesktopsetup\\EXE\\GitHubDesktopSetup-x64.exe",
+                                                 "size":  181333976
+                                             },
+                                             {
+                                                 "path":  "D:\\Installers\\EXE\\Perplexity Setup 1.1.3.exe",
+                                                 "size":  170700224
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "MobaXterm_Portable_v25.3",
+                       "files":  3,
+                       "folders":  0,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".plugin",
+                                                  "count":  2
+                                              },
+                                              {
+                                                  "ext":  ".ini",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\MobaXterm_Portable_v25.3\\CygUtils.plugin",
+                                                 "size":  19098964
+                                             },
+                                             {
+                                                 "path":  "D:\\MobaXterm_Portable_v25.3\\CygUtils64.plugin",
+                                                 "size":  12634682
+                                             },
+                                             {
+                                                 "path":  "D:\\MobaXterm_Portable_v25.3\\MobaXterm.ini",
+                                                 "size":  21070
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "perplexity_upload",
+                       "files":  1,
+                       "folders":  0,
+                       "top_extensions":  {
+                                              "ext":  ".txt",
+                                              "count":  1
+                                          },
+                       "largest_files":  {
+                                             "path":  "D:\\perplexity_upload\\requirements.txt",
+                                             "size":  54
+                                         }
+                   },
+                   {
+                       "top":  "Python Scripts",
+                       "files":  33209,
+                       "folders":  6217,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".pyc",
+                                                  "count":  7485
+                                              },
+                                              {
+                                                  "ext":  ".py",
+                                                  "count":  7470
+                                              },
+                                              {
+                                                  "ext":  ".class",
+                                                  "count":  4621
+                                              },
+                                              {
+                                                  "ext":  "",
+                                                  "count":  3082
+                                              },
+                                              {
+                                                  "ext":  ".dll",
+                                                  "count":  1748
+                                              },
+                                              {
+                                                  "ext":  ".jar",
+                                                  "count":  903
+                                              },
+                                              {
+                                                  "ext":  ".md",
+                                                  "count":  832
+                                              },
+                                              {
+                                                  "ext":  ".pcap",
+                                                  "count":  832
+                                              },
+                                              {
+                                                  "ext":  ".txt",
+                                                  "count":  749
+                                              },
+                                              {
+                                                  "ext":  ".h",
+                                                  "count":  582
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Python Scripts\\SIP Simulator\\SIp_Simulator_v2\\SIPInspector\\archive\\backups\\20251118_2110\\trunk\\logs\\TCP\\TCP_20251115_150224.log",
+                                                 "size":  331196293
+                                             },
+                                             {
+                                                 "path":  "D:\\Python Scripts\\SIP Simulator\\SIp_Simulator_v2\\SIPInspector\\archive\\trunk_BACKUP_20251115_175600_SDP_UI\\logs\\TCP\\TCP_20251115_150224.log",
+                                                 "size":  331196293
+                                             },
+                                             {
+                                                 "path":  "D:\\Python Scripts\\SIP Simulator\\SIp_Simulator_v2\\SIPInspector\\archive\\backups\\20251118_2110\\trunk_v3\\logs\\TCP\\TCP_20251115_150224.log",
+                                                 "size":  331196293
+                                             },
+                                             {
+                                                 "path":  "D:\\Python Scripts\\SIP Simulator\\SIp_Simulator_v2\\SIPInspector\\archive\\backups\\trunk_before_restore_20251121_2059\\logs\\TCP\\TCP_20251115_150224.log",
+                                                 "size":  331196293
+                                             },
+                                             {
+                                                 "path":  "D:\\Python Scripts\\SIP Simulator\\SIp_Simulator_v2\\SIPInspector\\archive\\backups\\20251118_2110\\trunk_BACKUP_20251115_175600_SDP_UI\\logs\\TCP\\TCP_20251115_150224.log",
+                                                 "size":  331196293
+                                             },
+                                             {
+                                                 "path":  "D:\\Python Scripts\\SIP Simulator\\SIp_Simulator_v2\\SIPInspector\\archive\\backups\\20251118_2113_trunk_v3\\logs\\TCP\\TCP_20251115_150224.log",
+                                                 "size":  331196293
+                                             },
+                                             {
+                                                 "path":  "D:\\Python Scripts\\SIP Simulator\\SIp_Simulator_v2\\SIPInspector\\archive\\tags\\Release_2.0\\logs\\TCP\\TCP_20251115_150224.log",
+                                                 "size":  331196293
+                                             },
+                                             {
+                                                 "path":  "D:\\Python Scripts\\SIP Simulator\\SIp_Simulator_v2\\SIPInspector\\trunk\\logs\\TCP\\TCP_20251115_150224.log",
+                                                 "size":  331196293
+                                             },
+                                             {
+                                                 "path":  "D:\\Python Scripts\\SIP Simulator\\SIp_Simulator_v2\\SIPInspector\\trunk_v3\\logs\\TCP\\TCP_20251115_150224.log",
+                                                 "size":  331196293
+                                             },
+                                             {
+                                                 "path":  "D:\\Python Scripts\\SIP Simulator\\SIp_Simulator_v3\\SIPInspector\\trunk\\logs\\TCP\\TCP_20251115_150224.log",
+                                                 "size":  331196293
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Sipinspector Scripts",
+                       "files":  50,
+                       "folders":  4,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  "",
+                                                  "count":  48
+                                              },
+                                              {
+                                                  "ext":  ".ps1",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".30 node",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Sipinspector Scripts\\create_sipinspector_files.ps1",
+                                                 "size":  21525
+                                             },
+                                             {
+                                                 "path":  "D:\\Sipinspector Scripts\\Node30_VAA_supervised_transfer_30402 Pilot",
+                                                 "size":  2991
+                                             },
+                                             {
+                                                 "path":  "D:\\Sipinspector Scripts\\Scenario\\outgoing_call_supervised_transfer_scenario",
+                                                 "size":  2867
+                                             },
+                                             {
+                                                 "path":  "D:\\Sipinspector Scripts\\Scenario_sh\\outgoing_call_supervised_transfer_scenario",
+                                                 "size":  2867
+                                             },
+                                             {
+                                                 "path":  "D:\\Sipinspector Scripts\\out_invite_out_reinvite_jay_working",
+                                                 "size":  2779
+                                             },
+                                             {
+                                                 "path":  "D:\\Sipinspector Scripts\\Scenario\\incoming_call_scenario",
+                                                 "size":  2305
+                                             },
+                                             {
+                                                 "path":  "D:\\Sipinspector Scripts\\Scenario_sh\\incoming_call_scenario",
+                                                 "size":  2305
+                                             },
+                                             {
+                                                 "path":  "D:\\Sipinspector Scripts\\Scenario\\register_notify_subscribe_scenario",
+                                                 "size":  1967
+                                             },
+                                             {
+                                                 "path":  "D:\\Sipinspector Scripts\\Scenario_sh\\register_notify_subscribe_scenario",
+                                                 "size":  1967
+                                             },
+                                             {
+                                                 "path":  "D:\\Sipinspector Scripts\\Scenario_sh\\incoming_call_183_scenario",
+                                                 "size":  1922
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "sipinspector-code-r288",
+                       "files":  255,
+                       "folders":  152,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".pcap",
+                                                  "count":  112
+                                              },
+                                              {
+                                                  "ext":  ".form",
+                                                  "count":  84
+                                              },
+                                              {
+                                                  "ext":  ".xml",
+                                                  "count":  24
+                                              },
+                                              {
+                                                  "ext":  ".properties",
+                                                  "count":  16
+                                              },
+                                              {
+                                                  "ext":  ".jar",
+                                                  "count":  11
+                                              },
+                                              {
+                                                  "ext":  ".mf",
+                                                  "count":  8
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\sipinspector-code-r288\\sipinspector-code-r288\\SIPInspector\\tags\\Release_1.20\\pcap\\test.pcap",
+                                                 "size":  181264
+                                             },
+                                             {
+                                                 "path":  "D:\\sipinspector-code-r288\\sipinspector-code-r288\\SIPInspector\\tags\\Release_0.8\\pcap\\test.pcap",
+                                                 "size":  181264
+                                             },
+                                             {
+                                                 "path":  "D:\\sipinspector-code-r288\\sipinspector-code-r288\\SIPInspector\\branches\\dev\\pcap\\test.pcap",
+                                                 "size":  181264
+                                             },
+                                             {
+                                                 "path":  "D:\\sipinspector-code-r288\\sipinspector-code-r288\\SIPInspector\\tags\\Release_1.10\\pcap\\test.pcap",
+                                                 "size":  181264
+                                             },
+                                             {
+                                                 "path":  "D:\\sipinspector-code-r288\\sipinspector-code-r288\\SIPInspector\\tags\\Release_1.00\\pcap\\test.pcap",
+                                                 "size":  181264
+                                             },
+                                             {
+                                                 "path":  "D:\\sipinspector-code-r288\\sipinspector-code-r288\\SIPInspector\\tags\\Release_0.9\\pcap\\test.pcap",
+                                                 "size":  181264
+                                             },
+                                             {
+                                                 "path":  "D:\\sipinspector-code-r288\\sipinspector-code-r288\\SIPInspector\\trunk\\pcap\\test.pcap",
+                                                 "size":  181264
+                                             },
+                                             {
+                                                 "path":  "D:\\sipinspector-code-r288\\sipinspector-code-r288\\SIPInspector\\tags\\Release_0.92\\pcap\\test.pcap",
+                                                 "size":  181264
+                                             },
+                                             {
+                                                 "path":  "D:\\sipinspector-code-r288\\sipinspector-code-r288\\SIPInspector\\tags\\Release_0.94\\pcap\\test.pcap",
+                                                 "size":  181264
+                                             },
+                                             {
+                                                 "path":  "D:\\sipinspector-code-r288\\sipinspector-code-r288\\SIPInspector\\trunk\\lib\\miglayout-3.7.3.1-swing.jar",
+                                                 "size":  76357
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "snapBubble_extension-main",
+                       "files":  2,
+                       "folders":  5,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".md",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  "",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\snapBubble_extension-main\\snapBubble_extension-main\\README.md",
+                                                 "size":  6836
+                                             },
+                                             {
+                                                 "path":  "D:\\snapBubble_extension-main\\snapBubble_extension-main\\LICENSE",
+                                                 "size":  1060
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Softwares",
+                       "files":  1983,
+                       "folders":  319,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".py",
+                                                  "count":  1610
+                                              },
+                                              {
+                                                  "ext":  ".txt",
+                                                  "count":  53
+                                              },
+                                              {
+                                                  "ext":  ".rst",
+                                                  "count":  42
+                                              },
+                                              {
+                                                  "ext":  "",
+                                                  "count":  41
+                                              },
+                                              {
+                                                  "ext":  ".h",
+                                                  "count":  29
+                                              },
+                                              {
+                                                  "ext":  ".toc",
+                                                  "count":  29
+                                              },
+                                              {
+                                                  "ext":  ".c",
+                                                  "count":  28
+                                              },
+                                              {
+                                                  "ext":  ".spec",
+                                                  "count":  16
+                                              },
+                                              {
+                                                  "ext":  ".exe",
+                                                  "count":  15
+                                              },
+                                              {
+                                                  "ext":  ".dat",
+                                                  "count":  10
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Softwares\\GitHubDesktopSetup-x64.exe",
+                                                 "size":  172917720
+                                             },
+                                             {
+                                                 "path":  "D:\\Softwares\\B2BServer-1.0.1.2-executable.jar",
+                                                 "size":  19464423
+                                             },
+                                             {
+                                                 "path":  "D:\\Softwares\\pyinstaller-6.11.1\\pyinstaller-6.11.1\\bootloader\\zlib\\crc32.h",
+                                                 "size":  591749
+                                             },
+                                             {
+                                                 "path":  "D:\\Softwares\\pyinstaller-6.11.1\\pyinstaller-6.11.1\\tests\\functional\\data\\appimage\\AppIcon.svg",
+                                                 "size":  339293
+                                             },
+                                             {
+                                                 "path":  "D:\\Softwares\\pyinstaller-6.11.1\\pyinstaller-6.11.1\\icons\\icon-windowed.svg",
+                                                 "size":  339293
+                                             },
+                                             {
+                                                 "path":  "D:\\Softwares\\pyinstaller-6.11.1\\pyinstaller-6.11.1\\icons\\icon-console.svg",
+                                                 "size":  339276
+                                             },
+                                             {
+                                                 "path":  "D:\\Softwares\\pyinstaller-6.11.1\\pyinstaller-6.11.1\\build\\lib\\PyInstaller\\bootloader\\Windows-64bit-intel\\run_d.exe",
+                                                 "size":  285184
+                                             },
+                                             {
+                                                 "path":  "D:\\Softwares\\pyinstaller-6.11.1\\pyinstaller-6.11.1\\PyInstaller\\bootloader\\Windows-64bit-intel\\run_d.exe",
+                                                 "size":  285184
+                                             },
+                                             {
+                                                 "path":  "D:\\Softwares\\pyinstaller-6.11.1\\pyinstaller-6.11.1\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw_d.exe",
+                                                 "size":  280576
+                                             },
+                                             {
+                                                 "path":  "D:\\Softwares\\pyinstaller-6.11.1\\pyinstaller-6.11.1\\build\\lib\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw_d.exe",
+                                                 "size":  280576
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Steam Games - Hack",
+                       "files":  2609,
+                       "folders":  37,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".manifest",
+                                                  "count":  2079
+                                              },
+                                              {
+                                                  "ext":  ".lua",
+                                                  "count":  262
+                                              },
+                                              {
+                                                  "ext":  ".zip",
+                                                  "count":  249
+                                              },
+                                              {
+                                                  "ext":  ".dll",
+                                                  "count":  5
+                                              },
+                                              {
+                                                  "ext":  ".mp4",
+                                                  "count":  4
+                                              },
+                                              {
+                                                  "ext":  ".rar",
+                                                  "count":  3
+                                              },
+                                              {
+                                                  "ext":  ".exe",
+                                                  "count":  2
+                                              },
+                                              {
+                                                  "ext":  ".nfo",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".ini",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  ".txt",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Steam Games - Hack\\all games of steam by IsmailX\\all games of steam\\all games in one file\\1593501_2535153423663269664.manifest",
+                                                 "size":  23455107
+                                             },
+                                             {
+                                                 "path":  "D:\\Steam Games - Hack\\Grand Theft Auto V Enhanced Fix.rar",
+                                                 "size":  16963353
+                                             },
+                                             {
+                                                 "path":  "D:\\Steam Games - Hack\\all games of steam by IsmailX\\all games of steam\\all games in one file\\1172621_2478367716918203364.manifest",
+                                                 "size":  15114086
+                                             },
+                                             {
+                                                 "path":  "D:\\Steam Games - Hack\\Grand Theft Auto V Enhanced Fix\\Grand Theft Auto V Enhanced Fix\\files\\RUNE64.dll",
+                                                 "size":  14285824
+                                             },
+                                             {
+                                                 "path":  "D:\\Steam Games - Hack\\all games of steam by IsmailX\\all games of steam\\all unaxtracted games\\God Of War.zip",
+                                                 "size":  13157215
+                                             },
+                                             {
+                                                 "path":  "D:\\Steam Games - Hack\\all games of steam by IsmailX\\all games of steam\\all unaxtracted games\\1172620.zip",
+                                                 "size":  12824214
+                                             },
+                                             {
+                                                 "path":  "D:\\Steam Games - Hack\\st-setup-1.8.20.exe",
+                                                 "size":  11135536
+                                             },
+                                             {
+                                                 "path":  "D:\\Steam Games - Hack\\all games of steam by IsmailX\\all games of steam\\all unaxtracted games\\594570.zip",
+                                                 "size":  10023346
+                                             },
+                                             {
+                                                 "path":  "D:\\Steam Games - Hack\\all games of steam by IsmailX\\all games of steam\\all games in one file\\1551361_3550078831927752385.manifest",
+                                                 "size":  10009831
+                                             },
+                                             {
+                                                 "path":  "D:\\Steam Games - Hack\\all games of steam by IsmailX\\all games of steam\\all unaxtracted games\\Forza 5\\1551361_3550078831927752385.manifest",
+                                                 "size":  10009831
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "System Volume Information",
+                       "files":  0,
+                       "folders":  0,
+                       "top_extensions":  {
+
+                                          },
+                       "largest_files":  {
+
+                                         }
+                   },
+                   {
+                       "top":  "Torrents",
+                       "files":  8,
+                       "folders":  12,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".torrent",
+                                                  "count":  7
+                                              },
+                                              {
+                                                  "ext":  ".mpg",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Torrents\\Amaran\\TORRENT\\Movies\\GTAtitles.mpg",
+                                                 "size":  47427584
+                                             },
+                                             {
+                                                 "path":  "D:\\Torrents\\TORRENT\\Grand Theft Auto V Enhanced [FitGirl Repack].torrent",
+                                                 "size":  206199
+                                             },
+                                             {
+                                                 "path":  "D:\\Torrents\\TORRENT\\Cricket 24 [FitGirl Repack].torrent",
+                                                 "size":  143184
+                                             },
+                                             {
+                                                 "path":  "D:\\Torrents\\TORRENT\\Cricket 26 [FitGirl Repack].torrent",
+                                                 "size":  137504
+                                             },
+                                             {
+                                                 "path":  "D:\\Torrents\\TORRENT\\www.1TamilMV.fi - Tourist Family (2025) Tamil WEB-DL - 1080p - AVC - UNTOUCHED - (AAC 2.0) - 2.9GB.mkv.torrent",
+                                                 "size":  62171
+                                             },
+                                             {
+                                                 "path":  "D:\\Torrents\\TORRENT\\www.1TamilMV.blue - Mahavatar Narsimha (2025) Tamil HDRip - 720p - x264 - AAC - 1.4GB - HC-ESub.mkv.torrent",
+                                                 "size":  60691
+                                             },
+                                             {
+                                                 "path":  "D:\\Torrents\\TORRENT\\Superman (2025) English HQ HDRip - 720p - x264 - (DD5.1 - 192Kbps \u0026 AAC) - 1.3GB - ESub.mkv.torrent",
+                                                 "size":  57463
+                                             },
+                                             {
+                                                 "path":  "D:\\Torrents\\TORRENT\\Amaran (2024)  english Subtitle.srt.torrent",
+                                                 "size":  1066
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Videos",
+                       "files":  20,
+                       "folders":  4,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".mkv",
+                                                  "count":  18
+                                              },
+                                              {
+                                                  "ext":  ".mp4",
+                                                  "count":  2
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\Videos\\MKV\\www.1TamilMV.fi - Tourist Family (2025) Tamil WEB-DL - 1080p - AVC - UNTOUCHED - (AAC 2.0) - 2.9GB.mkv",
+                                                 "size":  3197548802
+                                             },
+                                             {
+                                                 "path":  "D:\\Videos\\MKV\\www.1TamilMV.tube - Kuberaa (2025) Tamil Proper HQ HDRip - 1080p - HEVC - (DD+5.1 - 192Kbps \u0026 AAC) - 1.8GB - ESub.mkv",
+                                                 "size":  2376136119
+                                             },
+                                             {
+                                                 "path":  "D:\\Videos\\MP4\\Jurassic.World.Fallen.Kingdom.2018.1080p.BluRay.x264-[YTS.AM].mp4",
+                                                 "size":  2216754533
+                                             },
+                                             {
+                                                 "path":  "D:\\Videos\\MKV\\Jurassic.World.Rebirth.2025.1080p.WEBRip.DDP5.1.x265-NeoNoir.mkv",
+                                                 "size":  2133181590
+                                             },
+                                             {
+                                                 "path":  "D:\\Videos\\MKV\\www.1TamilMV.wf - Amaran (2024) Tamil HQ HDRip - 1080p - HEVC - x265 - AAC - 1.7GB.mkv",
+                                                 "size":  1872425953
+                                             },
+                                             {
+                                                 "path":  "D:\\Videos\\MKV\\www.1TamilMV.si - Dragon (2025) Tamil v2 HDRip - 1080p - HEVC - x265 - (AAC 2.0) - 1.7GB.mkv",
+                                                 "size":  1852033256
+                                             },
+                                             {
+                                                 "path":  "D:\\Videos\\MKV\\www.1TamilMV.ac - Red One (2024) HQ HDRip - 720p - x264 - [Tam + Tel + Hin + Mal + Kan + Eng] - (DD+5.1 - 192Kbps) - 1.6GB - ESub.mkv",
+                                                 "size":  1830444824
+                                             },
+                                             {
+                                                 "path":  "D:\\Videos\\MKV\\www.1TamilMV.at - Brother (2024) Tamil HQ HDRip - 1080p - HEVC - x265 - (AAC 2.0) - 1.6GB.mkv",
+                                                 "size":  1799331974
+                                             },
+                                             {
+                                                 "path":  "D:\\Videos\\MKV\\www.1TamilMV.su - Kanguva (2024) Tamil HQ HDRip - 1080p - x265 - HEVC - AAC - 1.6GGB.mkv",
+                                                 "size":  1792007204
+                                             },
+                                             {
+                                                 "path":  "D:\\Videos\\MKV\\www.1TamilMV.re - Madha Gaja Raja (2025) Tamil HQ HDRip - 1080p - HEVC - x265 - AAC - 1.6GB.mkv",
+                                                 "size":  1744233091
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "VirtualBox VMs",
+                       "files":  39,
+                       "folders":  12,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".log",
+                                                  "count":  11
+                                              },
+                                              {
+                                                  "ext":  ".3",
+                                                  "count":  4
+                                              },
+                                              {
+                                                  "ext":  ".1",
+                                                  "count":  4
+                                              },
+                                              {
+                                                  "ext":  ".2",
+                                                  "count":  4
+                                              },
+                                              {
+                                                  "ext":  ".vbox",
+                                                  "count":  4
+                                              },
+                                              {
+                                                  "ext":  ".vbox-prev",
+                                                  "count":  4
+                                              },
+                                              {
+                                                  "ext":  ".cfg",
+                                                  "count":  2
+                                              },
+                                              {
+                                                  "ext":  ".sav",
+                                                  "count":  2
+                                              },
+                                              {
+                                                  "ext":  ".vdi",
+                                                  "count":  2
+                                              },
+                                              {
+                                                  "ext":  ".viso",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\VirtualBox VMs\\Rocky\\Rocky.vdi",
+                                                 "size":  26962034688
+                                             },
+                                             {
+                                                 "path":  "D:\\VirtualBox VMs\\CentOS7\\CentOS7.vdi",
+                                                 "size":  10960764928
+                                             },
+                                             {
+                                                 "path":  "D:\\VirtualBox VMs\\Test_VM Clone_2\\Snapshots\\2025-10-02T13-11-46-942857500Z.sav",
+                                                 "size":  104326548
+                                             },
+                                             {
+                                                 "path":  "D:\\VirtualBox VMs\\Test_VM\\Snapshots\\2025-10-02T13-11-46-943834200Z.sav",
+                                                 "size":  99379662
+                                             },
+                                             {
+                                                 "path":  "D:\\VirtualBox VMs\\CentOS7\\Logs\\VBox.log.2",
+                                                 "size":  393857
+                                             },
+                                             {
+                                                 "path":  "D:\\VirtualBox VMs\\Rocky\\Logs\\VBoxHardening.log",
+                                                 "size":  372296
+                                             },
+                                             {
+                                                 "path":  "D:\\VirtualBox VMs\\CentOS7\\Logs\\VBoxHardening.log",
+                                                 "size":  326240
+                                             },
+                                             {
+                                                 "path":  "D:\\VirtualBox VMs\\CentOS7\\Logs\\VBox.log.3",
+                                                 "size":  325817
+                                             },
+                                             {
+                                                 "path":  "D:\\VirtualBox VMs\\Test_VM\\Logs\\VBoxHardening.log",
+                                                 "size":  320379
+                                             },
+                                             {
+                                                 "path":  "D:\\VirtualBox VMs\\Test_VM Clone_2\\Logs\\VBoxHardening.log",
+                                                 "size":  320095
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "VScode WSL",
+                       "files":  8,
+                       "folders":  0,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".hpp",
+                                                  "count":  6
+                                              },
+                                              {
+                                                  "ext":  ".h",
+                                                  "count":  1
+                                              },
+                                              {
+                                                  "ext":  "",
+                                                  "count":  1
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\VScode WSL\\CMotorCall.hpp",
+                                                 "size":  65882
+                                             },
+                                             {
+                                                 "path":  "D:\\VScode WSL\\CMotorCallManager.hpp",
+                                                 "size":  22551
+                                             },
+                                             {
+                                                 "path":  "D:\\VScode WSL\\PmAgentIpcApi.h",
+                                                 "size":  16533
+                                             },
+                                             {
+                                                 "path":  "D:\\VScode WSL\\CPushInterface.hpp",
+                                                 "size":  5773
+                                             },
+                                             {
+                                                 "path":  "D:\\VScode WSL\\PushDriver.hpp",
+                                                 "size":  4840
+                                             },
+                                             {
+                                                 "path":  "D:\\VScode WSL\\PushDriver (1).hpp",
+                                                 "size":  4020
+                                             },
+                                             {
+                                                 "path":  "D:\\VScode WSL\\IpcUnix.hpp",
+                                                 "size":  3156
+                                             },
+                                             {
+                                                 "path":  "D:\\VScode WSL\\Makefile",
+                                                 "size":  582
+                                             }
+                                         ]
+                   },
+                   {
+                       "top":  "Windows",
+                       "files":  1,
+                       "folders":  1,
+                       "top_extensions":  {
+                                              "ext":  ".exe",
+                                              "count":  1
+                                          },
+                       "largest_files":  {
+                                             "path":  "D:\\Windows\\EXE\\jre-8u441-windows-x64.exe",
+                                             "size":  69258336
+                                         }
+                   },
+                   {
+                       "top":  "windsurf-reh-linux-x64-1.12.12",
+                       "files":  1368,
+                       "folders":  506,
+                       "top_extensions":  [
+                                              {
+                                                  "ext":  ".js",
+                                                  "count":  726
+                                              },
+                                              {
+                                                  "ext":  ".json",
+                                                  "count":  197
+                                              },
+                                              {
+                                                  "ext":  "",
+                                                  "count":  116
+                                              },
+                                              {
+                                                  "ext":  ".ts",
+                                                  "count":  98
+                                              },
+                                              {
+                                                  "ext":  ".md",
+                                                  "count":  73
+                                              },
+                                              {
+                                                  "ext":  ".map",
+                                                  "count":  29
+                                              },
+                                              {
+                                                  "ext":  ".txt",
+                                                  "count":  23
+                                              },
+                                              {
+                                                  "ext":  ".sh",
+                                                  "count":  17
+                                              },
+                                              {
+                                                  "ext":  ".mjs",
+                                                  "count":  16
+                                              },
+                                              {
+                                                  "ext":  ".wasm",
+                                                  "count":  9
+                                              }
+                                          ],
+                       "largest_files":  [
+                                             {
+                                                 "path":  "D:\\windsurf-reh-linux-x64-1.12.12\\extensions\\windsurf\\bin\\language_server_linux_x64",
+                                                 "size":  196960704
+                                             },
+                                             {
+                                                 "path":  "D:\\windsurf-reh-linux-x64-1.12.12\\node",
+                                                 "size":  98657032
+                                             },
+                                             {
+                                                 "path":  "D:\\windsurf-reh-linux-x64-1.12.12\\extensions\\node_modules\\typescript\\lib\\typescript.js",
+                                                 "size":  9065569
+                                             },
+                                             {
+                                                 "path":  "D:\\windsurf-reh-linux-x64-1.12.12\\node_modules\\@vscode\\ripgrep\\bin\\rg",
+                                                 "size":  5128112
+                                             },
+                                             {
+                                                 "path":  "D:\\windsurf-reh-linux-x64-1.12.12\\extensions\\windsurf\\dist\\extension.js",
+                                                 "size":  4859188
+                                             },
+                                             {
+                                                 "path":  "D:\\windsurf-reh-linux-x64-1.12.12\\extensions\\windsurf\\bin\\fd",
+                                                 "size":  4095136
+                                             },
+                                             {
+                                                 "path":  "D:\\windsurf-reh-linux-x64-1.12.12\\extensions\\ms-vscode.vscode-js-profile-table\\ThirdPartyNotices.txt",
+                                                 "size":  1855417
+                                             },
+                                             {
+                                                 "path":  "D:\\windsurf-reh-linux-x64-1.12.12\\extensions\\windsurf-dev-containers\\dist\\@devcontainers\\cli\\dist\\spec-node\\devContainersSpecCLI.js",
+                                                 "size":  1745694
+                                             },
+                                             {
+                                                 "path":  "D:\\windsurf-reh-linux-x64-1.12.12\\extensions\\markdown-language-features\\dist\\extension.js",
+                                                 "size":  1702561
+                                             },
+                                             {
+                                                 "path":  "D:\\windsurf-reh-linux-x64-1.12.12\\node_modules\\@xterm\\xterm\\lib\\xterm.mjs.map",
+                                                 "size":  1685776
+                                             }
+                                         ]
+                   }
+               ]
+}
