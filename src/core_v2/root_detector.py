@@ -147,8 +147,14 @@ class RootDetector:
         if root_info and root_info.confidence >= self.min_confidence:
             self._detected_roots.append(root_info)
             logger.debug(f"Found {root_info.root_type.value} root: {node.path} (conf={root_info.confidence:.2f})")
-            # Don't recurse into detected roots (they protect their children)
-            return
+            
+            # Only stop recursion for HIGH-confidence roots (>= 0.75)
+            # This allows discovering nested projects inside backup/media folders
+            if root_info.confidence >= 0.75:
+                logger.debug(f"High-confidence root - stopping recursion")
+                return
+            else:
+                logger.debug(f"Low-confidence root - continuing to scan for nested projects")
         
         # Recurse into child directories only (not node itself)
         for child in node.children:
