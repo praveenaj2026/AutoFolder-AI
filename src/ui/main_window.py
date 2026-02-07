@@ -128,7 +128,8 @@ class OrganizeThread(QThread):
                     'total': len(decisions),
                     'completed': len(decisions),
                     'failed': 0,
-                    'failed_items': []
+                    'failed_items': [],
+                    'can_undo': False  # No undo for dry run
                 }
                 self.finished.emit(result)
                 return
@@ -182,7 +183,8 @@ class OrganizeThread(QThread):
                 'total': len(decisions),
                 'completed': completed,
                 'failed': failed,
-                'failed_items': failed_items
+                'failed_items': failed_items,
+                'can_undo': False  # TODO: Implement v2.0 undo system
             }
             self.finished.emit(result)
             
