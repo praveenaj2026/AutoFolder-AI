@@ -200,7 +200,7 @@ class RuleEngine:
             return None
         
         return RuleResult(
-            file=file_node.path,
+            file=file_node,
             category=rule.category,
             subcategory=rule.subcategory,
             confidence=rule.confidence,
