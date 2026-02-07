@@ -90,13 +90,13 @@ class OrganizeThread(QThread):
             
             # Phase 1: Scan
             self.progress.emit(0, 5, "📁 Scanning folder...")
-            root_node = self.scanner.scan_folder(Path(self.folder_path))
+            root_node = self.scanner.scan(Path(self.folder_path))
             total_files = root_node.total_files
             logger.info(f"Scanned {total_files} files")
             
             # Phase 2: Classify
             self.progress.emit(1, 5, "🏷️ Classifying files...")
-            rule_results = self.rule_engine.classify_all(root_node.all_files)
+            rule_results = self.rule_engine.classify_batch(root_node.all_files)
             logger.info(f"Classified {len(rule_results)} files")
             
             # Phase 3: AI Grouping
@@ -104,7 +104,7 @@ class OrganizeThread(QThread):
             ai_results = []
             if self.ai_grouper:
                 try:
-                    ai_results = self.ai_grouper.group_files(root_node.all_files)
+                    ai_results = self.ai_grouper.group_files(root_node.all_files, rule_results)
                     logger.info(f"AI found {len(ai_results)} groups")
                 except Exception as e:
                     logger.warning(f"AI grouping failed (continuing without): {e}")
@@ -1239,7 +1239,7 @@ class MainWindow(QMainWindow):
                 self.loading_dialog.setLabelText("📁 Scanning folder...\n\nReading files and structure...")
                 QApplication.processEvents()
             
-            root_node = self.scanner.scan_folder(self.current_folder)
+            root_node = self.scanner.scan(self.current_folder)
             logger.info(f"v2.0: Scanned {root_node.total_files} files")
             
             # Phase 2: Classify files
@@ -1247,7 +1247,7 @@ class MainWindow(QMainWindow):
                 self.loading_dialog.setLabelText("🏷️ Classifying files...\n\nApplying smart rules...")
                 QApplication.processEvents()
             
-            rule_results = self.rule_engine.classify_all(root_node.all_files)
+            rule_results = self.rule_engine.classify_batch(root_node.all_files)
             logger.info(f"v2.0: Classified {len(rule_results)} files")
             
             # Phase 3: AI Grouping
@@ -1261,7 +1261,7 @@ class MainWindow(QMainWindow):
             
             self.current_ai_results = []
             try:
-                self.current_ai_results = self.ai_grouper.group_files(root_node.all_files)
+                self.current_ai_results = self.ai_grouper.group_files(root_node.all_files, rule_results)
                 logger.info(f"v2.0: AI found {len(self.current_ai_results)} groups")
             except Exception as e:
                 logger.warning(f"AI grouping failed (continuing without): {e}")
