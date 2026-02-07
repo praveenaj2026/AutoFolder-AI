@@ -29,24 +29,34 @@ class RootMarker:
 # Root detection markers
 # Higher weight = stronger indicator
 ROOT_MARKERS = [
-    # Project markers
+    # Project markers - AGGRESSIVE protection to prevent breaking code projects
     RootMarker(".git", RootType.PROJECT, 1.0, must_be_folder=True),
     RootMarker(".gitignore", RootType.PROJECT, 0.8, must_be_file=True),
-    RootMarker("pyproject.toml", RootType.PROJECT, 0.9, must_be_file=True),
-    RootMarker("package.json", RootType.PROJECT, 0.9, must_be_file=True),
-    RootMarker("Cargo.toml", RootType.PROJECT, 0.9, must_be_file=True),
-    RootMarker("pom.xml", RootType.PROJECT, 0.9, must_be_file=True),
-    RootMarker("build.gradle", RootType.PROJECT, 0.8, must_be_file=True),
-    RootMarker(".vscode", RootType.PROJECT, 0.6, must_be_folder=True),
-    RootMarker(".idea", RootType.PROJECT, 0.6, must_be_folder=True),
-    RootMarker("CMakeLists.txt", RootType.PROJECT, 0.8, must_be_file=True),
-    RootMarker("Makefile", RootType.PROJECT, 0.7, must_be_file=True),
-    RootMarker("requirements.txt", RootType.PROJECT, 0.7, must_be_file=True),
-    RootMarker("setup.py", RootType.PROJECT, 0.8, must_be_file=True),
-    RootMarker("composer.json", RootType.PROJECT, 0.8, must_be_file=True),
-    RootMarker(".env", RootType.PROJECT, 0.5, must_be_file=True),
-    RootMarker("src", RootType.PROJECT, 0.4, must_be_folder=True),
-    RootMarker("node_modules", RootType.PROJECT, 0.6, must_be_folder=True),
+    RootMarker("pyproject.toml", RootType.PROJECT, 0.95, must_be_file=True),
+    RootMarker("package.json", RootType.PROJECT, 0.95, must_be_file=True),
+    RootMarker("Cargo.toml", RootType.PROJECT, 0.95, must_be_file=True),
+    RootMarker("pom.xml", RootType.PROJECT, 0.95, must_be_file=True),
+    RootMarker("build.gradle", RootType.PROJECT, 0.9, must_be_file=True),
+    RootMarker(".vscode", RootType.PROJECT, 0.7, must_be_folder=True),
+    RootMarker(".idea", RootType.PROJECT, 0.7, must_be_folder=True),
+    RootMarker("CMakeLists.txt", RootType.PROJECT, 0.9, must_be_file=True),
+    RootMarker("Makefile", RootType.PROJECT, 0.8, must_be_file=True),
+    RootMarker("requirements.txt", RootType.PROJECT, 0.8, must_be_file=True),
+    RootMarker("setup.py", RootType.PROJECT, 0.9, must_be_file=True),
+    RootMarker("setup.cfg", RootType.PROJECT, 0.85, must_be_file=True),
+    RootMarker("composer.json", RootType.PROJECT, 0.9, must_be_file=True),
+    RootMarker(".env", RootType.PROJECT, 0.6, must_be_file=True),
+    RootMarker("main.py", RootType.PROJECT, 0.7, must_be_file=True),
+    RootMarker("app.py", RootType.PROJECT, 0.7, must_be_file=True),
+    RootMarker("__init__.py", RootType.PROJECT, 0.6, must_be_file=True),
+    RootMarker("src", RootType.PROJECT, 0.5, must_be_folder=True),
+    RootMarker("lib", RootType.PROJECT, 0.5, must_be_folder=True),
+    RootMarker("dist", RootType.PROJECT, 0.6, must_be_folder=True),
+    RootMarker("build", RootType.PROJECT, 0.6, must_be_folder=True),
+    RootMarker("node_modules", RootType.PROJECT, 0.7, must_be_folder=True),
+    RootMarker("venv", RootType.PROJECT, 0.7, must_be_folder=True),
+    RootMarker(".venv", RootType.PROJECT, 0.7, must_be_folder=True),
+    RootMarker("env", RootType.PROJECT, 0.6, must_be_folder=True),
     
     # Media collection markers
     RootMarker("iTunes", RootType.MEDIA, 0.7, must_be_folder=True),
@@ -198,6 +208,23 @@ class RootDetector:
                 
                 type_scores[marker.root_type] += marker.weight
                 type_markers[marker.root_type].append(marker.pattern)
+        
+        # CRITICAL: Check for Python/JavaScript/TypeScript files
+        # If folder has 3+ code files, it's likely a project - protect it!
+        code_extensions = {'.py', '.js', '.ts', '.jsx', '.tsx', '.vue', '.go', '.rs', '.java', '.cpp', '.c', '.h'}
+        code_files = [
+            child for child in node.children 
+            if child.is_file and child.path.suffix.lower() in code_extensions
+        ]
+        
+        if len(code_files) >= 3:
+            # Folder has 3+ code files - likely a project
+            if RootType.PROJECT not in type_scores:
+                type_scores[RootType.PROJECT] = 0.0
+                type_markers[RootType.PROJECT] = []
+            type_scores[RootType.PROJECT] += 0.8  # High confidence
+            type_markers[RootType.PROJECT].append(f"{len(code_files)} code files")
+            logger.debug(f"Detected {len(code_files)} code files in {node.path} - marking as project")
         
         # Find best match
         if not type_scores:

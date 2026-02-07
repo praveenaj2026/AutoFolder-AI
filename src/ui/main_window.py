@@ -90,8 +90,7 @@ class OrganizeThread(QThread):
             
             # Phase 1: Scan
             self.progress.emit(0, 5, "📁 Scanning folder...")
-            root_node = self.scanner.scan(Path(self.folder_path))
-            all_files = root_node.iter_files()
+            root_node = self.scanner.scan(Path(self.folder_path)            all_files = root_node.iter_files()
             total_files = len(all_files)
             logger.info(f"Scanned {total_files} files")
             
@@ -100,15 +99,17 @@ class OrganizeThread(QThread):
             rule_results = self.rule_engine.classify_batch(all_files)
             logger.info(f"Classified {len(rule_results)} files")
             
-            # Phase 3: AI Grouping
-            self.progress.emit(2, 5, "🤖 AI semantic grouping...")
+            # Phase 3: AI Grouping (DISABLED to prevent junk folders)
+            # TODO: Re-enable after fixing quality/date extraction
             ai_results = []
-            if self.ai_grouper:
-                try:
-                    ai_results = self.ai_grouper.group_files(all_files, rule_results)
-                    logger.info(f"AI found {len(ai_results)} groups")
-                except Exception as e:
-                    logger.warning(f"AI grouping failed (continuing without): {e}")
+            logger.info("AI grouping disabled - rule-based only")
+            # self.progress.emit(2, 5, "🤖 AI semantic grouping...")
+            # if self.ai_grouper:
+            #     try:
+            #         ai_results = self.ai_grouper.group_files(all_files, rule_results)
+            #         logger.info(f"AI found {len(ai_results)} groups")
+            #     except Exception as e:
+            #         logger.warning(f"AI grouping failed (continuing without): {e}")
             
             # Phase 4: Resolve placements
             self.progress.emit(3, 5, "🎯 Resolving placements...")
@@ -145,8 +146,11 @@ class OrganizeThread(QThread):
                     source = decision.file.path
                     target = decision.target
                     
-                    # Create target directory
-                    target.parent.mkdir(parents=True, exist_ok=True)
+                    # Create target directory only when needed
+                    created_dir = None
+                    if not target.parent.exists():
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        created_dir = target.parent
                     
                     # Handle conflicts
                     if target.exists():
@@ -174,6 +178,13 @@ class OrganizeThread(QThread):
                     failed += 1
                     failed_items.append((decision.file.name, str(e)))
                     logger.error(f"Failed to move {decision.file.name}: {e}")
+                    
+                    # Clean up empty folders created for this failed move
+                    try:
+                        if created_dir and created_dir.exists() and not any(created_dir.iterdir()):
+                            created_dir.rmdir()
+                    except Exception as cleanup_error:
+                        logger.warning(f"Failed to cleanup empty folder {created_dir}: {cleanup_error}")
             
             logger.info(f"Organization complete: {completed} succeeded, {failed} failed")
             
@@ -1254,21 +1265,22 @@ class MainWindow(QMainWindow):
             rule_results = self.rule_engine.classify_batch(all_files)
             logger.info(f"v2.0: Classified {len(rule_results)} files")
             
-            # Phase 3: AI Grouping
-            if hasattr(self, 'loading_dialog') and self.loading_dialog.isVisible():
-                self.loading_dialog.setLabelText(
-                    "🤖 AI Semantic Grouping...\n\n"
-                    "Finding related files...\n\n"
-                    "⏳ This may take a moment..."
-                )
-                QApplication.processEvents()
-            
+            # Phase 3: AI Grouping (DISABLED to prevent junk folders)
+            # TODO: Re-enable after fixing quality/date extraction
             self.current_ai_results = []
-            try:
-                self.current_ai_results = self.ai_grouper.group_files(all_files, rule_results)
-                logger.info(f"v2.0: AI found {len(self.current_ai_results)} groups")
-            except Exception as e:
-                logger.warning(f"AI grouping failed (continuing without): {e}")
+            logger.info("v2.0: AI grouping disabled - using rule-based only")
+            # if hasattr(self, 'loading_dialog') and self.loading_dialog.isVisible():
+            #     self.loading_dialog.setLabelText(
+            #         "🤖 AI Semantic Grouping...\n\n"
+            #         "Finding related files...\n\n"
+            #         "⏳ This may take a moment..."
+            #     )
+            #     QApplication.processEvents()
+            # try:
+            #     self.current_ai_results = self.ai_grouper.group_files(all_files, rule_results)
+            #     logger.info(f"v2.0: AI found {len(self.current_ai_results)} groups")
+            # except Exception as e:
+            #     logger.warning(f"AI grouping failed (continuing without): {e}")
             
             # Phase 4: Resolve placements
             if hasattr(self, 'loading_dialog') and self.loading_dialog.isVisible():
@@ -1768,6 +1780,44 @@ class MainWindow(QMainWindow):
         """Execute v2.0 smart organization."""
         if not self.current_folder or not self.current_preview:
             return
+        
+        # CRITICAL: Check for code files and show confirmation
+        code_extensions = {'.py', '.js', '.ts', '.jsx', '.tsx', '.vue', '.go', '.rs', '.java', '.cpp', '.c', '.h', '.cs', '.php', '.rb'}
+        code_files = []
+        
+        # Scan folder and immediate children for code files
+        try:
+            for item in self.current_folder.iterdir():
+                if item.is_file() and item.suffix.lower() in code_extensions:
+                    code_files.append(item)
+        except Exception as e:
+            logger.warning(f"Could not scan folder for code files: {e}")
+        
+        # Show warning if code files detected
+        if len(code_files) >= 3:
+            code_list = "<br>".join([f"• {f.name}" for f in code_files[:10]])
+            if len(code_files) > 10:
+                code_list += f"<br>• ... and {len(code_files) - 10} more"
+            
+            warning_reply = QMessageBox.warning(
+                self,
+                "⚠️ Code Files Detected",
+                f"<h2 style='color:#DC2626;'>⚠️ Warning: This folder contains code files</h2>"
+                f"<p style='font-size:14px; color:#1E3A8A;'>"
+                f"Found <b>{len(code_files)} code files</b> (.py, .js, .ts, etc.):<br><br>"
+                f"{code_list}<br><br>"
+                f"<b style='color:#DC2626;'>Organizing may break scripts or applications!</b><br><br>"
+                f"This folder appears to be a code project. Moving files may break import paths, "
+                f"relative references, or project structure.<br><br>"
+                f"<b>Continue only if you're sure this is safe.</b>"
+                f"</p>",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            
+            if warning_reply != QMessageBox.Yes:
+                self.statusBar().showMessage("❌ Organization cancelled by user")
+                return
         
         # Show stats
         ai_groups_info = f" • {len(self.current_ai_results)} AI Groups" if self.current_ai_results else ""

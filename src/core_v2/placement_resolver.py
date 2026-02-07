@@ -31,7 +31,7 @@ class PlacementConfig:
     
     # Anti-redundancy rules
     min_group_size: int = 5  # Minimum files per folder (Rule 2)
-    max_depth: int = 3       # Maximum folder depth (Rule 3)
+    max_depth: int = 2       # Maximum folder depth (Rule 3)
     merge_threshold: int = 3 # Merge folders with ≤ this many files (Rule 4)
     
     # Context awareness
@@ -148,14 +148,20 @@ class PlacementResolver:
         return placement_map
     
     def _build_target_path(self, result: RuleResult) -> Path:
-        """Build target path from classification result."""
+        """
+        Build target path from classification result.
+        
+        MAX DEPTH = 2 levels: Category/Subcategory only
+        Prevents junk like: Audio/Test/MP3/Jan-26/
+        """
         # Start with target root
         path = self.target_root
         
         # Add category
         path = path / result.category
         
-        # Add subcategory if different from category
+        # Add subcategory ONLY if different from category (MAX DEPTH enforced)
+        # This prevents: Documents/Documents/ or creating 3+ level nesting
         if result.subcategory and result.subcategory != result.category:
             path = path / result.subcategory
         
@@ -318,7 +324,7 @@ class PlacementResolver:
         """
         Rule 3: Depth Limit
         
-        Enforces maximum 3 levels deep from target root.
+        Enforces maximum 2 levels deep from target root.
         """
         logger.debug("Applying Rule 3: Depth Limit")
         
