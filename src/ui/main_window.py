@@ -284,10 +284,13 @@ class MainWindow(QMainWindow):
         self.ai_grouper = AIGrouper(AIGroupConfig(min_group_size=3))
         # PlacementResolver will be created per-folder (needs target_root)
         
-        # Keep legacy organizer for features not yet migrated
+        # Keep legacy organizer for features not yet migrated (duplicate scanner, etc.)
+        # Note: Organize tab now uses v2.0 pipeline, not this legacy organizer
         self.organizer = FileOrganizer(config.config)
-        self.ai_classifier = AIClassifier(config.config)
-        self.organizer.set_ai_classifier(self.ai_classifier)
+        
+        # Don't initialize v1 AIClassifier - we use v2 AIGrouper instead
+        # This speeds up startup by ~30 seconds and avoids model loading issues
+        self.ai_classifier = None  # Legacy - not used in v2.0 organize flow
         
         self.current_folder: Optional[Path] = None
         self.current_preview = []
