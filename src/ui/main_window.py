@@ -21,6 +21,13 @@ from PySide6.QtCore import Qt, QThread, Signal, QTimer, QFileInfo
 from PySide6.QtGui import QFont, QColor, QIcon, QPixmap, QAction
 
 try:
+    # v2.0 Pipeline Components
+    from ..core_v2.scanner import ScannerV2, ScanConfig
+    from ..core_v2.rule_engine import RuleEngine, RuleConfig
+    from ..core_v2.ai_grouper import AIGrouper, AIGroupConfig
+    from ..core_v2.placement_resolver import PlacementResolver, PlacementConfig
+    from ..core_v2.preview_builder import PreviewBuilderV2, PreviewConfig
+    # Legacy compatibility (for some features not yet migrated)
     from ..core import FileOrganizer
     from ..ai import AIClassifier
     from ..utils.config_manager import ConfigManager
@@ -32,6 +39,13 @@ try:
     from .search_dialog import SearchDialog
     from .compression_dialog import CompressionDialog
 except ImportError:
+    # v2.0 Pipeline Components
+    from core_v2.scanner import ScannerV2, ScanConfig
+    from core_v2.rule_engine import RuleEngine, RuleConfig
+    from core_v2.ai_grouper import AIGrouper, AIGroupConfig
+    from core_v2.placement_resolver import PlacementResolver, PlacementConfig
+    from core_v2.preview_builder import PreviewBuilderV2, PreviewConfig
+    # Legacy compatibility
     from core import FileOrganizer
     from ai import AIClassifier
     from utils.config_manager import ConfigManager
@@ -48,15 +62,18 @@ logger = logging.getLogger(__name__)
 
 
 class OrganizeThread(QThread):
-    """Background thread for organization operations."""
+    """Background thread for organization operations using v2.0 pipeline."""
     
     progress = Signal(int, int, str)  # current, total, status
     finished = Signal(dict)  # result
     error = Signal(str)  # error message
     
-    def __init__(self, organizer, folder_path, dry_run=False):
+    def __init__(self, scanner, rule_engine, ai_grouper, resolver, folder_path, dry_run=False):
         super().__init__()
-        self.organizer = organizer
+        self.scanner = scanner
+        self.rule_engine = rule_engine
+        self.ai_grouper = ai_grouper
+        self.resolver = resolver
         self.folder_path = folder_path
         self.dry_run = dry_run
     
@@ -67,14 +84,107 @@ class OrganizeThread(QThread):
         logger.debug(f"✅ THREAD: Signal emitted")
     
     def run(self):
+        """Run v2.0 pipeline and execute organization."""
         try:
-            result = self.organizer.organize_folder(
-                self.folder_path,
-                profile='downloads',
-                dry_run=self.dry_run,
-                progress_callback=self._progress_callback
+            logger.info(f"Starting v2.0 organization: {self.folder_path}")
+            
+            # Phase 1: Scan
+            self.progress.emit(0, 5, "📁 Scanning folder...")
+            root_node = self.scanner.scan_folder(Path(self.folder_path))
+            total_files = root_node.total_files
+            logger.info(f"Scanned {total_files} files")
+            
+            # Phase 2: Classify
+            self.progress.emit(1, 5, "🏷️ Classifying files...")
+            rule_results = self.rule_engine.classify_all(root_node.all_files)
+            logger.info(f"Classified {len(rule_results)} files")
+            
+            # Phase 3: AI Grouping
+            self.progress.emit(2, 5, "🤖 AI semantic grouping...")
+            ai_results = []
+            if self.ai_grouper:
+                try:
+                    ai_results = self.ai_grouper.group_files(root_node.all_files)
+                    logger.info(f"AI found {len(ai_results)} groups")
+                except Exception as e:
+                    logger.warning(f"AI grouping failed (continuing without): {e}")
+            
+            # Phase 4: Resolve placements
+            self.progress.emit(3, 5, "🎯 Resolving placements...")
+            decisions = self.resolver.resolve_placements(
+                root_node=root_node,
+                rule_results=rule_results,
+                ai_results=ai_results
             )
+            logger.info(f"Resolved {len(decisions)} placements")
+            
+            if self.dry_run:
+                # Dry run - just return stats
+                logger.info("Dry run complete, no files moved")
+                result = {
+                    'success': True,
+                    'dry_run': True,
+                    'total': len(decisions),
+                    'completed': len(decisions),
+                    'failed': 0,
+                    'failed_items': []
+                }
+                self.finished.emit(result)
+                return
+            
+            # Phase 5: Execute moves
+            self.progress.emit(4, 5, "✨ Moving files...")
+            completed = 0
+            failed = 0
+            failed_items = []
+            
+            for i, decision in enumerate(decisions):
+                try:
+                    source = decision.file.path
+                    target = decision.target
+                    
+                    # Create target directory
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Handle conflicts
+                    if target.exists():
+                        # Generate unique name
+                        stem = target.stem
+                        suffix = target.suffix
+                        counter = 1
+                        while target.exists():
+                            target = target.parent / f"{stem}_{counter}{suffix}"
+                            counter += 1
+                    
+                    # Move file
+                    import shutil
+                    shutil.move(str(source), str(target))
+                    completed += 1
+                    
+                    # Update progress
+                    self.progress.emit(
+                        i + 1,
+                        len(decisions),
+                        f"Moved {decision.file.name}"
+                    )
+                    
+                except Exception as e:
+                    failed += 1
+                    failed_items.append((decision.file.name, str(e)))
+                    logger.error(f"Failed to move {decision.file.name}: {e}")
+            
+            logger.info(f"Organization complete: {completed} succeeded, {failed} failed")
+            
+            result = {
+                'success': True,
+                'dry_run': False,
+                'total': len(decisions),
+                'completed': completed,
+                'failed': failed,
+                'failed_items': failed_items
+            }
             self.finished.emit(result)
+            
         except Exception as e:
             logger.error(f"Organization error: {e}", exc_info=True)
             self.error.emit(str(e))
@@ -167,15 +277,23 @@ class MainWindow(QMainWindow):
         self.config = config
         config.config['ai']['enabled'] = True
         
+        # Initialize v2.0 pipeline components
+        logger.info("Initializing v2.0 pipeline components...")
+        self.scanner = ScannerV2(ScanConfig(max_depth=10))
+        self.rule_engine = RuleEngine(RuleConfig())
+        self.ai_grouper = AIGrouper(AIGroupConfig(min_group_size=3))
+        # PlacementResolver will be created per-folder (needs target_root)
+        
+        # Keep legacy organizer for features not yet migrated
         self.organizer = FileOrganizer(config.config)
         self.ai_classifier = AIClassifier(config.config)
-        
-        # Connect AI classifier to organizer for semantic grouping
         self.organizer.set_ai_classifier(self.ai_classifier)
         
         self.current_folder: Optional[Path] = None
         self.current_preview = []
         self.current_stats = None
+        self.current_decisions = []  # v2.0 placement decisions
+        self.current_ai_results = []  # v2.0 AI groups
         self.organize_thread: Optional[OrganizeThread] = None
         # AI semantic grouping is ALWAYS enabled - no toggle needed
         
@@ -191,7 +309,7 @@ class MainWindow(QMainWindow):
         # Enable drag and drop
         self.setAcceptDrops(True)
         
-        logger.info("Main window initialized with blueish theme")
+        logger.info("Main window initialized with v2.0 pipeline and blueish theme")
     
     def _init_ui(self):
         """Initialize the modern blueish-themed user interface."""
@@ -1111,22 +1229,71 @@ class MainWindow(QMainWindow):
             error_msg.exec()
     
     def _run_preview_analysis(self, progress_dialog):
-        """Run preview analysis and update UI."""
+        """Run v2.0 preview analysis and update UI."""
         try:
-            # Define progress callback for preview phase
-            def preview_progress(current, total, status=""):
-                if hasattr(self, 'loading_dialog') and self.loading_dialog.isVisible():
-                    self.loading_dialog.setLabelText(f"{status}\n\n⏳ Please wait...")
-                    QApplication.processEvents()
-                # Also show in status overlay
-                if "Indexing" in status or "AI" in status:
-                    self._show_status_overlay(status)
+            # Phase 1: Scan folder
+            if hasattr(self, 'loading_dialog') and self.loading_dialog.isVisible():
+                self.loading_dialog.setLabelText("📁 Scanning folder...\n\nReading files and structure...")
+                QApplication.processEvents()
             
-            self.current_preview, self.current_stats = self.organizer.preview_organization(
-                self.current_folder,
-                profile='downloads',
-                progress_callback=preview_progress
+            root_node = self.scanner.scan_folder(self.current_folder)
+            logger.info(f"v2.0: Scanned {root_node.total_files} files")
+            
+            # Phase 2: Classify files
+            if hasattr(self, 'loading_dialog') and self.loading_dialog.isVisible():
+                self.loading_dialog.setLabelText("🏷️ Classifying files...\n\nApplying smart rules...")
+                QApplication.processEvents()
+            
+            rule_results = self.rule_engine.classify_all(root_node.all_files)
+            logger.info(f"v2.0: Classified {len(rule_results)} files")
+            
+            # Phase 3: AI Grouping
+            if hasattr(self, 'loading_dialog') and self.loading_dialog.isVisible():
+                self.loading_dialog.setLabelText(
+                    "🤖 AI Semantic Grouping...\n\n"
+                    "Finding related files...\n\n"
+                    "⏳ This may take a moment..."
+                )
+                QApplication.processEvents()
+            
+            self.current_ai_results = []
+            try:
+                self.current_ai_results = self.ai_grouper.group_files(root_node.all_files)
+                logger.info(f"v2.0: AI found {len(self.current_ai_results)} groups")
+            except Exception as e:
+                logger.warning(f"AI grouping failed (continuing without): {e}")
+            
+            # Phase 4: Resolve placements
+            if hasattr(self, 'loading_dialog') and self.loading_dialog.isVisible():
+                self.loading_dialog.setLabelText("🎯 Resolving placements...\n\nApplying anti-redundancy rules...")
+                QApplication.processEvents()
+            
+            resolver = PlacementResolver(
+                config=PlacementConfig(),
+                target_root=self.current_folder
             )
+            self.current_decisions = resolver.resolve_placements(
+                root_node=root_node,
+                rule_results=rule_results,
+                ai_results=self.current_ai_results
+            )
+            logger.info(f"v2.0: Resolved {len(self.current_decisions)} placements")
+            
+            # Phase 5: Build preview
+            if hasattr(self, 'loading_dialog') and self.loading_dialog.isVisible():
+                self.loading_dialog.setLabelText("📋 Building preview...\n\nGenerating visual preview...")
+                QApplication.processEvents()
+            
+            # Convert v2.0 decisions to legacy preview format for UI compatibility
+            self.current_preview = self._convert_decisions_to_preview(self.current_decisions)
+            
+            # Build stats
+            self.current_stats = {
+                'total_files': root_node.total_files,
+                'ai_groups': len(self.current_ai_results),
+                'safe_moves': sum(1 for d in self.current_decisions if d.safe),
+                'conflicts': sum(1 for d in self.current_decisions if d.has_conflicts)
+            }
             
             # Close loading dialog
             if hasattr(self, 'loading_dialog'):
@@ -1148,8 +1315,9 @@ class MainWindow(QMainWindow):
             self.compress_btn_tools.setEnabled(len(self.current_preview) > 0)
             
             # Update status message - AI is always active
+            ai_info = f" • 🤖 {len(self.current_ai_results)} AI Groups" if self.current_ai_results else ""
             self.statusBar().showMessage(
-                f"✅ Ready to organize {len(self.current_preview)} items • 🤖 AI Semantic Grouping Active"
+                f"✅ Ready to organize {len(self.current_preview)} items{ai_info}"
             )
             
         except Exception as e:
@@ -1162,37 +1330,41 @@ class MainWindow(QMainWindow):
             logger.error(f"Preview generation error: {e}", exc_info=True)
             
             error_msg = QMessageBox(self)
-            error_msg.setWindowTitle("❌ Analysis Error")
-            error_msg.setText(f"<h2 style='color:#DC2626;'>Failed to analyze folder</h2>")
+            error_msg.setWindowTitle("❌ Preview Error")
+            error_msg.setText(f"<h2 style='color:#DC2626;'>Failed to generate preview</h2>")
             error_msg.setInformativeText(
                 f"<p style='font-size:14px; color:#1E3A8A;'><b>Error:</b> {str(e)}</p>"
             )
             ThemeHelper.style_message_box(error_msg, 'error')
             error_msg.setStandardButtons(QMessageBox.Ok)
-            error_msg.setStyleSheet("""
-                QMessageBox {
-                    background-color: #F0F9FF;
-                }
-                QLabel {
-                    font-size: 14px;
-                    min-width: 400px;
-                    color: #1E3A8A;
-                }
-                QPushButton {
-                    background-color: #3B82F6;
-                    color: white;
-                    padding: 8px 20px;
-                    border-radius: 6px;
-                    font-size: 13px;
-                    min-width: 80px;
-                }
-                QPushButton:hover {
-                    background-color: #2563EB;
-                }
-            """)
-            error_msg.exec_()
-        finally:
+            error_msg.exec()
+            
             self.browse_btn.setEnabled(True)
+    
+    def _convert_decisions_to_preview(self, decisions):
+        """Convert v2.0 PlacementDecision objects to legacy preview format for UI."""
+        preview = []
+        for decision in decisions:
+            # Find AI group name if exists
+            ai_group = ""
+            for ai_result in self.current_ai_results:
+                if decision.file in [ai_result.file] + ai_result.similar_files:
+                    ai_group = ai_result.group_name
+                    break
+            
+            preview.append({
+                'source': decision.file.path,
+                'target': decision.target,
+                'action': 'move',
+                'category': decision.source.value if hasattr(decision.source, 'value') else str(decision.source),
+                'ai_group': ai_group,
+                'original_name': decision.file.name,
+                'suggested_name': decision.file.name,  # v2.0 doesn't rename
+                'size': decision.file.size,
+                'status': 'safe' if decision.safe else 'conflict'
+            })
+        
+        return preview
     
     def _scan_duplicates(self):
         """Scan for duplicate files in selected folder."""
@@ -1586,15 +1758,25 @@ class MainWindow(QMainWindow):
             )
     
     def _organize_folder(self):
-        """Execute smart organization."""
+        """Execute v2.0 smart organization."""
         if not self.current_folder or not self.current_preview:
             return
+        
+        # Show stats
+        ai_groups_info = f" • {len(self.current_ai_results)} AI Groups" if self.current_ai_results else ""
+        safe_count = self.current_stats.get('safe_moves', 0)
+        conflict_count = self.current_stats.get('conflicts', 0)
+        
+        conflict_warning = ""
+        if conflict_count > 0:
+            conflict_warning = f"<br><span style='color:#DC2626;'>⚠️ {conflict_count} files have conflicts (will be renamed)</span>"
         
         reply = QMessageBox.question(
             self,
             "✨ Confirm Smart Organization",
             f"<b style='color:#1E3A8A;'>Smart Organize {len(self.current_preview)} items?</b><br><br>"
-            f"<span style='color:#3B82F6;'>Multi-level organization: Category → AI Group → Type</span><br>"
+            f"<span style='color:#3B82F6;'>✅ {safe_count} safe moves{ai_groups_info}</span>"
+            f"{conflict_warning}<br><br>"
             f"<span style='color:#059669;'><i>You can undo this anytime.</i></span>",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
@@ -1607,10 +1789,19 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, len(self.current_preview))
         self.progress_bar.setValue(0)
-        self.statusBar().showMessage("🚀 Organizing with multi-level sorting...")
+        self.statusBar().showMessage("🚀 Organizing with v2.0 pipeline...")
+        
+        # Create resolver for this folder
+        resolver = PlacementResolver(
+            config=PlacementConfig(),
+            target_root=self.current_folder
+        )
         
         self.organize_thread = OrganizeThread(
-            self.organizer,
+            self.scanner,
+            self.rule_engine,
+            self.ai_grouper,
+            resolver,
             self.current_folder,
             dry_run=False
         )
