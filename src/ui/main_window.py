@@ -90,7 +90,8 @@ class OrganizeThread(QThread):
             
             # Phase 1: Scan
             self.progress.emit(0, 5, "📁 Scanning folder...")
-            root_node = self.scanner.scan(Path(self.folder_path)            all_files = root_node.iter_files()
+            root_node = self.scanner.scan(Path(self.folder_path))
+            all_files = root_node.iter_files()
             total_files = len(all_files)
             logger.info(f"Scanned {total_files} files")
             
@@ -152,15 +153,18 @@ class OrganizeThread(QThread):
                         target.parent.mkdir(parents=True, exist_ok=True)
                         created_dir = target.parent
                     
-                    # Handle conflicts
+                    # Handle conflicts - SKIP duplicates instead of renaming
                     if target.exists():
-                        # Generate unique name
-                        stem = target.stem
-                        suffix = target.suffix
-                        counter = 1
-                        while target.exists():
-                            target = target.parent / f"{stem}_{counter}{suffix}"
-                            counter += 1
+                        logger.info(f"Skipped duplicate: {decision.file.name} (already exists at target)")
+                        completed += 1  # Count as completed (no error)
+                        
+                        # Update progress
+                        self.progress.emit(
+                            i + 1,
+                            len(decisions),
+                            f"Skipped {decision.file.name} (duplicate)"
+                        )
+                        continue
                     
                     # Move file
                     import shutil
