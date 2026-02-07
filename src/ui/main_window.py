@@ -22,8 +22,8 @@ from PySide6.QtGui import QFont, QColor, QIcon, QPixmap, QAction
 
 try:
     # v2.0 Pipeline Components
-    from ..core_v2.scanner import ScannerV2, ScanConfig
-    from ..core_v2.rule_engine import RuleEngine, RuleConfig
+    from ..core_v2.scanner import DeepScanner
+    from ..core_v2.rule_engine import RuleEngine
     from ..core_v2.ai_grouper import AIGrouper, AIGroupConfig
     from ..core_v2.placement_resolver import PlacementResolver, PlacementConfig
     from ..core_v2.preview_builder import PreviewBuilderV2, PreviewConfig
@@ -40,8 +40,8 @@ try:
     from .compression_dialog import CompressionDialog
 except ImportError:
     # v2.0 Pipeline Components
-    from core_v2.scanner import ScannerV2, ScanConfig
-    from core_v2.rule_engine import RuleEngine, RuleConfig
+    from core_v2.scanner import DeepScanner
+    from core_v2.rule_engine import RuleEngine
     from core_v2.ai_grouper import AIGrouper, AIGroupConfig
     from core_v2.placement_resolver import PlacementResolver, PlacementConfig
     from core_v2.preview_builder import PreviewBuilderV2, PreviewConfig
@@ -279,8 +279,8 @@ class MainWindow(QMainWindow):
         
         # Initialize v2.0 pipeline components
         logger.info("Initializing v2.0 pipeline components...")
-        self.scanner = ScannerV2(ScanConfig(max_depth=10))
-        self.rule_engine = RuleEngine(RuleConfig())
+        self.scanner = DeepScanner(max_depth=10)
+        self.rule_engine = RuleEngine()
         self.ai_grouper = AIGrouper(AIGroupConfig(min_group_size=3))
         # PlacementResolver will be created per-folder (needs target_root)
         
