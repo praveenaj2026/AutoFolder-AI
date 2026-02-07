@@ -92,10 +92,14 @@ class AIGrouper:
         
         try:
             logger.info("Loading sentence transformer model...")
-            self.model = SentenceTransformer('all-MiniLM-L6-v2')
+            
+            # Use default cache (same as v1 behavior with sentence-transformers)
+            # The model will be loaded from ~/.cache/huggingface/ or similar
+            self.model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
             logger.info("Model loaded successfully")
         except Exception as e:
             logger.error(f"Failed to load model: {e}")
+            logger.warning("AI grouping will be disabled - continuing without AI")
             self.model = None
     
     def group_files(
