@@ -206,15 +206,15 @@ class ContextBuilder:
                     context.implies_category = self._infer_category_from_subcategory(subcategory)
                 break
         
-        # Check if folder name is an extension (e.g., "MP3", "PDF")
+        # Check if folder name is an extension (e.g., ".pdf", ".mp3")
+        # Only set implies_extension if folder is EXACTLY an extension (with dot)
+        # Don't conflate subcategory names (PDF) with extension names (.pdf)
         if name_lower.startswith("."):
             context.implies_extension = name_lower
-        else:
-            # Check for extension without dot
-            potential_ext = f".{name_lower}"
-            if potential_ext in self._extension_subcategory_map:
-                context.implies_extension = potential_ext
-                if not context.implies_subcategory:
+            # If not already set, try to infer subcategory from extension
+            if not context.implies_subcategory:
+                potential_ext = name_lower
+                if potential_ext in self._extension_subcategory_map:
                     context.implies_subcategory = self._extension_subcategory_map[potential_ext]
     
     def _analyze_contents(self, context: FolderContext, folder_node: FileNode):
@@ -269,12 +269,17 @@ class ContextBuilder:
         Check if placing file in parent would create redundant nesting.
         
         Examples of redundancy:
-        - File: song.mp3, Parent: "MP3" folder → redundant
-        - File: report.pdf, Parent: "PDF" folder → redundant
-        - File: script.py, Parent: "Python" folder → redundant
+        - Audio/MP3/ for MP3 files → redundant (format-specific subcategory)
+        - Images/JPEG/ for JPEG files → redundant (format-specific subcategory)
+        - Videos/MP4/ for MP4 files → redundant (format-specific subcategory)
+        
+        NOT redundant:
+        - Documents/PDF/ for PDF files → NOT redundant (meaningful subdivision)
+        - Code/Python/ for Python files → NOT redundant (language-specific)
+        - Software/Installers/ → NOT redundant (purpose-based)
         
         Args:
-            parent_context: Context of parent folder
+            parent_context: Context of parent folder (should be category folder)
             rule_result: Classification of file
             
         Returns:
@@ -307,6 +312,21 @@ class ContextBuilder:
                     f"'{file_ext}' files"
                 )
                 return True
+        
+        # Special check: Format-specific categories don't need format subdirectories
+        # Audio/MP3/, Images/JPEG/, Videos/MP4/ are redundant
+        # But Documents/PDF/, Code/Python/ are meaningful subdivisions
+        format_specific_categories = {"Audio", "Images", "Videos", "Archives"}
+        
+        if (parent_context.implies_category in format_specific_categories and
+            rule_result.category == parent_context.implies_category):
+            # This is a format-specific category (like Audio), and we're adding
+            # a format subdirectory (like MP3). This is redundant.
+            logger.debug(
+                f"Redundancy detected: '{rule_result.category}/{rule_result.subcategory}/' "
+                f"is redundant (format-specific category)"
+            )
+            return True
         
         return False
     
