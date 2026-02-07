@@ -160,7 +160,7 @@ class PlacementResolver:
             path = path / result.subcategory
         
         # Add filename
-        path = path / result.file.path.name
+        path = path / result.file.name
         
         return path
     
