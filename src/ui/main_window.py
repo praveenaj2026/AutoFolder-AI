@@ -1950,26 +1950,26 @@ class MainWindow(QMainWindow):
             self._set_controls_enabled(True)
             
             if result.get('success', False):
-            msg = QMessageBox(self)
-            msg.setIcon(QMessageBox.Information)
-            msg.setWindowTitle("✅ Success!")
-            msg.setText(
-                f"<h3 style='color:#059669;'>Successfully organized {result['completed']} items!</h3>"
-                f"<p style='color:#1E3A8A;'>Multi-level organization complete (including subfolders).</p>"
-                f"<p style='color:#3B82F6;'><i>Click 'Undo Last' if you want to revert.</i></p>"
-            )
-            ThemeHelper.style_message_box(msg)
-            msg.exec_()
-            
-            self.undo_btn.setEnabled(result.get('can_undo', False))
-            self.statusBar().showMessage(
-                f"✅ Organization complete: {result.get('completed', 0)} items organized!"
-            )
-            
-            self.current_preview = []
-            self.preview_table.setRowCount(0)
-            self.organize_btn.setEnabled(False)
-            self.info_label.setText("🎉 Organization complete! Browse another folder to continue.")
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Information)
+                msg.setWindowTitle("✅ Success!")
+                msg.setText(
+                    f"<h3 style='color:#059669;'>Successfully organized {result['completed']} items!</h3>"
+                    f"<p style='color:#1E3A8A;'>Multi-level organization complete (including subfolders).</p>"
+                    f"<p style='color:#3B82F6;'><i>Click 'Undo Last' if you want to revert.</i></p>"
+                )
+                ThemeHelper.style_message_box(msg)
+                msg.exec_()
+                
+                self.undo_btn.setEnabled(result.get('can_undo', False))
+                self.statusBar().showMessage(
+                    f"✅ Organization complete: {result.get('completed', 0)} items organized!"
+                )
+                
+                self.current_preview = []
+                self.preview_table.setRowCount(0)
+                self.organize_btn.setEnabled(False)
+                self.info_label.setText("🎉 Organization complete! Browse another folder to continue.")
         except Exception as e:
             logger.error(f"Error in _on_organize_finished: {e}", exc_info=True)
             QMessageBox.critical(self, "Error", f"Error updating UI after organization: {e}")
