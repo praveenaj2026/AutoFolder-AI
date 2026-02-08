@@ -1137,7 +1137,7 @@ class MainWindow(QMainWindow):
             # Show loading dialog IMMEDIATELY before any processing
             self.loading_dialog = QProgressDialog(
                 "⏳ Preparing to analyze folder...\n\nScanning files and folders...\n\nPlease wait, this may take a moment for large folders.",
-                None,
+                "",  # Empty string instead of None for cancelButtonText
                 0,
                 0,  # Indeterminate mode (0-0 = animated)
                 self
@@ -1261,6 +1261,8 @@ class MainWindow(QMainWindow):
                 self.loading_dialog.setLabelText("📁 Scanning folder...\n\nReading files and structure...")
                 QApplication.processEvents()
             
+            if not self.current_folder:
+                raise ValueError("No folder selected for scanning")
             root_node = self.scanner.scan(self.current_folder)
             all_files = root_node.iter_files()
             logger.info(f"v2.0: Scanned {len(all_files)} files")
@@ -1295,6 +1297,8 @@ class MainWindow(QMainWindow):
                 self.loading_dialog.setLabelText("🎯 Resolving placements...\n\nApplying anti-redundancy rules...")
                 QApplication.processEvents()
             
+            if not self.current_folder:
+                raise ValueError("No folder selected for placement resolution")
             resolver = PlacementResolver(
                 config=PlacementConfig(),
                 target_root=self.current_folder
@@ -1507,7 +1511,7 @@ class MainWindow(QMainWindow):
             # Show progress
             progress = QProgressDialog(
                 f"Processing {stats['total_duplicate_files']} duplicate files...",
-                None,
+                "",  # Empty string instead of None
                 0,
                 0,
                 self
@@ -2079,7 +2083,7 @@ class MainWindow(QMainWindow):
                 f"⏳ Undoing organization...\n\n"
                 f"Restoring {file_count} files to original locations...\n\n"
                 f"⏳ Please wait...",
-                None,  # No cancel button
+                "",  # Empty string for no cancel button
                 0, 0,  # Indeterminate progress
                 self
             )
@@ -2243,11 +2247,12 @@ class MainWindow(QMainWindow):
     
     def _format_size(self, size_bytes: int) -> str:
         """Format file size for display."""
+        size: float = float(size_bytes)  # Ensure we work with float for division
         for unit in ['B', 'KB', 'MB', 'GB']:
-            if size_bytes < 1024.0:
-                return f"{size_bytes:.1f} {unit}"
-            size_bytes /= 1024.0
-        return f"{size_bytes:.1f} TB"
+            if size < 1024.0:
+                return f"{size:.1f} {unit}"
+            size /= 1024.0
+        return f"{size:.1f} TB"
     
     def _open_ai_group_editor(self):
         """Open AI Group Editor dialog."""
