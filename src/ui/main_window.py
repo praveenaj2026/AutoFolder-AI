@@ -144,12 +144,22 @@ class OrganizeThread(QThread):
             
             for i, decision in enumerate(decisions):
                 try:
+                    logger.debug(f"🔹 Processing file {i+1}/{len(decisions)}: {decision.file.name}")
                     source = decision.file.path
                     target = decision.target
+                    
+                    # Validate source and target
+                    if not source.exists():
+                        logger.error(f"Source file no longer exists: {source}")
+                        failed += 1
+                        failed_items.append((decision.file.name, "Source file not found"))
+                        self.progress.emit(i + 1, len(decisions), f"Failed {decision.file.name} (not found)")
+                        continue
                     
                     # Create target directory only when needed
                     created_dir = None
                     if not target.parent.exists():
+                        logger.debug(f"Creating directory: {target.parent}")
                         target.parent.mkdir(parents=True, exist_ok=True)
                         created_dir = target.parent
                     
@@ -166,24 +176,42 @@ class OrganizeThread(QThread):
                         )
                         continue
                     
-                    # Move file
+                    # Move file with extra safety
                     import shutil
                     logger.info(f"Moving: {source} -> {target}")
-                    shutil.move(str(source), str(target))
-                    logger.info(f"Moved successfully: {decision.file.name}")
-                    completed += 1
                     
-                    # Update progress
-                    self.progress.emit(
-                        i + 1,
-                        len(decisions),
-                        f"Moved {decision.file.name}"
-                    )
+                    try:
+                        shutil.move(str(source), str(target))
+                        logger.info(f"Moved successfully: {decision.file.name}")
+                        completed += 1
+                        
+                        # Update progress
+                        self.progress.emit(
+                            i + 1,
+                            len(decisions),
+                            f"Moved {decision.file.name}"
+                        )
+                    except PermissionError as pe:
+                        logger.error(f"Permission denied moving {decision.file.name}: {pe}")
+                        failed += 1
+                        failed_items.append((decision.file.name, f"Permission denied: {pe}"))
+                        self.progress.emit(i + 1, len(decisions), f"Failed {decision.file.name} (permission denied)")
+                    except OSError as oe:
+                        logger.error(f"OS error moving {decision.file.name}: {oe}")
+                        failed += 1
+                        failed_items.append((decision.file.name, f"OS error: {oe}"))
+                        self.progress.emit(i + 1, len(decisions), f"Failed {decision.file.name} (OS error)")
                     
                 except Exception as e:
                     failed += 1
                     failed_items.append((decision.file.name, str(e)))
-                    logger.error(f"Failed to move {decision.file.name}: {e}")
+                    logger.error(f"Failed to move {decision.file.name}: {e}", exc_info=True)
+                    
+                    # Update progress even on error
+                    try:
+                        self.progress.emit(i + 1, len(decisions), f"Failed {decision.file.name}")
+                    except:
+                        pass
                     
                     # Clean up empty folders created for this failed move
                     try:
