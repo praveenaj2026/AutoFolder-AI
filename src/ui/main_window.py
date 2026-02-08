@@ -2298,14 +2298,16 @@ class MainWindow(QMainWindow):
             for group_name, file_paths in ai_groups.items():
                 ai_groups_paths[group_name] = [Path(p) for p in file_paths]
             
-            dialog = AIGroupEditor(ai_groups_paths, self)
-            if dialog.exec_():
-                updated_groups = dialog.get_updated_groups()
-                # Convert back to strings and store in organizer
-                self.organizer.semantic_groups = {}
-                for group_name, file_paths in updated_groups.items():
-                    self.organizer.semantic_groups[group_name] = [str(p) for p in file_paths]
-                self.statusBar().showMessage("✅ AI groups updated successfully")
+            # TODO: Re-enable when AIGroupEditor is implemented
+            # dialog = AIGroupEditor(ai_groups_paths, self)
+            # if dialog.exec_():
+            #     updated_groups = dialog.get_updated_groups()
+            #     # Convert back to strings and store in organizer
+            #     self.organizer.semantic_groups = {}
+            #     for group_name, file_paths in updated_groups.items():
+            #         self.organizer.semantic_groups[group_name] = [str(p) for p in file_paths]
+            #     self.statusBar().showMessage("✅ AI groups updated successfully")
+            QMessageBox.information(self, "Feature Not Available", "AI Group Editor is not yet implemented in v2.0")
         except Exception as e:
             logger.error(f"Error opening AI Group Editor: {e}", exc_info=True)
             QMessageBox.critical(
@@ -2342,11 +2344,12 @@ class MainWindow(QMainWindow):
         """Open scheduler settings dialog."""
         logger.info("Schedule button clicked - opening settings dialog")
         try:
-            # Pass config.config dict instead of ConfigManager object
-            dialog = ScheduleSettingsDialog(self.config.config, self)
-            if dialog.exec_():
-                self.statusBar().showMessage("✅ Schedule settings saved")
-                logger.info("Schedule settings saved successfully")
+            # TODO: Re-enable when ScheduleSettingsDialog is implemented
+            # dialog = ScheduleSettingsDialog(self.config.config, self)
+            # if dialog.exec_():
+            #     self.statusBar().showMessage("✅ Schedule settings saved")
+            #     logger.info("Schedule settings saved successfully")
+            QMessageBox.information(self, "Feature Not Available", "Schedule settings are not yet implemented in v2.0")
         except Exception as e:
             logger.error(f"Error opening scheduler settings: {e}", exc_info=True)
             error_msg = QMessageBox(self)

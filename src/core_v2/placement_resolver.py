@@ -20,7 +20,7 @@ from collections import Counter, defaultdict
 
 from .models import FileNode, RootInfo, RuleResult, AIResult, PlacementDecision, DecisionSource
 from .root_detector import RootDetector
-from .context_builder import ContextBuilder
+from .context_builder import ContextBuilder, FolderContext
 
 logger = logging.getLogger(__name__)
 
@@ -537,20 +537,6 @@ class PlacementResolver:
                 validated.append(group[0])
         
         return validated
-    
-    def _get_root_name(self, file_node: FileNode) -> str:
-        """Get the name of the protected root containing this file."""
-        if not self._protected_roots:
-            return "Unknown"
-        
-        for root_info in self._protected_roots:
-            try:
-                file_node.path.relative_to(root_info.path)
-                return f"{root_info.root_type.value}: {root_info.path.name}"
-            except ValueError:
-                continue
-        
-        return "Unknown"
 
 
 # Convenience function
