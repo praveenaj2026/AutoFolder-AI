@@ -847,7 +847,9 @@ class MainWindow(QMainWindow):
     def _update_content_analysis_status(self):
         """Update the content analysis status label based on AI classifier status."""
         try:
-            if hasattr(self, 'organizer') and hasattr(self.organizer, 'ai_classifier'):
+            if (hasattr(self, 'organizer') and 
+                hasattr(self.organizer, 'ai_classifier') and 
+                self.organizer.ai_classifier is not None):
                 status = self.organizer.ai_classifier.get_status()
                 content_status = status.get('content_analysis', {})
                 
@@ -1825,8 +1827,8 @@ class MainWindow(QMainWindow):
         
         # Show stats
         ai_groups_info = f" • {len(self.current_ai_results)} AI Groups" if self.current_ai_results else ""
-        safe_count = self.current_stats.get('safe_moves', 0)
-        conflict_count = self.current_stats.get('conflicts', 0)
+        safe_count = self.current_stats.get('safe_moves', 0) if self.current_stats else 0
+        conflict_count = self.current_stats.get('conflicts', 0) if self.current_stats else 0
         
         conflict_warning = ""
         if conflict_count > 0:
@@ -2060,6 +2062,9 @@ class MainWindow(QMainWindow):
                 return
             
             last_operation = undo_manager.get_last_operation()
+            if not last_operation:
+                QMessageBox.warning(self, "Undo Failed", "No operation to undo.")
+                return
             file_count = len(last_operation.get('operations', []))
             
             # Show progress dialog IMMEDIATELY BEFORE undo starts
