@@ -168,7 +168,9 @@ class OrganizeThread(QThread):
                     
                     # Move file
                     import shutil
+                    logger.info(f"Moving: {source} -> {target}")
                     shutil.move(str(source), str(target))
+                    logger.info(f"Moved successfully: {decision.file.name}")
                     completed += 1
                     
                     # Update progress
