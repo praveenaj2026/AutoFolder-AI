@@ -1941,11 +1941,13 @@ class MainWindow(QMainWindow):
     
     def _on_organize_finished(self, result):
         """Handle organization completion with popup."""
-        self.status_overlay.setVisible(False)  # Hide overlay
-        self.progress_bar.setVisible(False)
-        self._set_controls_enabled(True)
-        
-        if result['success']:
+        try:
+            logger.info(f"Organization finished callback received: {result.get('completed', 0)} completed, {result.get('failed', 0)} failed")
+            self.status_overlay.setVisible(False)  # Hide overlay
+            self.progress_bar.setVisible(False)
+            self._set_controls_enabled(True)
+            
+            if result.get('success', False):
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Information)
             msg.setWindowTitle("✅ Success!")
@@ -1957,15 +1959,18 @@ class MainWindow(QMainWindow):
             ThemeHelper.style_message_box(msg)
             msg.exec_()
             
-            self.undo_btn.setEnabled(result['can_undo'])
+            self.undo_btn.setEnabled(result.get('can_undo', False))
             self.statusBar().showMessage(
-                f"✅ Organization complete: {result['completed']} items organized!"
+                f"✅ Organization complete: {result.get('completed', 0)} items organized!"
             )
             
             self.current_preview = []
             self.preview_table.setRowCount(0)
             self.organize_btn.setEnabled(False)
             self.info_label.setText("🎉 Organization complete! Browse another folder to continue.")
+        except Exception as e:
+            logger.error(f"Error in _on_organize_finished: {e}", exc_info=True)
+            QMessageBox.critical(self, "Error", f"Error updating UI after organization: {e}")
             self.info_label.setStyleSheet("""
                 QLabel {
                     color: #1E40AF;
